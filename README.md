@@ -34,12 +34,12 @@ npm run db:types    # régénère les types TypeScript depuis le schéma
 
 Comptes du jeu de données — mot de passe `password123` :
 
-| Rôle | Email |
-|---|---|
-| owner | `owner@apex.test` |
-| admin | `admin@apex.test` |
-| coach A | `coach.a@apex.test` |
-| coach B | `coach.b@apex.test` |
+| Rôle     | Email                |
+| -------- | -------------------- |
+| owner    | `owner@apex.test`    |
+| admin    | `admin@apex.test`    |
+| coach A  | `coach.a@apex.test`  |
+| coach B  | `coach.b@apex.test`  |
 | branding | `branding@apex.test` |
 | client A | `client.a@apex.test` |
 | client B | `client.b@apex.test` |

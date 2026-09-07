@@ -9,20 +9,20 @@ les outils de travail interne de l'équipe.**
 
 ## Dans le périmètre
 
-| Besoin exprimé | Traitement |
-|---|---|
-| Un seul lien pour les réseaux sociaux | Page d'entrée unique avec traçage de source |
-| Qualification + paiement au même endroit | Tunnel intégré au site, un seul funnel |
-| Suppression des funnels redondants | Une offre = une fiche, un seul tunnel |
-| CRM prospects et clients | Back-office, cœur du projet |
-| Suivi RDV, offres, paiements | Back-office |
-| Droits d'accès par rôle | RLS Supabase, 5 rôles |
-| Planning des sessions live | Back-office + espace client |
-| Accès aux replays | Espace client, lecteur intégré |
-| Suivi individuel des clients par les coachs | Fiche client + notes de suivi |
-| Attribution automatique des accès Discord | Bot, synchronisé sur les paiements |
-| Migration des données existantes | Phase dédiée |
-| Facturation | Génération automatique, numérotation continue |
+| Besoin exprimé                              | Traitement                                    |
+| ------------------------------------------- | --------------------------------------------- |
+| Un seul lien pour les réseaux sociaux       | Page d'entrée unique avec traçage de source   |
+| Qualification + paiement au même endroit    | Tunnel intégré au site, un seul funnel        |
+| Suppression des funnels redondants          | Une offre = une fiche, un seul tunnel         |
+| CRM prospects et clients                    | Back-office, cœur du projet                   |
+| Suivi RDV, offres, paiements                | Back-office                                   |
+| Droits d'accès par rôle                     | RLS Supabase, 5 rôles                         |
+| Planning des sessions live                  | Back-office + espace client                   |
+| Accès aux replays                           | Espace client, lecteur intégré                |
+| Suivi individuel des clients par les coachs | Fiche client + notes de suivi                 |
+| Attribution automatique des accès Discord   | Bot, synchronisé sur les paiements            |
+| Migration des données existantes            | Phase dédiée                                  |
+| Facturation                                 | Génération automatique, numérotation continue |
 
 ## Hors périmètre — à faire avec des outils existants
 
@@ -60,13 +60,13 @@ se construira sur une base saine.
 Les cours étant en live, les enregistrements sont ce que le client consulte entre deux
 sessions. C'est donc un actif central, et personne ne l'a encore décidé.
 
-| Option | Coût indicatif | Points d'attention |
-|---|---|---|
-| YouTube non répertorié | Gratuit | Aucun contrôle d'accès réel — un lien qui fuite est un cours offert |
-| Vimeo | ~20-75 €/mois | Restriction par domaine, correct, ergonomie datée |
-| Cloudflare Stream | ~5 $/1000 min stockées + lecture | Bon rapport qualité/prix, signature d'URL |
-| Mux | À l'usage, plus cher | Meilleure qualité, analytics fines |
-| Bunny Stream | Très bon marché | Sérieux, moins connu |
+| Option                 | Coût indicatif                   | Points d'attention                                                  |
+| ---------------------- | -------------------------------- | ------------------------------------------------------------------- |
+| YouTube non répertorié | Gratuit                          | Aucun contrôle d'accès réel — un lien qui fuite est un cours offert |
+| Vimeo                  | ~20-75 €/mois                    | Restriction par domaine, correct, ergonomie datée                   |
+| Cloudflare Stream      | ~5 $/1000 min stockées + lecture | Bon rapport qualité/prix, signature d'URL                           |
+| Mux                    | À l'usage, plus cher             | Meilleure qualité, analytics fines                                  |
+| Bunny Stream           | Très bon marché                  | Sérieux, moins connu                                                |
 
 Le critère décisif n'est pas le prix mais **le contrôle d'accès** : il faut des URL signées à
 durée limitée, générées côté serveur après vérification de l'inscription. Sinon un client
@@ -79,13 +79,13 @@ information qu'il faut leur demander.
 
 Les quatre rôles internes évoqués (coach, branding, admin, dev) donnent, avec le client :
 
-| Rôle | Périmètre |
-|---|---|
-| `client` | Ses données, son planning, ses replays, sa facturation |
-| `coach` | Ses cohortes uniquement : clients, sessions, présences, notes de suivi |
-| `branding` | Accès minimal : statistiques de conversion, liens et visuels du site |
-| `admin` | CRM complet, paiements, remboursements, catalogue, documents |
-| `owner` | Tout, plus la gestion des rôles et l'audit |
+| Rôle       | Périmètre                                                              |
+| ---------- | ---------------------------------------------------------------------- |
+| `client`   | Ses données, son planning, ses replays, sa facturation                 |
+| `coach`    | Ses cohortes uniquement : clients, sessions, présences, notes de suivi |
+| `branding` | Accès minimal : statistiques de conversion, liens et visuels du site   |
+| `admin`    | CRM complet, paiements, remboursements, catalogue, documents           |
+| `owner`    | Tout, plus la gestion des rôles et l'audit                             |
 
 **Le rôle `branding` a très peu à faire dans la plateforme** — son travail est en dehors. Ne
 lui construisez pas un espace dédié : un accès en lecture aux statistiques suffit largement.
@@ -99,15 +99,15 @@ Supabase, qui sont hors du modèle de rôles applicatif.
 
 ## Ordre de construction révisé
 
-| Phase | Contenu | Estimation |
-|---|---|---|
-| 1 | Fondations : repo, CI, schéma, auth, RLS, webhook Cal.com | 1,5 sem |
-| 2 | Back-office : CRM, fiches clients, rôles, logs | 3 sem |
-| 3 | Paiement : abstraction, Stripe, PayPal, factures, remboursements | 2 sem |
-| 4 | Discord : bot, liaison de compte, synchronisation des rôles | 1 sem |
-| 5 | Sessions et replays : planning, présences, lecteur sécurisé | 1,5 sem |
-| 6 | Site public et tunnel | 2 sem |
-| 7 | Migration des données, recette, mise en production | 1,5 sem |
+| Phase | Contenu                                                          | Estimation |
+| ----- | ---------------------------------------------------------------- | ---------- |
+| 1     | Fondations : repo, CI, schéma, auth, RLS, webhook Cal.com        | 1,5 sem    |
+| 2     | Back-office : CRM, fiches clients, rôles, logs                   | 3 sem      |
+| 3     | Paiement : abstraction, Stripe, PayPal, factures, remboursements | 2 sem      |
+| 4     | Discord : bot, liaison de compte, synchronisation des rôles      | 1 sem      |
+| 5     | Sessions et replays : planning, présences, lecteur sécurisé      | 1,5 sem    |
+| 6     | Site public et tunnel                                            | 2 sem      |
+| 7     | Migration des données, recette, mise en production               | 1,5 sem    |
 
 Soit environ 12,5 semaines, contre 9-10 estimées initialement. L'écart vient du bot Discord
 devenu critique et des replays qui n'étaient pas au périmètre.

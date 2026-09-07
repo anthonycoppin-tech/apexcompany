@@ -81,20 +81,20 @@ active. Ne jamais exposer d'URL de fichier directe.
 
 ## Matrice d'accès
 
-| Section | Client | Coach | Branding | Admin | Owner |
-|---|:--:|:--:|:--:|:--:|:--:|
-| Espace client (ses données) | ✓ | — | — | — | — |
-| CRM leads | — | — | — | ✓ | ✓ |
-| Fiches clients | — | sa cohorte | — | ✓ | ✓ |
-| Notes de suivi | lecture (les siennes) | sa cohorte | — | ✓ | ✓ |
-| Sessions et présences | — | ses sessions | — | ✓ | ✓ |
-| Dépôt de replays | — | ses sessions | — | ✓ | ✓ |
-| Catalogue et tarifs | — | lecture | lecture | ✓ | ✓ |
-| Paiements | ses factures | — | — | ✓ | ✓ |
-| Remboursements | — | — | — | ✓ | ✓ |
-| Statistiques de conversion | — | — | lecture | ✓ | ✓ |
-| Gestion des rôles | — | — | — | — | ✓ |
-| Logs et audit | — | — | — | ✓ | ✓ |
+| Section                     |        Client         |    Coach     | Branding | Admin | Owner |
+| --------------------------- | :-------------------: | :----------: | :------: | :---: | :---: |
+| Espace client (ses données) |           ✓           |      —       |    —     |   —   |   —   |
+| CRM leads                   |           —           |      —       |    —     |   ✓   |   ✓   |
+| Fiches clients              |           —           |  sa cohorte  |    —     |   ✓   |   ✓   |
+| Notes de suivi              | lecture (les siennes) |  sa cohorte  |    —     |   ✓   |   ✓   |
+| Sessions et présences       |           —           | ses sessions |    —     |   ✓   |   ✓   |
+| Dépôt de replays            |           —           | ses sessions |    —     |   ✓   |   ✓   |
+| Catalogue et tarifs         |           —           |   lecture    | lecture  |   ✓   |   ✓   |
+| Paiements                   |     ses factures      |      —       |    —     |   ✓   |   ✓   |
+| Remboursements              |           —           |      —       |    —     |   ✓   |   ✓   |
+| Statistiques de conversion  |           —           |      —       | lecture  |   ✓   |   ✓   |
+| Gestion des rôles           |           —           |      —       |    —     |   —   |   ✓   |
+| Logs et audit               |           —           |      —       |    —     |   ✓   |   ✓   |
 
 Un coach ne voit **jamais** les données financières d'un client, ni les clients d'un autre
 coach. Ces deux règles sont des politiques RLS.

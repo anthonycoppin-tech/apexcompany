@@ -23,8 +23,8 @@
     "db:diff": "supabase db diff -f",
     "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts",
     "db:test": "supabase test db",
-    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,sql,css}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,sql,css}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,mjs,js,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,md,css}\"",
     "db:check": "node scripts/verifier-schema.mjs"
   },
   "devDependencies": {

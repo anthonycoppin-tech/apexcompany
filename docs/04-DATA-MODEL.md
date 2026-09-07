@@ -133,10 +133,12 @@ $$;
 `using (user_id = auth.uid())`
 
 **Politique 2 — le coach voit sa cohorte, et rien d'autre.**
+
 ```sql
 create policy coach_lit_inscriptions on inscriptions for select
 using (coach_de_cohorte(cohorte_id) or has_role('admin') or has_role('owner'));
 ```
+
 Notez l'absence de `client` : un client ne lit pas les inscriptions des autres, il passe par
 la politique 1.
 

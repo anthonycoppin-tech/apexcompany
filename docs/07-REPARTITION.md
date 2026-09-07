@@ -10,11 +10,11 @@ SQL déjà appliquée en base, non.
 Le découpage nest pas « par phase » mais **par couche**, parce que les phases se
 chevauchent dans le temps alors que les couches ne se touchent presque jamais.
 
-| | Développeur A — *serveur et données* | Développeur B — *interface* |
-|---|---|---|
-| **Possède** | `supabase/**`, `apps/bot/**`, `packages/db/**`, `apps/web/app/api/**`, `apps/web/lib/server/**` | `apps/web/app/(public)/**`, `apps/web/app/(espace)/**`, `apps/web/app/(admin)/**`, `apps/web/components/**`, styles |
-| **Sujets** | Schéma, RLS, webhooks Stripe / PayPal / Cal.com, facturation, bot Discord, URL signées des replays | Site public et tunnel, espace client, écrans du back-office, design system, formulaires |
-| **Phases** | 1, 3, 4, et la moitié serveur de 5 | 2, 6, et la moitié écrans de 5 |
+|             | Développeur A — _serveur et données_                                                               | Développeur B — _interface_                                                                                         |
+| ----------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Possède** | `supabase/**`, `apps/bot/**`, `packages/db/**`, `apps/web/app/api/**`, `apps/web/lib/server/**`    | `apps/web/app/(public)/**`, `apps/web/app/(espace)/**`, `apps/web/app/(admin)/**`, `apps/web/components/**`, styles |
+| **Sujets**  | Schéma, RLS, webhooks Stripe / PayPal / Cal.com, facturation, bot Discord, URL signées des replays | Site public et tunnel, espace client, écrans du back-office, design system, formulaires                             |
+| **Phases**  | 1, 3, 4, et la moitié serveur de 5                                                                 | 2, 6, et la moitié écrans de 5                                                                                      |
 
 **Personne ne possède** : `package.json`, `package-lock.json`, `CLAUDE.md`,
 `docs/**`, la configuration CI. Ces fichiers se modifient en le disant à lautre,

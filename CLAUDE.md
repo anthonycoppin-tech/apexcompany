@@ -88,7 +88,7 @@ métadonnées du JWT : une colonne de rôle éditable par le porteur du compte e
   Le code TypeScript est en anglais sauf pour les noms issus du domaine.
 - Migrations : `AAAAMMJJHHMMSS_domaine.sql`, jamais modifiées après application.
   Une correction est une nouvelle migration.
-- Commentaires : expliquer *pourquoi*, le *quoi* se lit dans le code.
+- Commentaires : expliquer _pourquoi_, le _quoi_ se lit dans le code.
 
 ## État davancement
 
