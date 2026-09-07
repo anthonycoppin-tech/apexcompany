@@ -33,11 +33,13 @@ jobs:
         run: npx supabase start
 
       - name: Appliquer les migrations sur une base vierge et charger le seed
-        run: npx supabase db reset --no-seed=false
+        # db reset rejoue toutes les migrations puis charge supabase/seed.sql.
+        run: npx supabase db reset
 
-      - name: Vérifier que le schéma appliqué correspond aux migrations
-        # Une différence ici signale une migration écrite après coup contre une
-        # base déjà modifiée à la main : le prochain déploiement propre échouera.
+      - name: Écart éventuel entre le schéma appliqué et les migrations
+        # Informatif : `db diff` sort en 0 même quand il trouve une différence.
+        # Une sortie non vide ici signale une migration écrite après coup contre
+        # une base modifiée à la main ; le prochain déploiement propre échouera.
         run: npx supabase db diff --schema public
 
       - name: Tests pgTAP
