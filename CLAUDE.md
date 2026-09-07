@@ -1,18 +1,27 @@
 # ApexCompany — plateforme
 
-Monorepo npm workspaces. Next.js 15 (App Router) + Supabase + TypeScript.
+Monorepo npm workspaces. Next.js 16 (App Router) + Supabase + TypeScript.
 La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
 `02-SITEMAP.md` (arborescence et matrice daccès), `04-DATA-MODEL.md` (schéma et RLS),
-`06-PERIMETRE.md` (ce quon construit et ce quon ne construit pas).
+`06-PERIMETRE.md` (ce quon construit et ce quon ne construit pas),
+`07-REPARTITION.md` (qui possède quoi entre les deux développeurs).
 
 ## Structure
 
 ```
-apps/web        Next.js — site public, espace client, back-office, webhooks
-apps/bot        Worker Discord — consomme discord_sync_queue
-packages/db     Types générés depuis le schéma, partagés web ↔ bot
-supabase/       migrations/, seed.sql, tests/ (pgTAP)
-docs/           Spécification
+apps/web/src/app/
+  (public)/      Site public et tunnel — une page par ligne de 02-SITEMAP.md
+  (espace)/      Espace client — garde de layout : rôle client
+  (admin)/       Back-office — garde de layout : coach, admin, owner
+  api/           Webhooks (stripe, paypal, cal, discord)
+apps/web/src/lib/
+  supabase/      client.ts (navigateur), server.ts (serveur, RLS),
+                 service-role.ts (contourne la RLS, server-only), proxy.ts
+  auth/          roles.ts — lecture des rôles, gardes de layout
+apps/bot         Worker Discord — consomme discord_sync_queue
+packages/db      Types générés depuis le schéma, partagés web ↔ bot
+supabase/        migrations/, seed.sql, tests/ (pgTAP)
+docs/            Spécification
 ```
 
 ## Commandes
@@ -106,9 +115,14 @@ Phases de `docs/06-PERIMETRE.md` :
 
 - [x] **1 — Fondations** : schéma, RLS, seed multi-rôles, tests pgTAP, poussé et
       vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`)
+- [~] Scaffold transverse : Next.js, route groups des 40 pages, clients Supabase,
+  gardes de rôle — vérifié avec de vraies sessions. Chaque page reste un
+  placeholder ; le contenu réel appartient aux phases ci-dessous.
 - [ ] 2 — Back-office : CRM, fiches clients, rôles, logs
 - [ ] 3 — Paiement : abstraction, Stripe, PayPal, factures, remboursements
-- [ ] 4 — Discord : bot, liaison de compte, synchronisation
+- [~] 4 — Discord : worker écrit (apps/bot), suit `discord_sync_queue` au plus
+  près du schéma — **jamais testé en réel**, aucune application Discord
+  n'existe encore. Voir apps/bot/README.md pour ce qu'il faut créer.
 - [ ] 5 — Sessions et replays : planning, présences, lecteur sécurisé
 - [ ] 6 — Site public et tunnel
 - [ ] 7 — Migration des données, recette, mise en production

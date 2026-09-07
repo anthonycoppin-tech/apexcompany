@@ -47,7 +47,7 @@ Comptes du jeu de données — mot de passe `password123` :
 ## Structure
 
 ```
-apps/web        Next.js 15 — site public, espace client, back-office, webhooks
+apps/web        Next.js 16 — site public, espace client, back-office, webhooks
 apps/bot        Worker Discord — consomme discord_sync_queue
 packages/db     Types générés depuis le schéma, partagés web ↔ bot
 supabase/       migrations/, seed.sql, tests/ (pgTAP)
@@ -58,5 +58,11 @@ docs/           Spécification et répartition du travail
 ## Avancement
 
 Phase 1 (fondations) faite : schéma complet, politiques RLS, seed multi-rôles,
-36 vérifications de cloisonnement, CI. Les phases 2 à 7 sont détaillées dans
-[`docs/06-PERIMETRE.md`](docs/06-PERIMETRE.md).
+36 vérifications de cloisonnement, CI — en ligne et vérifié sur le projet Supabase
+hébergé, y compris un login réel par rôle.
+
+Scaffold Next.js posé : les 40 pages de `docs/02-SITEMAP.md`, clients Supabase
+(navigateur, serveur, service_role), gardes d'accès par rôle sur `(espace)` et
+`(admin)` — testées avec de vraies sessions coach et client.
+
+Les phases 2 à 7 sont détaillées dans [`docs/06-PERIMETRE.md`](docs/06-PERIMETRE.md).
