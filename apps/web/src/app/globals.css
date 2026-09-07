@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+
+/*
+ * Pas de palette ni de typographie définies ici : le design system reste à
+ * construire (docs/07-REPARTITION.md — couche interface). Ne rien ajouter à
+ * ce fichier pour une page en particulier ; les tokens partagés viendront
+ * quand le design system existera.
+ */
