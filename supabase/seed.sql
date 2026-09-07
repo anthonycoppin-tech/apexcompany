@@ -27,10 +27,19 @@ create or replace function pg_temp.creer_utilisateur(
 language plpgsql
 as $$
 begin
+  -- Les colonnes de jetons (confirmation_token, recovery_token, ...) doivent
+  -- être des chaînes vides, jamais NULL : GoTrue les scanne dans des champs Go
+  -- non nullables et répond « Database error querying schema » (500) à la
+  -- connexion si l une d elles est NULL. Cassé une fois en silence sur le
+  -- projet hébergé — la CI ne l aurait pas vu, elle teste la RLS via `set
+  -- role`, jamais un vrai login.
   insert into auth.users (
     instance_id, id, aud, role, email, encrypted_password,
     email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
-    created_at, updated_at
+    created_at, updated_at,
+    confirmation_token, recovery_token, email_change,
+    email_change_token_new, email_change_token_current,
+    phone_change, phone_change_token, reauthentication_token
   ) values (
     '00000000-0000-0000-0000-000000000000',
     p_id,
@@ -42,7 +51,8 @@ begin
     '{"provider":"email","providers":["email"]}'::jsonb,
     jsonb_build_object('prenom', p_prenom, 'nom', p_nom),
     now(),
-    now()
+    now(),
+    '', '', '', '', '', '', '', ''
   );
 
   -- Sans identité associée, la connexion par mot de passe échoue sur les

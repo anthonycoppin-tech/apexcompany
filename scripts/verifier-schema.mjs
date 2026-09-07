@@ -54,7 +54,18 @@ create table if not exists auth.users (
   raw_app_meta_data jsonb,
   raw_user_meta_data jsonb,
   created_at timestamptz,
-  updated_at timestamptz
+  updated_at timestamptz,
+  -- Présentes ici pour que le seed s'exécute à l'identique de la vraie base ;
+  -- PGlite ne fait pas tourner GoTrue et ne peut donc pas détecter par
+  -- lui-même que ces colonnes doivent être '' plutôt que NULL (voir seed.sql).
+  confirmation_token text,
+  recovery_token text,
+  email_change text,
+  email_change_token_new text,
+  email_change_token_current text,
+  phone_change text,
+  phone_change_token text,
+  reauthentication_token text
 );
 
 create table if not exists auth.identities (

@@ -82,6 +82,16 @@ composant client, jamais dans une variable préfixée `NEXT_PUBLIC_`.
 métadonnées du JWT : une colonne de rôle éditable par le porteur du compte est une
 élévation de privilège offerte.
 
+**Un `insert into auth.users` doit remplir les colonnes de jetons en chaîne vide,
+jamais NULL.** `confirmation_token`, `recovery_token`, `email_change`,
+`email_change_token_new`, `email_change_token_current`, `phone_change`,
+`phone_change_token`, `reauthentication_token`. GoTrue les scanne dans des champs Go
+non nullables ; une seule NULL et la connexion répond 500 « Database error querying
+schema », sans rien dans les politiques RLS pour l'expliquer. Cassé une fois en
+silence sur le projet hébergé — ni pgTAP ni PGlite ne l'auraient vu, aucun des deux
+ne fait un vrai `/auth/v1/token`. C'est pour ça que la CI fait maintenant un login
+réel (`.github/workflows/ci.yml`, job *database*) en plus des tests RLS.
+
 ## Conventions
 
 - Schéma, colonnes, valeurs dénumération : **en français**, comme la spécification.
@@ -94,7 +104,8 @@ métadonnées du JWT : une colonne de rôle éditable par le porteur du compte e
 
 Phases de `docs/06-PERIMETRE.md` :
 
-- [x] **1 — Fondations** : schéma, RLS, seed multi-rôles, tests pgTAP
+- [x] **1 — Fondations** : schéma, RLS, seed multi-rôles, tests pgTAP, poussé et
+  vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`)
 - [ ] 2 — Back-office : CRM, fiches clients, rôles, logs
 - [ ] 3 — Paiement : abstraction, Stripe, PayPal, factures, remboursements
 - [ ] 4 — Discord : bot, liaison de compte, synchronisation

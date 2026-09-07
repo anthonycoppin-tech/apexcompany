@@ -4,3 +4,6 @@ dist
 build
 supabase/.temp
 package-lock.json
+
+# Généré par `supabase gen types` — jamais édité à la main, jamais reformaté.
+packages/db/src/database.types.ts

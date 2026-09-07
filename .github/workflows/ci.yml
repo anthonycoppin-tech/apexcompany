@@ -45,6 +45,29 @@ jobs:
       - name: Tests pgTAP
         run: npx supabase test db
 
+      # Un compte du seed a fini avec une colonne NULL que GoTrue exige vide
+      # (« Database error querying schema » à la connexion) sans qu'aucun test
+      # RLS ne le remarque : pgTAP interroge la base via `set role`, jamais un
+      # vrai /auth/v1/token. Seul un login réel attrape cette classe de bug.
+      - name: Connexion réelle avec un compte du seed
+        run: |
+          eval "$(npx supabase status -o env \
+            --override-name api.url=SUPABASE_URL \
+            --override-name auth.anon_key=SUPABASE_ANON_KEY)"
+
+          REPONSE=$(curl -s -w "\n%{http_code}" -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" \
+            -d '{"email":"coach.a@apex.test","password":"password123"}')
+
+          CODE=$(echo "$REPONSE" | tail -1)
+          CORPS=$(echo "$REPONSE" | sed '$d')
+
+          if [ "$CODE" != "200" ]; then
+            echo "Échec de connexion (HTTP $CODE) : $CORPS"
+            exit 1
+          fi
+          echo "Connexion OK"
+
       - name: Journaux Supabase en cas déchec
         if: failure()
         run: npx supabase status && docker ps -a
