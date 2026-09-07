@@ -65,7 +65,18 @@ cher que le message quon naura pas envoyé.
 
 ## Flux Git
 
-`main` est protégée : personne ny pousse directement.
+**Personne ne pousse directement sur `main`.**
+
+Cest une convention, pas une contrainte technique : la protection de branche de
+GitHub nest pas disponible sur un dépôt privé en plan gratuit (lAPI répond 403).
+Rien nempêche donc matériellement un `git push origin main`. La règle tient parce
+que les deux développeurs la respectent, pas parce que le serveur la refuse — ce qui
+veut dire quil faut y penser, surtout en fin de journée.
+
+Deux façons de la rendre réelle si le besoin sen fait sentir : passer le dépôt en
+public (la protection devient gratuite) ou prendre GitHub Pro. À arbitrer par
+Anthony ; en attendant, la CI reste le vrai garde-fou, puisquelle échoue sur toute
+politique RLS cassée, y compris sur `main`.
 
 ```bash
 git checkout main && git pull
