@@ -90,7 +90,7 @@ non nullables ; une seule NULL et la connexion répond 500 « Database error que
 schema », sans rien dans les politiques RLS pour l'expliquer. Cassé une fois en
 silence sur le projet hébergé — ni pgTAP ni PGlite ne l'auraient vu, aucun des deux
 ne fait un vrai `/auth/v1/token`. C'est pour ça que la CI fait maintenant un login
-réel (`.github/workflows/ci.yml`, job *database*) en plus des tests RLS.
+réel (`.github/workflows/ci.yml`, job _database_) en plus des tests RLS.
 
 ## Conventions
 
@@ -105,7 +105,7 @@ réel (`.github/workflows/ci.yml`, job *database*) en plus des tests RLS.
 Phases de `docs/06-PERIMETRE.md` :
 
 - [x] **1 — Fondations** : schéma, RLS, seed multi-rôles, tests pgTAP, poussé et
-  vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`)
+      vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`)
 - [ ] 2 — Back-office : CRM, fiches clients, rôles, logs
 - [ ] 3 — Paiement : abstraction, Stripe, PayPal, factures, remboursements
 - [ ] 4 — Discord : bot, liaison de compte, synchronisation
