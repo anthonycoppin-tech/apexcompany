@@ -5,6 +5,9 @@ seule raison : **éviter que deux personnes modifient le même fichier le même 
 Les conflits Git sur du code applicatif se résolvent ; les conflits sur une migration
 SQL déjà appliquée en base, non.
 
+S'y ajoute un conflit que Git ne verra jamais, parce qu'il ne porte sur aucun fichier :
+la base de dev est partagée entre les deux postes.
+
 ## Principe de découpage
 
 Le découpage nest pas « par phase » mais **par couche**, parce que les phases se
@@ -62,6 +65,63 @@ npm install
 Corollaire : **annoncer lajout dune dépendance** avant de linstaller. Une
 bibliothèque de dates ou de formulaires choisie deux fois différemment coûte plus
 cher que le message quon naura pas envoyé.
+
+## Le conflit qui n'est pas dans Git : la base de dev partagée
+
+Tout ce qui précède protège le dépôt. Rien ne protège la base.
+
+Les deux développeurs travaillent contre **le même projet Supabase hébergé**
+(`ovlafpgmrwttxstodqxi`, un projet gratuit qui sert de base de dev commune), parce que
+Docker est bloqué sur les deux postes et qu'aucune instance locale n'est possible — voir
+`CLAUDE.md`, « Docker n'est pas disponible en local ». Git isole les fichiers, il n'isole
+pas les données. Trois façons de s'en apercevoir, toutes possibles dès aujourd'hui :
+
+- **A applique une migration.** L'application de B change sous ses doigts, sans qu'il ait
+  fait un seul `git pull`. Un écran qui marchait à 14 h ne marche plus à 14 h 10, et rien
+  dans son historique local ne l'explique.
+- **B se connecte avec un compte du seed et modifie des données.** Les vérifications de A
+  voient des lignes que `seed.sql` ne décrit pas. Le seed est censé être une interface
+  (voir plus bas) ; sur une base partagée et mutable, il cesse de décrire son propre
+  contenu au premier `insert` fait à la main.
+- **Une migration en cours de revue est déjà appliquée.** Si A la pousse sur la base
+  commune pour l'essayer, B la subit avant qu'elle soit relue — donc y compris si la
+  revue finit par la refuser.
+
+Aucune de ces situations ne produit un conflit Git. Elles produisent une heure passée à
+chercher un bug qui n'est pas dans le code.
+
+### Ce qu'on fait en attendant
+
+- **La boucle de vérification est `npm run db:check`, pas la base partagée.** PGlite est
+  jetable et local : chacun la sienne, personne ne marche sur l'autre. C'est la seule
+  vérification qui reste reproductible.
+- **Annoncer une migration appliquée sur la base commune**, exactement comme on annonce
+  l'ajout d'une dépendance. Même raison, même coût du message qu'on n'aura pas envoyé.
+- **Ne pas créer de données de confort avec les comptes du seed.** Si un cas manque, il
+  s'ajoute dans `supabase/seed.sql` et se rejoue ; il ne se tape pas dans l'interface.
+- Garder en tête que **les projets gratuits sont suspendus après une semaine
+  d'inactivité**. Un lundi matin sans base n'est pas une panne.
+
+### Ce qui réglerait le problème — à arbitrer
+
+Le plan Pro de Supabase (25 $/mois par organisation, 10 $ de crédits compute inclus, soit
+une instance Micro) débloque le **branching** : une base éphémère par pull request,
+migrations et `seed.sql` appliqués automatiquement, supprimée à la fermeture de la PR,
+facturée à l'usage — de l'ordre de 0,013 $/h en Micro.
+
+Ça correspond exactement au flux décrit ci-dessous : une branche par sujet, deux jours de
+vie maximum, tout par PR. Une branche de deux jours coûte donc quelques dizaines de
+centimes, et l'isolation devient **par fonctionnalité plutôt que par développeur** — la
+migration de A en cours de revue ne touche plus la base de B.
+
+Deux points à vérifier avant de s'engager : que l'intégration GitHub du branching
+fonctionne sur un dépôt privé en plan gratuit, et l'activation du seeding dans
+`supabase/config.toml`. À noter que le palier gratuit plafonne de toute façon à deux
+projets actifs par organisation, ce qui interdit déjà « une prod plus deux bases de dev »
+sans passer à Pro.
+
+Ce qui ne change pas avec Pro : le développement hors ligne reste impossible, et
+`npm run db:check` garde tout son intérêt comme boucle rapide.
 
 ## Flux Git
 

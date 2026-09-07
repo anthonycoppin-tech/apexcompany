@@ -55,6 +55,12 @@ Conséquence pratique : le développement applicatif se fait contre un **projet
 Supabase hébergé** (un projet gratuit sert de base de dev partagée), pas contre une
 instance locale.
 
+Cette base est **partagée entre les deux développeurs**, et rien ne les isole l'un de
+l'autre : une migration appliquée par l'un change l'application de l'autre sans qu'aucun
+fichier ait bougé, et une donnée saisie à la main avec un compte du seed rend le seed non
+reproductible. Le problème est ouvert — mitigations du quotidien et solution envisagée
+(le branching du plan Pro) dans `docs/07-REPARTITION.md`.
+
 ## Ce quil ne faut pas casser
 
 Ces règles ne sont pas des préférences de style. Chacune correspond à un incident
@@ -132,5 +138,10 @@ Phases de `docs/06-PERIMETRE.md` :
 - **Hébergeur des replays** — non tranché. Cloudflare Stream ou Bunny recommandés ;
   le critère est le contrôle daccès par URL signée, pas le prix. Dépend du volume
   dheures enregistrées par mois, information à demander.
+- **Plan Supabase Pro** — non tranché, et c'est une dépense : 25 $/mois par
+  organisation. Ce qu'on achète réellement, c'est le **branching** (une base éphémère par
+  pull request), qui supprime les conflits sur la base de dev partagée, et la fin de la
+  mise en veille des projets gratuits après une semaine d'inactivité. Argumentaire dans
+  `docs/07-REPARTITION.md`.
 - **Messagerie coach ↔ client** — recommandation : hors v1, léchange reste sur
   Discord. Voir largumentaire dans `docs/06-PERIMETRE.md`.
