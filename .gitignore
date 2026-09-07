@@ -1,0 +1,38 @@
+# Dépendances
+node_modules/
+.npm
+
+# Build
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Environnement — ne jamais committer de secret
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Éditeurs et OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Divers
+coverage/
+.vercel
+playwright-report/
+test-results/

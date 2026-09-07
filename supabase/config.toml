@@ -1,0 +1,56 @@
+project_id = "apex-platform"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.pooler]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+
+# Boîte mail locale : les emails transactionnels ny sortent jamais du poste.
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+secure_password_change = true
+
+# Discord sert à la fois de lieu de cours et de fournisseur didentité : lier
+# le compte à linscription est ce qui rend lattribution de rôle automatique.
+[auth.external.discord]
+enabled = false
+client_id = "env(DISCORD_CLIENT_ID)"
+secret = "env(DISCORD_CLIENT_SECRET)"
+redirect_uri = "http://127.0.0.1:54321/auth/v1/callback"
+
+[analytics]
+enabled = false

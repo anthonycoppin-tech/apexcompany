@@ -1,0 +1,15 @@
+# Normalisation des fins de ligne — deux postes, éviter les diffs fantômes.
+* text=auto eol=lf
+
+*.sql   text eol=lf
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+
+# Fichiers générés : Git ne tente pas de les fusionner et les masque dans les
+# diffs. En cas de conflit on ne résout pas, on régénère (voir docs/07-REPARTITION.md).
+packages/db/src/database.types.ts linguist-generated=true merge=binary
+
+# Le lock se régénère, il ne se fusionne pas.
+package-lock.json merge=binary linguist-generated=true
