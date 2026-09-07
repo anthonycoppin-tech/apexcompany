@@ -2,8 +2,8 @@
 
 Monorepo npm workspaces. Next.js 16 (App Router) + Supabase + TypeScript.
 La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
-`02-SITEMAP.md` (arborescence et matrice daccès), `04-DATA-MODEL.md` (schéma et RLS),
-`06-PERIMETRE.md` (ce quon construit et ce quon ne construit pas),
+`02-SITEMAP.md` (arborescence et matrice d'accès), `04-DATA-MODEL.md` (schéma et RLS),
+`06-PERIMETRE.md` (ce qu'on construit et ce qu'on ne construit pas),
 `07-REPARTITION.md` (qui possède quoi entre les deux développeurs).
 
 ## Structure
@@ -35,18 +35,18 @@ npm run typecheck
 
 Après **toute** modification du schéma : `npm run db:check`.
 
-## Docker nest pas disponible en local
+## Docker n'est pas disponible en local
 
-Le poste de développement est derrière un proxy dentreprise qui bloque Docker
-Desktop, et le compte na pas les droits administrateur pour installer WSL. `supabase
+Le poste de développement est derrière un proxy d'entreprise qui bloque Docker
+Desktop, et le compte n'a pas les droits administrateur pour installer WSL. `supabase
 start`, `supabase db reset` et `supabase test db` **ne tournent pas en local** — les
-scripts existent (`db:start`, `db:reset`, `db:test`) mais ne servent quen CI.
+scripts existent (`db:start`, `db:reset`, `db:test`) mais ne servent qu'en CI.
 
 En remplacement, `npm run db:check` applique les migrations et le seed sur un
 PostgreSQL réel compilé en WebAssembly (PGlite), puis rejoue les invariants de
-cloisonnement. Cest la boucle de vérification de tous les jours.
+cloisonnement. C'est la boucle de vérification de tous les jours.
 
-Ce quil ne couvre pas : GoTrue, PostgREST, le Storage, les extensions Supabase. La
+Ce qu'il ne couvre pas : GoTrue, PostgREST, le Storage, les extensions Supabase. La
 suite pgTAP de `supabase/tests/` reste la référence et tourne en CI, où Docker est
 disponible. Toute règle vérifiée dans `scripts/verifier-schema.mjs` doit donc **aussi**
 exister en pgTAP, et réciproquement : les deux se maintiennent ensemble.
@@ -61,37 +61,37 @@ fichier ait bougé, et une donnée saisie à la main avec un compte du seed rend
 reproductible. Le problème est ouvert — mitigations du quotidien et solution envisagée
 (le branching du plan Pro) dans `docs/07-REPARTITION.md`.
 
-## Ce quil ne faut pas casser
+## Ce qu'il ne faut pas casser
 
 Ces règles ne sont pas des préférences de style. Chacune correspond à un incident
 identifié en conception ; les contourner « juste pour ce cas » est la façon dont
 elles cèdent.
 
-**La RLS est la sécurité, pas le filtre daffichage.** Un `where user_id = ...`
+**La RLS est la sécurité, pas le filtre d'affichage.** Un `where user_id = ...`
 dans une requête est du confort. La garantie est dans la politique. Toute nouvelle
 table : `enable row level security` dans la même migration que le `create table`,
 et une politique explicite — ou une absence de politique assumée et commentée.
 
-**Un coach ne voit que ses cohortes, et jamais dargent.** Ces deux invariants sont
+**Un coach ne voit que ses cohortes, et jamais d'argent.** Ces deux invariants sont
 testés dans `supabase/tests/01_rls_coach.test.sql`. Un test qui casse là signale une
 fuite de données, pas un test à ajuster.
 
-**Jamais dURL de vidéo en base.** `replays` ne stocke que `provider_asset_id`. LURL
-signée est émise côté serveur, à durée courte, après revérification de linscription.
+**Jamais d'URL de vidéo en base.** `replays` ne stocke que `provider_asset_id`. L'URL
+signée est émise côté serveur, à durée courte, après revérification de l'inscription.
 
-**Les webhooks insèrent dabord dans `payment_events`.** Dans la même transaction que
+**Les webhooks insèrent d'abord dans `payment_events`.** Dans la même transaction que
 le traitement métier. Violation de la contrainte unique = événement déjà traité, on
-sort sans rien faire. Stripe et PayPal rejouent : cest le fonctionnement normal, pas
+sort sans rien faire. Stripe et PayPal rejouent : c'est le fonctionnement normal, pas
 un cas limite.
 
-**Discord passe par la file.** On écrit dans `discord_sync_queue`, jamais dappel
-direct à lAPI Discord depuis un handler de paiement. Une coupure Discord ne doit pas
+**Discord passe par la file.** On écrit dans `discord_sync_queue`, jamais d'appel
+direct à l'API Discord depuis un handler de paiement. Une coupure Discord ne doit pas
 faire perdre un accès client silencieusement.
 
 **`SUPABASE_SERVICE_ROLE_KEY` contourne la RLS.** Serveur uniquement. Jamais dans un
 composant client, jamais dans une variable préfixée `NEXT_PUBLIC_`.
 
-**Largent est en centimes, en entier.** Jamais de flottant.
+**L'argent est en centimes, en entier.** Jamais de flottant.
 
 **Les rôles vivent dans `user_roles`.** Jamais dans `profiles`, jamais dans les
 métadonnées du JWT : une colonne de rôle éditable par le porteur du compte est une
@@ -109,13 +109,13 @@ réel (`.github/workflows/ci.yml`, job _database_) en plus des tests RLS.
 
 ## Conventions
 
-- Schéma, colonnes, valeurs dénumération : **en français**, comme la spécification.
+- Schéma, colonnes, valeurs d'énumération : **en français**, comme la spécification.
   Le code TypeScript est en anglais sauf pour les noms issus du domaine.
 - Migrations : `AAAAMMJJHHMMSS_domaine.sql`, jamais modifiées après application.
   Une correction est une nouvelle migration.
 - Commentaires : expliquer _pourquoi_, le _quoi_ se lit dans le code.
 
-## État davancement
+## État d'avancement
 
 Phases de `docs/06-PERIMETRE.md` :
 
@@ -136,12 +136,12 @@ Phases de `docs/06-PERIMETRE.md` :
 ## Décisions en attente du client
 
 - **Hébergeur des replays** — non tranché. Cloudflare Stream ou Bunny recommandés ;
-  le critère est le contrôle daccès par URL signée, pas le prix. Dépend du volume
-  dheures enregistrées par mois, information à demander.
+  le critère est le contrôle d'accès par URL signée, pas le prix. Dépend du volume
+  d'heures enregistrées par mois, information à demander.
 - **Plan Supabase Pro** — non tranché, et c'est une dépense : 25 $/mois par
   organisation. Ce qu'on achète réellement, c'est le **branching** (une base éphémère par
   pull request), qui supprime les conflits sur la base de dev partagée, et la fin de la
   mise en veille des projets gratuits après une semaine d'inactivité. Argumentaire dans
   `docs/07-REPARTITION.md`.
-- **Messagerie coach ↔ client** — recommandation : hors v1, léchange reste sur
-  Discord. Voir largumentaire dans `docs/06-PERIMETRE.md`.
+- **Messagerie coach ↔ client** — recommandation : hors v1, l'échange reste sur
+  Discord. Voir l'argumentaire dans `docs/06-PERIMETRE.md`.
