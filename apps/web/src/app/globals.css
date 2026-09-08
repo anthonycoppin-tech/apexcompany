@@ -1,8 +1,100 @@
 @import 'tailwindcss';
 
 /*
- * Pas de palette ni de typographie définies ici : le design system reste à
- * construire (docs/07-REPARTITION.md — couche interface). Ne rien ajouter à
- * ce fichier pour une page en particulier ; les tokens partagés viendront
- * quand le design system existera.
+ * Design system — tokens partagés.
+ *
+ * Une charte graphique est en cours chez un designer. Tout ce qui est ci-dessous
+ * est donc écrit pour être REMPLACÉ sans toucher à une seule page : les écrans
+ * n'utilisent que des utilitaires dérivés de ces variables (`bg-surface`,
+ * `text-encre-doux`, `border-filet`), jamais une couleur littérale. Changer la
+ * charte, c'est changer ce fichier.
+ *
+ * Direction retenue en attendant : clair, aéré, contrasté — la référence citée
+ * est Mindeo. Le noir et doré du site actuel est explicitement écarté.
+ *
+ * Un seul thème, clair. Un thème sombre est une décision de charte, pas une
+ * décision technique : le jour où il arrive, il se pose ici et nulle part
+ * ailleurs.
  */
+
+@theme {
+  /* ── Fonds et encre ───────────────────────────────────────────────────── */
+  --color-fond: #ffffff;
+  --color-surface: #f5f7fa;
+  --color-surface-forte: #eef1f6;
+  --color-encre: #11161f;
+  --color-encre-doux: #565f70;
+  --color-encre-faible: #8a92a1;
+  --color-filet: #e2e6ed;
+  --color-filet-fort: #cbd2dd;
+
+  /* ── Accent ────────────────────────────────────────────────────────────
+   * Un seul accent, utilisé avec retenue : boutons principaux, liens, chiffres
+   * clés. Un accent partout n'est plus un accent.
+   */
+  --color-accent: #14508c;
+  --color-accent-fort: #0e3a66;
+  --color-accent-doux: #eaf1f9;
+  --color-accent-contraste: #ffffff;
+
+  /* ── Fond sombre, pour les sections qui doivent trancher ──────────────── */
+  --color-nuit: #0e1420;
+  --color-nuit-douce: #1a2130;
+
+  /* ── Sémantique — distincte de l'accent, volontairement ───────────────── */
+  --color-succes: #1f6f4a;
+  --color-alerte: #a84420;
+
+  /* ── Typographie ───────────────────────────────────────────────────────
+   * Deux familles : une pour les titres, une pour le texte courant. Les
+   * variables sont posées par next/font dans le layout racine, ce qui évite
+   * une requête vers Google au chargement.
+   */
+  --font-titre: var(--police-titre), 'Segoe UI', system-ui, sans-serif;
+  --font-texte: var(--police-texte), 'Segoe UI', system-ui, sans-serif;
+
+  /* ── Rythme ────────────────────────────────────────────────────────────── */
+  --radius-douce: 0.5rem;
+  --radius-carte: 0.875rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-fond);
+    color: var(--color-encre);
+    font-family: var(--font-texte);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-titre);
+    /* Un titre coupé sur un mot isolé se remarque plus qu'on ne le croit. */
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  /* Le focus visible n'est pas optionnel : il porte toute la navigation au
+     clavier, et un site qui l'efface devient inutilisable sans souris. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
