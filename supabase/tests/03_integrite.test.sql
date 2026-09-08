@@ -1,12 +1,12 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Les garanties qui ne relèvent pas de la RLS mais qui coûtent aussi cher
 -- quand elles cèdent : idempotence des webhooks, numérotation des factures,
--- immuabilité de la source dun lead, et accès des rôles admin / owner /
--- branding.
+-- immuabilité de la source dun lead, cohérence des types de produit, et accès
+-- des rôles admin / owner / branding.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(15);
+select plan(17);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -27,6 +27,18 @@ select lives_ok(
   $$insert into public.payment_events (provider, provider_event_id, type, payload)
     values ('paypal', 'evt_test_idempotence', 'PAYMENT.CAPTURE.COMPLETED', '{}'::jsonb)$$,
   'le même identifiant dévénement chez un autre prestataire reste accepté'
+);
+
+-- Vaut aussi pour le renouvellement dun abonnement : un événement rejoué ne
+-- doit pas offrir deux mois daccès.
+select throws_ok(
+  $$insert into public.subscriptions (user_id, formation_id, provider, provider_subscription_id)
+    values ('66666666-6666-6666-6666-666666666666',
+            'a0000000-0000-0000-0000-000000000001',
+            'stripe', 'sub_test_seed_b')$$,
+  '23505',
+  null,
+  'un abonnement déjà enregistré chez le prestataire nest pas dupliqué'
 );
 
 -- ── Facturation ────────────────────────────────────────────────────────────
@@ -61,23 +73,56 @@ select throws_ok(
   'la source dun lead ne peut pas être réécrite après coup'
 );
 
+-- Le filet contre le webhook rejoué, version révision 3 : lunicité porte sur
+-- (user_id, formation_id), restreinte aux inscriptions ACTIVES.
 select throws_ok(
-  $$insert into public.inscriptions (user_id, offre_id, cohorte_id)
+  $$insert into public.inscriptions (user_id, formation_id, statut)
     values ('66666666-6666-6666-6666-666666666666',
-            'a0000000-0000-0000-0000-000000000001',
-            'c0000000-0000-0000-0000-00000000000a')$$,
+            'a0000000-0000-0000-0000-000000000002',
+            'active')$$,
   '23505',
   null,
-  'un client ne peut pas être inscrit deux fois à la même cohorte'
+  'un client ne peut pas avoir deux inscriptions actives à la même formation'
+);
+
+-- ... mais un accompagnement terminé doit pouvoir être racheté. Sans cette
+-- restriction aux inscriptions actives, le filet censé protéger le client
+-- lempêcherait de revenir.
+select lives_ok(
+  $$insert into public.inscriptions (user_id, formation_id, statut)
+    values ('66666666-6666-6666-6666-666666666666',
+            'a0000000-0000-0000-0000-000000000002',
+            'terminee')$$,
+  'une inscription terminée nempêche pas den reprendre une sur la même formation'
 );
 
 select throws_ok(
-  $$insert into public.sessions (cohorte_id, titre, debut, fin)
-    values ('c0000000-0000-0000-0000-00000000000a', 'Créneau incohérent',
-            now(), now() - interval '1 hour')$$,
+  $$insert into public.appointments (cal_booking_id, debut, fin)
+    values ('cal_incoherent', now(), now() - interval '1 hour')$$,
   '23514',
   null,
-  'une session ne peut pas se terminer avant davoir commencé'
+  'un rendez-vous ne peut pas se terminer avant davoir commencé'
+);
+
+-- ── Cohérence des trois types de produit ───────────────────────────────────
+-- Une seule mécanique daccès pour trois modèles économiques : seul
+-- laccompagnement porte une durée, les deux autres ont date_fin_acces null
+-- ou repoussée au prélèvement.
+
+select throws_ok(
+  $$insert into public.formations (slug, titre, prix_cents, type_produit, modalite, duree_acces_jours)
+    values ('test-illimite-avec-duree', 'Test', 1000, 'formation', 'groupe', 30)$$,
+  '23514',
+  null,
+  'une formation à accès illimité ne peut pas porter une durée daccès'
+);
+
+select throws_ok(
+  $$insert into public.formations (slug, titre, prix_cents, type_produit, modalite, duree_acces_jours)
+    values ('test-accompagnement-sans-duree', 'Test', 1000, 'accompagnement', 'individuel', null)$$,
+  '23514',
+  null,
+  'un accompagnement doit déclarer sa durée daccès'
 );
 
 -- ── Rôle admin ─────────────────────────────────────────────────────────────
@@ -86,13 +131,13 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
 
 select is(
-  (select count(*) from public.inscriptions)::int, 2,
-  'admin voit toutes les inscriptions, toutes cohortes confondues'
+  (select count(*) from public.inscriptions)::int, 3,
+  'admin voit toutes les inscriptions, y compris celle rouverte plus haut'
 );
 
 select is(
-  (select count(*) from public.orders)::int, 2,
-  'admin voit toutes les commandes'
+  (select count(*) from public.propositions)::int, 2,
+  'admin voit les propositions des deux formateurs'
 );
 
 select is(
