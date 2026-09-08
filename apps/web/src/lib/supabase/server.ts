@@ -12,7 +12,9 @@ import type { Database } from '@apex/db';
  * Le `catch` sur `setAll` est documenté par Supabase : un Server Component ne
  * peut pas écrire de cookies (seuls Route Handlers et Server Actions le
  * peuvent). L'échec silencieux est correct ici parce que le rafraîchissement
- * de session a lieu dans middleware.ts, qui s'exécute avant et peut écrire.
+ * de session a lieu dans proxy.ts, qui s'exécute avant et peut écrire.
+ * (Next 16 a renommé `middleware` en `proxy` : chercher middleware.ts ne mène
+ * plus nulle part.)
  */
 export async function createClient() {
   const cookieStore = await cookies();

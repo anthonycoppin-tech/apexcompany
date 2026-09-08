@@ -112,6 +112,15 @@ Conséquences à ne pas perdre de vue :
 - **`invité` n'est pas un rôle applicatif.** Côté site, cette personne est un `client` sans
   inscription active. Ajouter `invité` à l'énumération `app_role` mélangerait l'accès au
   contenu avec les droits d'administration, dans la table même qui décide qui est `owner`.
+- **Aucun rôle Discord ne peut être attribué avant que le client n'ait lié son compte.** Le
+  worker accorde un rôle à un identifiant Discord, qu'il lit dans `discord_links` ; tant que
+  personne ne l'a rempli, empiler un `grant` ne produit qu'une ligne en échec. La liaison se
+  fait par le fournisseur Discord de Supabase Auth (`linkIdentity`, scope `identify`), et
+  c'est son retour — `api/discord/callback` — qui écrit la liaison **puis** empile le rôle
+  `invité`. Cette étape est proposée **après** la réservation du créneau : rien ne doit
+  s'interposer entre le formulaire et la prise de rendez-vous, qui est la seule étape du
+  tunnel produisant du chiffre d'affaires. Elle reste ensuite accessible en permanence depuis
+  `/espace/communaute`, parce qu'une personne qui la saute doit pouvoir y revenir.
 - **Le rôle applicatif ne change jamais après la création du compte.** Payer ne promeut
   personne. Ce qui change, c'est l'existence d'une ligne dans `inscriptions`.
 - **Le rôle Discord se déduit de l'inscription, jamais l'inverse.** La base est la source de
@@ -233,11 +242,24 @@ un point sur la situation du prospect, pas comme la présentation d'un produit.
 le reconduit pas. Décision déléguée aux développeurs et prise le 8 septembre 2026.
 
 Le besoin réel est étroit : **une seule chose doit venir de l'extérieur**, la disponibilité
-d'une personne et la réservation d'un créneau. Le choix du formateur, lui, est un écran que
-nous construisons de toute façon (`/reserver`). Donc chaque formateur a sa propre page de
-réservation individuelle, et c'est notre page qui aiguille vers la sienne. **On n'a besoin
-d'aucune fonctionnalité d'équipe** — ni round-robin, ni page d'équipe — qui sont justement
-ce que les deux outils facturent le plus cher.
+d'une personne et la réservation d'un créneau.
+
+**Et cette personne est Franck, seul.** Précisé par le chef de projet le 8 septembre 2026 :
+c'est lui qui prend tous les rendez-vous, et lui seul qui attribue ensuite la formation au
+compte du client. Le prospect ne choisit donc pas son interlocuteur, et `/reserver` n'aiguille
+vers personne — c'est **une seule page de réservation**, celle de Franck. L'écran de choix du
+formateur, prévu par la révision 2, n'a pas lieu d'être.
+
+Trois conséquences, toutes dans le bon sens :
+
+- **Aucune fonctionnalité d'équipe** — ni round-robin, ni page d'équipe — qui sont justement
+  ce que les deux outils facturent le plus cher.
+- **Un seul utilisateur Cal.com, un seul type d'événement.** Le plan gratuit suffit, et si les
+  webhooks s'avèrent réservés au plan payant, la facture est de 12 $ par mois pour une
+  personne, pas par formateur.
+- **`appointments.conseiller_id` vaut Franck à la création.** Le webhook n'a personne à
+  déduire du créneau réservé, ce qui retire le seul endroit où l'affectation aurait pu se
+  faire toute seule — et c'est cohérent avec l'affectation explicite retenue pour la RLS.
 
 Ce qui reste indispensable : **le webhook**. Sans retour vers notre base, aucune ligne
 `appointments` ne se crée, donc pas de tableau de bord formateur, pas de statistique de

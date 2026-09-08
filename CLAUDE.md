@@ -211,15 +211,16 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
 - **Vocabulaire** — **tranché** : `formations` et `formateur`. Le schéma dit encore `offres`
   et `coach` ; le renommage est une migration à écrire, et il emporte l'énumération, les
   politiques RLS, les tests pgTAP, le seed et `packages/db`.
-- **Calendrier** — **tranché, décision déléguée aux développeurs** : `Cal.com`. Une page de
-  réservation individuelle par formateur, `/reserver` faisant l'aiguillage — donc aucune
-  fonctionnalité d'équipe à payer. Moins cher que Calendly à besoin égal, plan gratuit bien
-  plus généreux, `appointments.cal_booking_id` et la route `api/cal` restent valables, et
-  l'auto-hébergement reste une porte de sortie. **À vérifier à l'inscription** : si les
-  webhooks s'avèrent réservés au plan Teams, c'est 12 $/utilisateur/mois — sans webhook, pas
-  de ligne `appointments`, donc pas de tableau de bord formateur. **Cal.com ne sert qu'une
-  fois dans le parcours** : l'audit de vente. Les séances qui suivent l'achat ne se réservent
-  pas sur le site.
+- **Calendrier** — **tranché, décision déléguée aux développeurs** : `Cal.com`. Moins cher que
+  Calendly à besoin égal, plan gratuit bien plus généreux, `appointments.cal_booking_id` et la
+  route `api/cal` restent valables, et l'auto-hébergement reste une porte de sortie.
+  **Cal.com ne sert qu'une fois dans le parcours** : l'audit de vente. Les séances qui suivent
+  l'achat ne se réservent pas sur le site.
+  **Un seul compte, une seule page** — précisé le 8 septembre 2026 : c'est Franck qui prend
+  tous les rendez-vous. `/reserver` n'aiguille donc vers personne et il n'y a pas d'écran de
+  choix du formateur. **À vérifier à l'inscription** : si les webhooks s'avèrent réservés au
+  plan Teams, c'est 12 $/mois pour une personne, pas par formateur. Sans webhook, pas de ligne
+  `appointments`, donc pas de tableau de bord formateur.
 - **Individuel ou groupe** — **tranché** : porté par `formations.modalite`, un axe distinct de
   `type_produit` (qui dit comment on paie, pas comment le cours se donne). C'est une colonne
   d'information — fiche produit et back-office. L'accès ne change pas, et **la planification

@@ -15,7 +15,7 @@ sortie du formulaire de qualification.
 /formations                 Catalogue — abonnement, accompagnements, formations
 /formations/[slug]          Fiche produit
 /qualification              Formulaire de qualification — crée le compte
-/reserver                   Choix du formateur et du créneau (Cal.com)
+/reserver                   Créneau d'audit avec Franck (Cal.com) — une seule page
 /formateurs                 L'équipe
 /faq
 /contact
