@@ -2,9 +2,20 @@
 
 Monorepo npm workspaces. Next.js 16 (App Router) + Supabase + TypeScript.
 La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
+`01-CAHIER-DES-CHARGES.md` (parcours client, rôles, écrans — **à lire en premier**),
 `02-SITEMAP.md` (arborescence et matrice d'accès), `04-DATA-MODEL.md` (schéma et RLS),
 `06-PERIMETRE.md` (ce qu'on construit et ce qu'on ne construit pas),
 `07-REPARTITION.md` (qui possède quoi entre les deux développeurs).
+
+**Les quatre documents sont à la révision 3** (8 septembre 2026) : tunnel inversé, trois
+types de produit, disparition des cohortes et des replays, espace formateur dédié.
+`01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
+
+**Le code et le schéma, eux, sont restés à la révision 2.** Les migrations de
+`supabase/migrations/` décrivent encore des cohortes, `app_role` dit encore `coach`, et les
+40 pages du scaffold suivent l'ancienne arborescence. Les écarts sont signalés par ⚠️ **à
+écrire** dans `04-DATA-MODEL.md`. Tant qu'ils ne sont pas comblés, **la base ne décrit plus
+le produit** : lire les docs avant de se fier au schéma, pas l'inverse.
 
 ## Structure
 
@@ -12,7 +23,8 @@ La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
 apps/web/src/app/
   (public)/      Site public et tunnel — une page par ligne de 02-SITEMAP.md
   (espace)/      Espace client — garde de layout : rôle client
-  (admin)/       Back-office — garde de layout : coach, admin, owner
+  (formateur)/   Espace formateur — garde de layout : formateur    ⚠️ à créer (rév. 3)
+  (admin)/       Back-office — garde de layout : admin, owner
   api/           Webhooks (stripe, paypal, cal, discord)
 apps/web/src/lib/
   supabase/      client.ts (navigateur), server.ts (serveur, RLS),
@@ -74,10 +86,15 @@ et une politique explicite — ou une absence de politique assumée et commenté
 
 **Un coach ne voit que ses cohortes, et jamais d'argent.** Ces deux invariants sont
 testés dans `supabase/tests/01_rls_coach.test.sql`. Un test qui casse là signale une
-fuite de données, pas un test à ajuster.
+fuite de données, pas un test à ajuster. La révision 3 supprime les cohortes : le premier
+invariant devient « ses **affectations** » et change d'ancrage — `inscriptions.formateur_id`
+et `leads.assigned_to` au lieu de `cohorte_coachs`. L'invariant lui-même ne s'assouplit
+pas ; c'est la migration la plus délicate du chantier (voir `01-CAHIER-DES-CHARGES.md` §5).
 
 **Jamais d'URL de vidéo en base.** `replays` ne stocke que `provider_asset_id`. L'URL
 signée est émise côté serveur, à durée courte, après revérification de l'inscription.
+Règle en sommeil depuis la révision 3 : les replays sont sur Discord et la table part.
+Elle se réveille intacte le jour où une vidéo à accès restreint revient côté site.
 
 **Les webhooks insèrent d'abord dans `payment_events`.** Dans la même transaction que
 le traitement métier. Violation de la contrainte unique = événement déjà traité, on
@@ -117,27 +134,50 @@ réel (`.github/workflows/ci.yml`, job _database_) en plus des tests RLS.
 
 ## État d'avancement
 
-Phases de `docs/06-PERIMETRE.md` :
+Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de l'argent.
 
 - [x] **1 — Fondations** : schéma, RLS, seed multi-rôles, tests pgTAP, poussé et
-      vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`)
-- [~] Scaffold transverse : Next.js, route groups des 40 pages, clients Supabase,
-  gardes de rôle — vérifié avec de vraies sessions. Chaque page reste un
-  placeholder ; le contenu réel appartient aux phases ci-dessous.
-- [ ] 2 — Back-office : CRM, fiches clients, rôles, logs
-- [ ] 3 — Paiement : abstraction, Stripe, PayPal, factures, remboursements
-- [~] 4 — Discord : worker écrit (apps/bot), suit `discord_sync_queue` au plus
-  près du schéma — **jamais testé en réel**, aucune application Discord
-  n'existe encore. Voir apps/bot/README.md pour ce qu'il faut créer.
-- [ ] 5 — Sessions et replays : planning, présences, lecteur sécurisé
-- [ ] 6 — Site public et tunnel
-- [ ] 7 — Migration des données, recette, mise en production
+      vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`) — **au schéma de la
+      révision 2**, donc à reprendre en 1 bis.
+- [~] Scaffold transverse : Next.js, route groups, clients Supabase, gardes de rôle —
+  vérifié avec de vraies sessions. Chaque page reste un placeholder, et l'arborescence
+  est celle de la révision 2 : `/espace/replays`, `/espace/planning` et `/admin/cohortes`
+  n'ont plus lieu d'être, `/formateur` et `/qualification` manquent.
+- [ ] **1 bis — Migrations de la révision 3** : renommages `offres` → `formations` et
+      `coach` → `formateur`, suppression des cohortes / sessions / présences / replays,
+      colonnes du formulaire, `propositions`, `subscriptions`. Emporte les politiques RLS et
+      les tests pgTAP du rôle formateur. **C'est le préalable à tout le reste.**
+- [ ] 2 — Tunnel d'entrée : formulaire natif, création de compte, Discord `invité`, Cal.com
+- [ ] 3 — Espace formateur : tableau de bord, RDV, fiches, propositions, statistiques
+- [ ] 4 — Paiement une fois : Stripe, facture, inscription, rôle Discord
+- [ ] 5 — Abonnement : renouvellement, échec de prélèvement, résiliation, révocation
+- [ ] 6 — Espace client
+- [ ] 7 — Site public : contenu marketing, SEO, pages légales
+- [ ] 8 — Événements, migration des données, recette, mise en production
+- [~] **Transverse — Discord** : worker écrit (apps/bot), suit `discord_sync_queue` au plus
+  près du schéma — **jamais testé en réel**, aucune application Discord n'existe encore.
+  Voir apps/bot/README.md. Devient bloquant dès la phase 2.
 
 ## Décisions en attente du client
 
-- **Hébergeur des replays** — non tranché. Cloudflare Stream ou Bunny recommandés ;
-  le critère est le contrôle d'accès par URL signée, pas le prix. Dépend du volume
-  d'heures enregistrées par mois, information à demander.
+- **Hébergeur des replays** — **tranché, sans objet** : les replays vivent sur Discord.
+  Le site n'héberge que de la vidéo marketing, publique par nature, donc sans contrôle
+  d'accès à construire.
+- **Modèle économique** — **tranché** : trois types de produit. Abonnement mensuel récurrent
+  (communauté), accompagnement acheté en une fois pour 1, 3 ou 6 mois, et formation achetée
+  en une fois à accès illimité. Une seule mécanique d'accès couvre les trois —
+  `inscriptions.date_fin_acces`, avec `null` pour illimité (`01-CAHIER-DES-CHARGES.md` §1).
+  La couche paiement, elle, porte bien deux mécaniques : abonnement Stripe et paiement unique.
+- **Vocabulaire** — **tranché** : `formations` et `formateur`. Le schéma dit encore `offres`
+  et `coach` ; le renommage est une migration à écrire, et il emporte l'énumération, les
+  politiques RLS, les tests pgTAP, le seed et `packages/db`.
+- **Calendrier** — **tranché, décision déléguée aux développeurs** : `Cal.com`. Une page de
+  réservation individuelle par formateur, `/reserver` faisant l'aiguillage — donc aucune
+  fonctionnalité d'équipe à payer. Moins cher que Calendly à besoin égal, plan gratuit bien
+  plus généreux, `appointments.cal_booking_id` et la route `api/cal` restent valables, et
+  l'auto-hébergement reste une porte de sortie. **À vérifier à l'inscription** : si les
+  webhooks s'avèrent réservés au plan Teams, c'est 12 $/utilisateur/mois — sans webhook, pas
+  de ligne `appointments`, donc pas de tableau de bord formateur.
 - **Plan Supabase Pro** — non tranché, et c'est une dépense : 25 $/mois par
   organisation. Ce qu'on achète réellement, c'est le **branching** (une base éphémère par
   pull request), qui supprime les conflits sur la base de dev partagée, et la fin de la
