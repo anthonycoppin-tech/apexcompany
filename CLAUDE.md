@@ -265,8 +265,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   **abonnements** (triés par urgence : impayés d'abord), **transactions**, **catalogue** et
   **automatisations**. `/admin/audit` est écrit et **pose sa propre garde `owner`** — le layout
   laisse entrer `admin`, la page refuse, et la RLS refuse derrière elle.
-  **Restent des placeholders** : factures, remboursements, litiges, comptes et rôles,
-  paramètres. `/admin/parametres` devra poser sa garde `owner` comme `/admin/audit`.
+  **Factures, remboursements, litiges, comptes et rôles, paramètres** sont écrits eux aussi.
+  `/admin/parametres` pose sa garde `owner` comme `/admin/audit`, et montre quels services
+  sont réellement branchés — sans jamais afficher la valeur d'une clé.
+  **Restent des placeholders** : `/admin/emails` et `/admin/clients/[id]`.
   L'édition du catalogue reste à écrire : elle touche au prix, au type et au rôle Discord,
   donc à l'argent et aux accès — elle mérite son écran et sa relecture.
 - [ ] 8 — Événements, migration des données, recette, mise en production
