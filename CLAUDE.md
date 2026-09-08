@@ -20,6 +20,12 @@ par `npm run db:check` et par la suite pgTAP.
 de `02-SITEMAP.md`, le groupe `(formateur)` créé avec sa garde, `/qualification` ouverte,
 `/offres` devenue `/formations`.
 
+**Le design system vit dans `apps/web/src/app/globals.css`**, en tokens Tailwind v4. Aucune page
+ne pose de couleur littérale : tout passe par `bg-surface`, `text-encre-doux`, `border-filet`.
+Une charte est en cours chez un designer — elle se branchera dans ce fichier, pas dans les
+pages. Direction retenue en attendant : clair, aéré, contrasté ; le noir et doré du site actuel
+est explicitement écarté.
+
 **Le chemin de l'argent est écrit de bout en bout** — formulaire, compte, rendez-vous, fiche
 client, proposition, paiement, ouverture de l'accès. Le site public, le back-office et le
 reste de l'espace client sont encore des placeholders.
@@ -204,7 +210,12 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   route chaque jour — sans lui, la fonction existe et ne tourne jamais.
 - [x] **6 — Espace client** : accès en cours, rendez-vous, factures et **résiliation de l'abonnement**,
       compte, liaison Discord. La proposition et son paiement y vivent aussi.
-- [ ] 7 — Site public : contenu marketing, SEO, pages légales
+- [~] **7 — Site public** : accueil, catalogue et fiches produit branchés sur le vrai catalogue,
+  équipe, questions fréquentes, contact. Design system en tokens dans `globals.css`, écrit pour
+  être remplacé par la charte du designer sans toucher aux pages. **Restent à faire** : les six
+  pages légales, qui attendent les informations de la société ; les témoignages et les
+  biographies des formateurs, qui attendent du contenu client ; le SEO fin (Open Graph, données
+  structurées, plan de site).
 - [ ] 8 — Événements, migration des données, recette, mise en production
 - [~] **Transverse — Discord** : worker écrit (apps/bot), suit `discord_sync_queue` au plus
   près du schéma — **jamais testé en réel**, aucune application Discord n'existe encore.
