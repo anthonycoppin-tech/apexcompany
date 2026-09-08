@@ -204,4 +204,12 @@ Ne reste réellement à trancher que :
   Si ces vidéos vivent sur Discord, ce document reste vrai tel quel. Si elles sont sur le site,
   le premier retrait de cette liste — le lecteur à accès restreint et les URL signées — revient
   dans le périmètre, et il coûte. À trancher avant la phase 5.
-- **La TVA hors Europe** — question pour le comptable, à poser avant la première facture.
+- **Qui vend, et sous quel régime** — anciennement « la TVA hors Europe », question reformulée
+  le 8 septembre 2026 après lecture du contrat de prestation. Le vendeur est une société de
+  zone franche à Dubaï, et le site s'adresse à des consommateurs européens : le sujet n'est
+  pas la TVA hors Europe mais la TVA due **dans** l'Union par un vendeur qui n'y est pas
+  établi, plus ce qui vient avec — rétractation, médiation, représentant au sens du RGPD.
+  Reste aussi à savoir **laquelle des deux sociétés** (APEX COMPANY LLC-FZ ou NEURO TRADE APEX
+  LLC) vend aux clients finaux : c'est elle qui figure dans les mentions légales et émet les
+  factures. Détail dans `01-CAHIER-DES-CHARGES.md` §8. Conseil juridique et comptable, à
+  consulter avant la mise en vente.

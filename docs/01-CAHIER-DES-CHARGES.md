@@ -622,10 +622,31 @@ partir de l'étape 2.
 Cinq des sept points listés en révision 3 ont été tranchés le 8 septembre 2026 (voir
 « Décisions prises et déléguées » ci-dessous). N'en restent réellement ouverts que deux :
 
-1. **TVA et facturation hors Europe.** Le formulaire demande la zone géographique et accepte
-   Amérique, Asie, Océanie, Afrique. Vendre de la formation en ligne hors UE ne se facture
-   pas comme en France. Question pour le comptable, pas pour les développeurs — mais elle
-   doit être posée avant la première facture, pas après.
+1. **Qui vend, et sous quel régime.** Ce point était formulé « TVA hors Europe » ; le contrat
+   de prestation transmis le 8 septembre 2026 montre qu'il était posé à l'envers.
+
+   Ce que le contrat apprend : **APEX COMPANY LLC-FZ** est une société de zone franche
+   domiciliée à **Dubaï (Émirats arabes unis)**, immatriculée sous le numéro 264 5781,
+   dirigée par **Franck Alexandre**. Une seconde entité est mentionnée, **NEURO TRADE APEX
+   LLC**, sans que son rôle soit précisé.
+
+   Ce qu'il n'apprend pas, et qui bloque les pages légales : **laquelle des deux vend aux
+   clients finaux ?** C'est cette entité-là qui figure dans les mentions légales, émet les
+   factures et porte les obligations. Écrire la mauvaise serait pire qu'un espace réservé.
+
+   Et ce qu'il change : le sujet n'est plus « la TVA hors Europe » mais **la TVA due dans
+   l'Union par un vendeur qui n'y est pas établi**. Une société émiratie qui vend de la
+   formation en ligne à des consommateurs français ou européens entre dans un régime précis
+   (guichet unique dit OSS, non-Union), et plusieurs autres obligations suivent du même
+   constat — droit de rétractation, médiation de la consommation, représentant dans l'Union
+   au sens du RGPD. Le fait que le contrat désigne le droit de Dubaï ne les écarte pas : ces
+   protections suivent le consommateur, pas le vendeur.
+
+   **Ce sont des questions pour un conseil juridique et un comptable, pas pour les
+   développeurs.** Elles doivent être posées avant la première vente, pas avant la première
+   facture — la différence n'est pas rhétorique : c'est la mise en vente elle-même qui les
+   déclenche.
+
 2. **Où vivent les vidéos exclusives ?** Un des deux abonnements donne accès à des vidéos
    exclusives (voir ci-dessous), et leur hébergement n'est toujours pas tranché. Sur Discord,
    il n'y a rien à construire. Sur le site, la règle « jamais d'URL de vidéo en base » se

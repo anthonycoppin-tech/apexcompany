@@ -57,8 +57,9 @@ d'achat la vérifient. À surveiller de près à la mise en service : **si l'env
 pas configuré côté Supabase, plus aucun paiement ne peut aboutir.** C'est le comportement
 voulu, mais il faut avoir essayé un vrai parcours d'achat avant d'ouvrir les ventes.
 
-Restent ouverts : l'hébergement des vidéos exclusives d'un des deux abonnements, et la TVA
-hors Europe (question pour le comptable).
+Restent ouverts : l'hébergement des vidéos exclusives d'un des deux abonnements, et le régime
+de vente — quelle société vend, et sous quel régime de TVA et de droit de la consommation,
+sachant que le vendeur est à Dubaï et les clients dans l'Union (conseil juridique).
 
 **Git est propre** : tout est mergé sur `main`, aucune branche locale ni distante en attente.
 Si tu vois des branches `a/*` ou `b/*` qui traînent en local, elles datent d'avant un nettoyage
