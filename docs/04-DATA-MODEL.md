@@ -52,6 +52,12 @@ volée : le salon est permanent, son accès est déjà cloisonné par `discord_r
 (`cohortes`). Ce champ remplace Circle (planning) et Zoom (lien de call) — voir
 `06-PERIMETRE.md`, « Calls de groupe ».
 
+**À trancher en phase 5** : le salon étant permanent et propre à la cohorte, la même valeur se
+répète sur chaque session. Un `cohortes.discord_channel_id` serait le bon emplacement, et
+`sessions.lien_discord` ne garderait alors que les exceptions (une session tenue ailleurs). Ne
+pas migrer avant d'avoir vu un vrai serveur Discord : c'est le test réel du bot qui dira si un
+salon par cohorte suffit ou s'il en faut un par type de session.
+
 **`presences`** — `id`, `session_id`, `inscription_id`, `present`, `duree_minutes`, `saisi_par`
 
 **`replays`** — `id`, `session_id`, `provider`, `provider_asset_id`, `duree_secondes`,

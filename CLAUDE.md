@@ -128,7 +128,9 @@ Phases de `docs/06-PERIMETRE.md` :
 - [ ] 3 — Paiement : abstraction, Stripe, PayPal, factures, remboursements
 - [~] 4 — Discord : worker écrit (apps/bot), suit `discord_sync_queue` au plus
   près du schéma — **jamais testé en réel**, aucune application Discord
-  n'existe encore. Voir apps/bot/README.md pour ce qu'il faut créer.
+  n'existe encore. Voir apps/bot/README.md pour ce qu'il faut créer. Depuis la
+  décision sur les calls de groupe (`docs/06-PERIMETRE.md`), cette phase bloque
+  aussi la tenue des cours eux-mêmes, pas seulement la synchronisation des rôles.
 - [ ] 5 — Sessions et replays : planning, présences, lecteur sécurisé
 - [ ] 6 — Site public et tunnel
 - [ ] 7 — Migration des données, recette, mise en production

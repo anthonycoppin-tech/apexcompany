@@ -34,7 +34,7 @@ précisément ce qui a créé la dispersion actuelle.
 Beaucoup plus léger qu'initialement prévu, puisque le contenu est ailleurs.
 
 ```
-/espace                     Prochaine session, accès Discord, dernier replay
+/espace                     Prochaine session, accès au salon de sa cohorte, dernier replay
 /espace/planning            Calendrier des sessions de sa cohorte
 /espace/replays             Enregistrements accessibles, lecteur sécurisé
 /espace/coaching            Réservation de créneaux individuels (Cal.com)
@@ -44,6 +44,12 @@ Beaucoup plus léger qu'initialement prévu, puisque le contenu est ailleurs.
 ```
 
 Pas de messagerie : l'échange conversationnel reste sur Discord (voir `06-PERIMETRE.md`).
+
+**`/espace/planning` est le calendrier de référence**, à la place de Circle. Il lit `sessions`
+et rien d'autre : pas de calendrier tenu en parallèle ailleurs, sinon les deux divergent et
+personne ne sait plus lequel fait foi. Les calls de groupe s'y affichent avec le salon vocal
+privé de la cohorte — jamais un lien de visio généré à la main (voir `06-PERIMETRE.md`,
+« Calls de groupe »).
 
 **`/espace/replays` est la seule page techniquement délicate du front client.** L'URL de la
 vidéo doit être signée côté serveur, à durée courte, après vérification que l'inscription est
