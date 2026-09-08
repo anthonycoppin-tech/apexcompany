@@ -1,32 +1,50 @@
 # Périmètre — ce qu'on construit, ce qu'on ne construit pas
 
-Le besoin exprimé par les cinq pôles, pris au pied de la lettre, représente bien plus que
-9-10 semaines à deux à temps partiel. Ce document tranche. Il est fait pour être discuté
-avec le client, pas pour être appliqué en silence.
+Révision 3, 8 septembre 2026. Le besoin exprimé par les cinq pôles, pris au pied de la lettre,
+représente bien plus que 9-10 semaines à deux à temps partiel. Ce document tranche. Il est
+fait pour être discuté avec le client, pas pour être appliqué en silence.
 
 Le principe : **la plateforme centralise le parcours client et l'argent. Elle ne remplace pas
 les outils de travail interne de l'équipe.**
 
 ## Dans le périmètre
 
-| Besoin exprimé                              | Traitement                                    |
-| ------------------------------------------- | --------------------------------------------- |
-| Un seul lien pour les réseaux sociaux       | Page d'entrée unique avec traçage de source   |
-| Qualification + paiement au même endroit    | Tunnel intégré au site, un seul funnel        |
-| Suppression des funnels redondants          | Une offre = une fiche, un seul tunnel         |
-| CRM prospects et clients                    | Back-office, cœur du projet                   |
-| Suivi RDV, offres, paiements                | Back-office                                   |
-| Droits d'accès par rôle                     | RLS Supabase, 5 rôles                         |
-| Planning des sessions live                  | Back-office + espace client                   |
-| Accès aux replays                           | Espace client, lecteur intégré                |
-| Suivi individuel des clients par les coachs | Fiche client + notes de suivi                 |
-| Attribution automatique des accès Discord   | Bot, synchronisé sur les paiements            |
-| Migration des données existantes            | Phase dédiée                                  |
-| Facturation                                 | Génération automatique, numérotation continue |
+| Besoin exprimé                                 | Traitement                                         |
+| ---------------------------------------------- | -------------------------------------------------- |
+| Un seul lien pour les réseaux sociaux          | Page d'entrée unique avec traçage de source        |
+| Qualification puis rendez-vous au même endroit | Formulaire natif, compte créé, `/reserver`         |
+| Suppression des funnels redondants             | Un produit = une fiche, un seul tunnel             |
+| CRM prospects et clients                       | Back-office, cœur du projet                        |
+| Tableau de bord formateur                      | Zone dédiée : RDV, fiches, propositions, stats     |
+| Proposition commerciale après l'audit          | Émise depuis `/formateur`, traçable et expirable   |
+| Suivi RDV, catalogue, paiements                | Back-office                                        |
+| Droits d'accès par rôle                        | RLS Supabase, 5 rôles                              |
+| Abonnement mensuel et achats uniques           | Deux mécaniques de paiement, une mécanique d'accès |
+| Attribution automatique des accès Discord      | Bot, synchronisé sur les inscriptions              |
+| Révocation automatique en fin d'accès          | Tâche planifiée + file Discord                     |
+| Migration des données existantes               | Phase dédiée                                       |
+| Facturation                                    | Génération automatique, numérotation continue      |
 
 ## Hors périmètre — à faire avec des outils existants
 
 Ces besoins sont réels. Les construire serait une erreur de priorisation.
+
+**Les replays sur le site.** Ils vivent sur Discord, avec le reste du contenu. Le site
+n'héberge que de la vidéo marketing, publique par nature — donc aucun contrôle d'accès, aucune
+URL signée, aucun lecteur sécurisé à construire. C'est le plus gros retrait de la révision 3 :
+la révision 2 en faisait « la seule page techniquement délicate du front client ».
+
+**La billetterie des événements.** La page `/evenements` est reportée après la première
+livraison, et se limitera à une liste ; « prendre son ticket » appellera un organisme externe.
+Gérer des réservations, des quotas, des remboursements de billets et des listes d'attente est
+un produit en soi.
+
+**Le planificateur de rendez-vous.** Cal.com à 12 $/utilisateur/mois, et encore, seulement si
+les webhooks s'avèrent payants. Générer des créneaux est simple ; synchroniser
+bidirectionnellement l'agenda personnel du formateur ne l'est pas, et sans ça il se fait
+réserver un créneau où il n'est pas libre. Ajoutez les fuseaux horaires — le formulaire
+accepte cinq zones géographiques — les annulations, les reports et les rappels : deux à trois
+semaines pour reproduire moins bien ce qui coûte le prix d'un déjeuner.
 
 **Bibliothèque d'assets (logos, visuels, templates)** → Google Drive, dans le Workspace déjà
 prévu. Construire un gestionnaire de médias, c'est deux à trois semaines pour reproduire en
@@ -44,96 +62,106 @@ fichier partagé.
 factures et attestations liées à un client vivent dans la plateforme, parce qu'elles se
 génèrent automatiquement à partir des paiements.
 
-**Messagerie privée entre coach et client** → À discuter sérieusement avec eux. Construire une
-messagerie, c'est du temps réel, des notifications, de la modération, une politique de
+**Messagerie privée entre formateur et client** → À discuter sérieusement avec eux. Construire
+une messagerie, c'est du temps réel, des notifications, de la modération, une politique de
 conservation, et une responsabilité juridique sur le contenu échangé. Compte 3 à 4 semaines
 pour une version correcte. Or **Discord fait déjà des messages privés**, et les clients y sont
-déjà puisque les cours s'y passent.
+déjà puisque tout le contenu s'y trouve.
 
-Ma recommandation : v1 sans messagerie. Le suivi individuel structuré (notes du coach,
-objectifs, historique) vit dans le back-office côté coach ; l'échange conversationnel reste
-sur Discord. Si après six mois d'usage le besoin d'une messagerie intégrée est confirmé, elle
-se construira sur une base saine.
+Ma recommandation : v1 sans messagerie. Le suivi individuel structuré (notes du formateur,
+objectifs, historique) vit dans `/formateur` ; l'échange conversationnel reste sur Discord. Si
+après six mois d'usage le besoin d'une messagerie intégrée est confirmé, elle se construira
+sur une base saine.
 
-## Calls de groupe : remplacement de Circle & Zoom
+**Les calls de groupe et leur planning.** Validé par le chef de projet le 8 septembre 2026,
+et ça ferme le point ouvert §8.8 du cahier des charges : les lives et les calls de groupe sont
+**annoncés et tenus sur Discord**, dans le salon vocal du produit. Le site n'en tient pas le
+calendrier, et le modèle n'a donc pas besoin d'un objet « événement récurrent ».
 
-Décidé. Aujourd'hui, chaque call groupé passe par trois outils non synchronisés : un lien Zoom
-généré à la main, copié-collé dans les groupes WhatsApp concernés, et un événement mis à jour
-sur Circle qui sert de planning de référence. Le point de friction n'est pas Zoom comme outil
-de visio, c'est la chaîne manuelle qui doit être refaite à l'identique à chaque occurrence.
+Le processus actuel enchaîne trois outils non synchronisés : un lien Zoom généré à la main,
+copié-collé dans les groupes WhatsApp concernés, et un événement mis à jour sur Circle qui sert
+de planning de référence. Le point de friction n'est pas Zoom comme outil de visio, c'est la
+chaîne manuelle à refaire à l'identique à chaque occurrence.
 
-**Circle et Zoom disparaissent, remplacés par un salon vocal Discord privé par cohorte.** Ça ne
-demande pas de nouveau chantier : `cohortes.discord_role_id` attribue déjà un rôle par cohorte,
-automatiquement synchronisé sur les paiements (`discord_sync_queue`, `apps/bot`). Un salon vocal
-visible uniquement par ce rôle remplace le lien Zoom généré à la main et sa diffusion sur
-WhatsApp — les bonnes personnes voient le salon, point, sans rien à créer ni à coller nulle
-part. Le planning devient `/espace/planning`, lu depuis `sessions`, à la place de l'événement
-Circle.
+**Circle et Zoom disparaissent au profit d'un salon vocal Discord privé par produit.** Ça ne
+demande aucun développement supplémentaire : `formations.discord_role_id` attribue déjà le rôle
+à l'inscription, et la file `discord_sync_queue` le retire en fin d'accès. Un salon visible du
+seul rôle du produit remplace à la fois le lien généré à la main et sa diffusion sur WhatsApp.
 
-**Pas de salle d'attente manuelle.** L'idée d'un tri humain en direct pour faire entrer les gens
-un par un a été évoquée puis écartée : le rôle Discord fait déjà ce filtrage automatiquement,
-accès coupé dès qu'un paiement est en défaut. Ajouter un tri manuel ne ferait que réintroduire
-la dépendance à une personne présente en direct que ce changement cherche justement à supprimer.
+**Pas de salle d'attente manuelle.** L'idée d'un tri humain en direct, pour faire entrer les
+gens un par un, a été évoquée puis écartée : le rôle Discord fait déjà ce filtrage, et la
+révocation automatique en fin d'accès (§3, étape 5 du cahier des charges) le fait sans personne
+derrière l'écran. Un tri manuel réintroduirait exactement la dépendance qu'on supprime — le
+call ne peut plus commencer si celui qui trie est en retard.
 
-Reste à faire avant de couper Circle & Zoom : le bot Discord n'a encore jamais été testé contre
-un vrai serveur (aucune application Discord n'existe pour le projet à ce jour — voir
-`apps/bot/README.md`), et la phase 5 (planning, présences) n'est pas commencée.
-
-## La question à trancher avant la phase 2 : les replays
-
-Les cours étant en live, les enregistrements sont ce que le client consulte entre deux
-sessions. C'est donc un actif central, et personne ne l'a encore décidé.
-
-| Option                 | Coût indicatif                   | Points d'attention                                                  |
-| ---------------------- | -------------------------------- | ------------------------------------------------------------------- |
-| YouTube non répertorié | Gratuit                          | Aucun contrôle d'accès réel — un lien qui fuite est un cours offert |
-| Vimeo                  | ~20-75 €/mois                    | Restriction par domaine, correct, ergonomie datée                   |
-| Cloudflare Stream      | ~5 $/1000 min stockées + lecture | Bon rapport qualité/prix, signature d'URL                           |
-| Mux                    | À l'usage, plus cher             | Meilleure qualité, analytics fines                                  |
-| Bunny Stream           | Très bon marché                  | Sérieux, moins connu                                                |
-
-Le critère décisif n'est pas le prix mais **le contrôle d'accès** : il faut des URL signées à
-durée limitée, générées côté serveur après vérification de l'inscription. Sinon un client
-partage un lien et vous n'avez plus de produit.
-
-Mon avis : Cloudflare Stream ou Bunny. À valider selon le volume d'heures enregistrées par mois,
-information qu'il faut leur demander.
+Ce que ça ne dispense pas de faire : **aucune application Discord n'existe encore** (voir
+`apps/bot/README.md`). Le worker est écrit mais n'a jamais tourné en réel, et il est bloquant
+dès l'étape 2 du plan de construction.
 
 ## Rôles révisés
 
-Les quatre rôles internes évoqués (coach, branding, admin, dev) donnent, avec le client :
-
-| Rôle       | Périmètre                                                              |
-| ---------- | ---------------------------------------------------------------------- |
-| `client`   | Ses données, son planning, ses replays, sa facturation                 |
-| `coach`    | Ses cohortes uniquement : clients, sessions, présences, notes de suivi |
-| `branding` | Accès minimal : statistiques de conversion, liens et visuels du site   |
-| `admin`    | CRM complet, paiements, remboursements, catalogue, documents           |
-| `owner`    | Tout, plus la gestion des rôles et l'audit                             |
+| Rôle        | Périmètre                                                                   |
+| ----------- | --------------------------------------------------------------------------- |
+| `client`    | Ses données, ses rendez-vous, ses propositions, sa facturation              |
+| `formateur` | Ses affectations uniquement : clients, rendez-vous, notes, ses statistiques |
+| `branding`  | Accès minimal : statistiques de conversion, liens et visuels du site        |
+| `admin`     | CRM complet, paiements, remboursements, catalogue, documents                |
+| `owner`     | Tout, plus la gestion des rôles et l'audit                                  |
 
 **Le rôle `branding` a très peu à faire dans la plateforme** — son travail est en dehors. Ne
 lui construisez pas un espace dédié : un accès en lecture aux statistiques suffit largement.
 
-**Le rôle `coach` est le plus délicat.** « Ses cohortes uniquement » est une politique RLS, pas
-un filtre d'affichage. Un coach ne doit pas pouvoir lister les clients d'un autre coach, même
-en appelant l'API directement.
+**Le rôle `formateur` est le plus délicat.** « Ses affectations uniquement » est une politique
+RLS, pas un filtre d'affichage. Un formateur ne doit pas pouvoir lister les clients d'un
+autre, même en appelant l'API directement — et il ne voit jamais un montant.
 
 Pas de rôle `dev` : en production, vous intervenez avec `owner` ou via les accès techniques
 Supabase, qui sont hors du modèle de rôles applicatif.
 
+**Ne pas confondre avec les rôles Discord**, qui sont un système distinct : `invité` à la
+création du compte, puis un rôle par produit acheté, révoqué à la fin de l'accès. Voir
+`01-CAHIER-DES-CHARGES.md` §2.
+
 ## Ordre de construction révisé
 
-| Phase | Contenu                                                          | Estimation |
-| ----- | ---------------------------------------------------------------- | ---------- |
-| 1     | Fondations : repo, CI, schéma, auth, RLS, webhook Cal.com        | 1,5 sem    |
-| 2     | Back-office : CRM, fiches clients, rôles, logs                   | 3 sem      |
-| 3     | Paiement : abstraction, Stripe, PayPal, factures, remboursements | 2 sem      |
-| 4     | Discord : bot, liaison de compte, synchronisation des rôles      | 1 sem      |
-| 5     | Sessions et replays : planning, présences, lecteur sécurisé      | 1,5 sem    |
-| 6     | Site public et tunnel                                            | 2 sem      |
-| 7     | Migration des données, recette, mise en production               | 1,5 sem    |
+Le découpage de la révision 2 était organisé autour des cohortes et des replays, qui ont
+disparu. Le nouveau suit le chemin de l'argent — c'est aussi le chemin le plus court vers
+quelque chose d'utilisable.
 
-Soit environ 12,5 semaines, contre 9-10 estimées initialement. L'écart vient du bot Discord
-devenu critique et des replays qui n'étaient pas au périmètre.
+| Phase | Contenu                                                                     | Estimation |
+| ----- | --------------------------------------------------------------------------- | ---------- |
+| 1     | Fondations : repo, CI, schéma, auth, RLS — **fait**                         | 1,5 sem ✓  |
+| 1 bis | Migrations de la révision 3 : renommages, suppressions, nouvelles tables    | 1 sem      |
+| 2     | Tunnel d'entrée : formulaire natif, compte, Discord `invité`, Cal.com       | 2 sem      |
+| 3     | Espace formateur : tableau de bord, RDV, fiches, propositions, statistiques | 2 sem      |
+| 4     | Paiement une fois : Stripe, facture, inscription, rôle Discord              | 2 sem      |
+| 5     | Abonnement : renouvellement, échec de prélèvement, résiliation, révocation  | 1,5 sem    |
+| 6     | Espace client                                                               | 1 sem      |
+| 7     | Site public : contenu marketing, SEO, pages légales                         | 2 sem      |
+| 8     | Événements, migration des données, recette, mise en production              | 1,5 sem    |
 
-Annoncez 14 semaines au client. Une estimation tenue vaut mieux qu'une estimation flatteuse.
+Soit environ **13 semaines restantes**, 14,5 en comptant la phase 1 déjà livrée. La révision 3
+retire 1,5 semaine de replays et de planning de sessions, mais ajoute l'espace formateur et la
+mécanique d'abonnement, qui coûtent davantage.
+
+Annoncez 16 semaines au client. Une estimation tenue vaut mieux qu'une estimation flatteuse.
+
+**Les phases 4 et 5 sont séparées volontairement.** Le paiement unique suffit à vendre les
+accompagnements et les formations, c'est-à-dire les gros paniers : la plateforme encaisse dès
+la phase 4. L'abonnement communauté peut suivre sans bloquer la mise en service.
+
+**Dépendance à débloquer tôt** : aucune application Discord n'existe encore, et le worker
+`apps/bot` n'a jamais tourné en réel. Il devient bloquant dès la phase 2, puisque c'est là que
+le rôle `invité` est attribué pour la première fois.
+
+## Ce qui reste à trancher
+
+La question des replays, qui occupait cette place en révision 2, est close : Discord.
+Restent, détaillées dans `01-CAHIER-DES-CHARGES.md` §8 :
+
+- **Les règles d'éligibilité du formulaire** — la plus urgente, elle bloque la
+  reconstruction du tunnel à l'identique.
+- **La vente en self-service de l'abonnement communauté**, qui ferait une entorse assumée au
+  principe du tunnel unique.
+- **Le paiement en plusieurs fois** sur les paniers annoncés jusqu'à 5 000 € et plus.
+- **La TVA hors Europe** — question pour le comptable, à poser avant la première facture.
