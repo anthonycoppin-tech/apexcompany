@@ -12,6 +12,9 @@
  *                     La suite pgTAP de supabase/tests/ reste la référence et
  *                     tourne en CI, où Docker est disponible.
  *
+ * Toute règle vérifiée ici doit AUSSI exister en pgTAP, et réciproquement : les
+ * deux se maintiennent ensemble.
+ *
  *   node scripts/verifier-schema.mjs
  */
 
@@ -179,28 +182,57 @@ async function main() {
     process.exit(1);
   }
 
-  // ── Invariant 1 : un coach ne voit que sa cohorte ────────────────────────
-  console.log('\nCoach A — cloisonnement entre cohortes\n');
+  // ── Invariant 1 : un formateur ne voit que ses affectations ──────────────
+  // Révision 3 : lancrage nest plus la cohorte mais laffectation explicite,
+  // inscriptions.formateur_id et leads.assigned_to. Lénoncé change, pas
+  // linvariant.
+  console.log('\nFormateur A — cloisonnement entre affectations\n');
   await devenir('33333333-3333-3333-3333-333333333333');
 
-  verifier('ne voit que linscription de sa cohorte', await compter('public.inscriptions'), 1);
-  verifier('ne voit que sa cohorte', await compter('public.cohortes'), 1);
-  verifier('ne voit que ses sessions', await compter('public.sessions'), 2);
-  verifier('ne voit que les replays de ses sessions', await compter('public.replays'), 2);
+  verifier(
+    'ne voit que linscription qui lui est affectée',
+    await compter('public.inscriptions'),
+    1,
+  );
+  verifier(
+    'ne voit pas linscription affectée au formateur B',
+    await compter(`public.inscriptions where id = 'e0000000-0000-0000-0000-00000000000b'`),
+    0,
+  );
+  verifier('ne voit que ses deux prospects', await compter('public.leads'), 2);
+  verifier(
+    'ne voit pas les prospects du formateur B',
+    await compter(`public.leads where assigned_to = '44444444-4444-4444-4444-444444444444'`),
+    0,
+  );
+  verifier('ne voit que le formulaire de ses prospects', await compter('public.lead_events'), 2);
+  verifier('ne voit que son audit', await compter('public.appointments'), 1);
+  verifier('ne voit que sa proposition', await compter('public.propositions'), 1);
   verifier('ne voit que ses notes de suivi', await compter('public.suivi_notes'), 2);
   verifier(
-    'ne voit pas le profil du client de lautre coach',
+    'ne voit pas la note interne du formateur B',
+    await compter(
+      `public.suivi_notes where inscription_id = 'e0000000-0000-0000-0000-00000000000b'`,
+    ),
+    0,
+  );
+  verifier(
+    'ne voit pas le profil du client de lautre formateur',
     await compter(`public.profiles where id = '77777777-7777-7777-7777-777777777777'`),
     0,
   );
+  verifier(
+    'voit bien le profil de son propre client',
+    await compter(`public.profiles where id = '66666666-6666-6666-6666-666666666666'`),
+    1,
+  );
 
-  // ── Invariant 2 : largent est fermé aux coachs ───────────────────────────
-  console.log('\nCoach A — fermeture des données financières\n');
+  // ── Invariant 2 : largent est fermé aux formateurs ───────────────────────
+  console.log('\nFormateur A — fermeture des données financières\n');
   verifier('aucune commande', await compter('public.orders'), 0);
   verifier('aucun paiement', await compter('public.payments'), 0);
-  verifier('aucune échéance', await compter('public.payment_schedules'), 0);
   verifier('aucune facture', await compter('public.invoices'), 0);
-  verifier('aucun lead', await compter('public.leads'), 0);
+  verifier('aucun abonnement', await compter('public.subscriptions'), 0);
 
   // ── Invariant 3 : le client ne voit que ses données ──────────────────────
   console.log('\nClient A — périmètre personnel\n');
@@ -209,21 +241,25 @@ async function main() {
   verifier('une seule inscription', await compter('public.inscriptions'), 1);
   verifier('une seule commande', await compter('public.orders'), 1);
   verifier('une seule facture', await compter('public.invoices'), 1);
-  verifier('une seule présence', await compter('public.presences'), 1);
+  verifier('sa proposition', await compter('public.propositions'), 1);
   verifier('seulement la note rendue visible', await compter('public.suivi_notes'), 1);
   verifier(
-    'la note interne du coach ne remonte pas',
+    'la note interne du formateur ne remonte pas',
     await compter('public.suivi_notes where not visible_client'),
     0,
   );
-  verifier('seulement le replay publié de sa cohorte', await compter('public.replays'), 1);
   verifier('aucun lead', await compter('public.leads'), 0);
   verifier('aucun journal daudit', await compter('public.audit_logs'), 0);
   verifier('payment_events inaccessible', await compter('public.payment_events'), 0);
 
-  console.log('\nClient B — échéancier\n');
+  console.log('\nClient B — abonnement\n');
   await devenir('77777777-7777-7777-7777-777777777777');
-  verifier('voit ses trois échéances', await compter('public.payment_schedules'), 3);
+  verifier('voit son abonnement', await compter('public.subscriptions'), 1);
+  verifier(
+    'ne voit pas labonnement dun autre',
+    await compter(`public.subscriptions where user_id <> '77777777-7777-7777-7777-777777777777'`),
+    0,
+  );
   verifier('aucune note de suivi du client A', await compter('public.suivi_notes'), 0);
 
   // ── Invariant 4 : visiteur anonyme ───────────────────────────────────────
@@ -231,15 +267,21 @@ async function main() {
   await db.exec('reset role;');
   await db.exec(`set request.jwt.claims = '';`);
   await db.exec('set role anon;');
-  verifier('voit les deux offres actives', await compter('public.offres'), 2);
-  verifier('ne voit pas loffre en brouillon', await compter(`public.offres where not actif`), 0);
+  verifier('voit les trois formations actives', await compter('public.formations'), 3);
+  verifier(
+    'ne voit pas la formation en brouillon',
+    await compter(`public.formations where not actif`),
+    0,
+  );
   verifier('aucune inscription', await compter('public.inscriptions'), 0);
+  verifier('aucune proposition', await compter('public.propositions'), 0);
 
   // ── Invariant 5 : admin et owner ─────────────────────────────────────────
   console.log('\nAdmin et owner\n');
   await devenir('22222222-2222-2222-2222-222222222222');
   verifier('admin voit les deux inscriptions', await compter('public.inscriptions'), 2);
   verifier('admin voit les deux commandes', await compter('public.orders'), 2);
+  verifier('admin voit les deux propositions', await compter('public.propositions'), 2);
   verifier('admin ne lit pas le journal daudit', await compter('public.audit_logs'), 0);
 
   await devenir('11111111-1111-1111-1111-111111111111');
@@ -280,16 +322,76 @@ async function main() {
   }
   verifier('une facture émise ne peut pas être supprimée', factureImmuable, true);
 
+  // Le filet contre le webhook rejoué, version révision 3 : lunicité porte sur
+  // (user_id, formation_id) restreinte aux inscriptions actives.
   let doubleInscription = false;
   try {
-    await db.exec(`insert into public.inscriptions (user_id, offre_id, cohorte_id)
+    await db.exec(`insert into public.inscriptions (user_id, formation_id, statut)
                    values ('66666666-6666-6666-6666-666666666666',
-                           'a0000000-0000-0000-0000-000000000001',
-                           'c0000000-0000-0000-0000-00000000000a');`);
+                           'a0000000-0000-0000-0000-000000000002',
+                           'active');`);
   } catch {
     doubleInscription = true;
   }
-  verifier('pas de double inscription à la même cohorte', doubleInscription, true);
+  verifier('pas de deuxième inscription active à la même formation', doubleInscription, true);
+
+  // ... mais un accompagnement terminé peut être racheté. Sans ça, un client
+  // fidèle serait bloqué par le filet censé le protéger.
+  let readhesion = true;
+  try {
+    await db.exec(`insert into public.inscriptions (user_id, formation_id, statut)
+                   values ('66666666-6666-6666-6666-666666666666',
+                           'a0000000-0000-0000-0000-000000000002',
+                           'terminee');`);
+  } catch {
+    readhesion = false;
+  }
+  verifier('une inscription terminée nempêche pas den reprendre une', readhesion, true);
+
+  // La cohérence du type de produit, écrite en contrainte plutôt quen usage.
+  let dureeIncoherente = false;
+  try {
+    await db.exec(`insert into public.formations (slug, titre, prix_cents, type_produit, modalite, duree_acces_jours)
+                   values ('test-incoherent', 'Test', 1000, 'formation', 'groupe', 30);`);
+  } catch {
+    dureeIncoherente = true;
+  }
+  verifier('une formation à accès illimité ne peut pas porter une durée', dureeIncoherente, true);
+
+  // Lidempotence vaut aussi pour labonnement : un renouvellement rejoué ne
+  // doit pas offrir deux mois daccès.
+  let doubleAbonnement = false;
+  try {
+    await db.exec(`insert into public.subscriptions (user_id, formation_id, provider, provider_subscription_id)
+                   values ('66666666-6666-6666-6666-666666666666',
+                           'a0000000-0000-0000-0000-000000000001',
+                           'stripe', 'sub_test_seed_b');`);
+  } catch {
+    doubleAbonnement = true;
+  }
+  verifier(
+    'un abonnement déjà enregistré chez le prestataire nest pas dupliqué',
+    doubleAbonnement,
+    true,
+  );
+
+  let creneauIncoherent = false;
+  try {
+    await db.exec(`insert into public.appointments (cal_booking_id, debut, fin)
+                   values ('cal_incoherent', now(), now() - interval '1 hour');`);
+  } catch {
+    creneauIncoherent = true;
+  }
+  verifier('un rendez-vous ne peut pas se terminer avant davoir commencé', creneauIncoherent, true);
+
+  let accompagnementSansDuree = false;
+  try {
+    await db.exec(`insert into public.formations (slug, titre, prix_cents, type_produit, modalite, duree_acces_jours)
+                   values ('test-accompagnement-sans-duree', 'Test', 1000, 'accompagnement', 'individuel', null);`);
+  } catch {
+    accompagnementSansDuree = true;
+  }
+  verifier('un accompagnement doit déclarer sa durée daccès', accompagnementSansDuree, true);
 
   // ── Filet : aucune table sans RLS ────────────────────────────────────────
   console.log('\nCouverture RLS\n');
@@ -309,6 +411,28 @@ async function main() {
     sansRls.rows.length,
     0,
   );
+
+  // ── Filet : plus aucune trace du vocabulaire de la révision 2 ────────────
+  const vestiges = await db.query(`
+    select tablename from pg_tables
+    where schemaname = 'public'
+      and tablename in ('offres', 'cohortes', 'cohorte_coachs', 'sessions',
+                        'presences', 'replays', 'coaching_sessions', 'payment_schedules')
+  `);
+  verifier(
+    `aucune table de la révision 2 ne survit${
+      vestiges.rows.length ? ` (${vestiges.rows.map((r) => r.tablename).join(', ')})` : ''
+    }`,
+    vestiges.rows.length,
+    0,
+  );
+
+  const roleCoach = await db.query(`
+    select 1 from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typname = 'app_role' and e.enumlabel = 'coach'
+  `);
+  verifier('le rôle coach a bien été renommé formateur', roleCoach.rows.length, 0);
 
   console.log(`\n${reussites} vérifications passées, ${echecs} en échec\n`);
   process.exit(echecs === 0 ? 0 : 1);

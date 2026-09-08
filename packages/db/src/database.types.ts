@@ -42,11 +42,13 @@ export type Database = {
       appointments: {
         Row: {
           cal_booking_id: string
+          compte_rendu: string | null
           conseiller_id: string | null
           created_at: string
           debut: string
           fin: string
           id: string
+          issue: Database["public"]["Enums"]["rdv_issue"] | null
           lead_id: string | null
           notes: string | null
           statut: Database["public"]["Enums"]["appointment_statut"]
@@ -54,11 +56,13 @@ export type Database = {
         }
         Insert: {
           cal_booking_id: string
+          compte_rendu?: string | null
           conseiller_id?: string | null
           created_at?: string
           debut: string
           fin: string
           id?: string
+          issue?: Database["public"]["Enums"]["rdv_issue"] | null
           lead_id?: string | null
           notes?: string | null
           statut?: Database["public"]["Enums"]["appointment_statut"]
@@ -66,11 +70,13 @@ export type Database = {
         }
         Update: {
           cal_booking_id?: string
+          compte_rendu?: string | null
           conseiller_id?: string | null
           created_at?: string
           debut?: string
           fin?: string
           id?: string
+          issue?: Database["public"]["Enums"]["rdv_issue"] | null
           lead_id?: string | null
           notes?: string | null
           statut?: Database["public"]["Enums"]["appointment_statut"]
@@ -172,140 +178,6 @@ export type Database = {
           statut?: Database["public"]["Enums"]["automation_statut"]
         }
         Relationships: []
-      }
-      coaching_sessions: {
-        Row: {
-          cal_booking_id: string | null
-          coach_id: string | null
-          compte_rendu: string | null
-          created_at: string
-          debut: string
-          fin: string
-          id: string
-          inscription_id: string
-          statut: Database["public"]["Enums"]["coaching_statut"]
-          updated_at: string
-        }
-        Insert: {
-          cal_booking_id?: string | null
-          coach_id?: string | null
-          compte_rendu?: string | null
-          created_at?: string
-          debut: string
-          fin: string
-          id?: string
-          inscription_id: string
-          statut?: Database["public"]["Enums"]["coaching_statut"]
-          updated_at?: string
-        }
-        Update: {
-          cal_booking_id?: string | null
-          coach_id?: string | null
-          compte_rendu?: string | null
-          created_at?: string
-          debut?: string
-          fin?: string
-          id?: string
-          inscription_id?: string
-          statut?: Database["public"]["Enums"]["coaching_statut"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coaching_sessions_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coaching_sessions_inscription_id_fkey"
-            columns: ["inscription_id"]
-            isOneToOne: false
-            referencedRelation: "inscriptions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cohorte_coachs: {
-        Row: {
-          coach_id: string
-          cohorte_id: string
-          created_at: string
-        }
-        Insert: {
-          coach_id: string
-          cohorte_id: string
-          created_at?: string
-        }
-        Update: {
-          coach_id?: string
-          cohorte_id?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cohorte_coachs_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cohorte_coachs_cohorte_id_fkey"
-            columns: ["cohorte_id"]
-            isOneToOne: false
-            referencedRelation: "cohortes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cohortes: {
-        Row: {
-          created_at: string
-          date_debut: string
-          date_fin: string | null
-          discord_role_id: string | null
-          id: string
-          nom: string
-          offre_id: string
-          places_max: number
-          statut: Database["public"]["Enums"]["cohorte_statut"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          date_debut: string
-          date_fin?: string | null
-          discord_role_id?: string | null
-          id?: string
-          nom: string
-          offre_id: string
-          places_max?: number
-          statut?: Database["public"]["Enums"]["cohorte_statut"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          date_debut?: string
-          date_fin?: string | null
-          discord_role_id?: string | null
-          id?: string
-          nom?: string
-          offre_id?: string
-          places_max?: number
-          statut?: Database["public"]["Enums"]["cohorte_statut"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cohortes_offre_id_fkey"
-            columns: ["offre_id"]
-            isOneToOne: false
-            referencedRelation: "offres"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       consents: {
         Row: {
@@ -477,38 +349,101 @@ export type Database = {
           },
         ]
       }
+      formations: {
+        Row: {
+          actif: boolean
+          created_at: string
+          description: string | null
+          devise: string
+          discord_role_id: string | null
+          duree_acces_jours: number | null
+          duree_semaines: number | null
+          id: string
+          modalite: Database["public"]["Enums"]["modalite_formation"]
+          objectifs_pedagogiques: string | null
+          ordre: number
+          prerequis: string | null
+          prix_cents: number
+          slug: string
+          titre: string
+          type_produit: Database["public"]["Enums"]["type_produit"]
+          updated_at: string
+          volume_horaire: number | null
+        }
+        Insert: {
+          actif?: boolean
+          created_at?: string
+          description?: string | null
+          devise?: string
+          discord_role_id?: string | null
+          duree_acces_jours?: number | null
+          duree_semaines?: number | null
+          id?: string
+          modalite: Database["public"]["Enums"]["modalite_formation"]
+          objectifs_pedagogiques?: string | null
+          ordre?: number
+          prerequis?: string | null
+          prix_cents: number
+          slug: string
+          titre: string
+          type_produit: Database["public"]["Enums"]["type_produit"]
+          updated_at?: string
+          volume_horaire?: number | null
+        }
+        Update: {
+          actif?: boolean
+          created_at?: string
+          description?: string | null
+          devise?: string
+          discord_role_id?: string | null
+          duree_acces_jours?: number | null
+          duree_semaines?: number | null
+          id?: string
+          modalite?: Database["public"]["Enums"]["modalite_formation"]
+          objectifs_pedagogiques?: string | null
+          ordre?: number
+          prerequis?: string | null
+          prix_cents?: number
+          slug?: string
+          titre?: string
+          type_produit?: Database["public"]["Enums"]["type_produit"]
+          updated_at?: string
+          volume_horaire?: number | null
+        }
+        Relationships: []
+      }
       inscriptions: {
         Row: {
-          cohorte_id: string | null
           created_at: string
           date_debut: string
           date_fin_acces: string | null
+          formateur_id: string | null
+          formation_id: string
           id: string
-          offre_id: string
           order_id: string | null
           statut: Database["public"]["Enums"]["inscription_statut"]
           updated_at: string
           user_id: string
         }
         Insert: {
-          cohorte_id?: string | null
           created_at?: string
           date_debut?: string
           date_fin_acces?: string | null
+          formateur_id?: string | null
+          formation_id: string
           id?: string
-          offre_id: string
           order_id?: string | null
           statut?: Database["public"]["Enums"]["inscription_statut"]
           updated_at?: string
           user_id: string
         }
         Update: {
-          cohorte_id?: string | null
           created_at?: string
           date_debut?: string
           date_fin_acces?: string | null
+          formateur_id?: string | null
+          formation_id?: string
           id?: string
-          offre_id?: string
           order_id?: string | null
           statut?: Database["public"]["Enums"]["inscription_statut"]
           updated_at?: string
@@ -516,17 +451,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "inscriptions_cohorte_id_fkey"
-            columns: ["cohorte_id"]
+            foreignKeyName: "inscriptions_formateur_id_fkey"
+            columns: ["formateur_id"]
             isOneToOne: false
-            referencedRelation: "cohortes"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "inscriptions_offre_id_fkey"
-            columns: ["offre_id"]
+            foreignKeyName: "inscriptions_formation_id_fkey"
+            columns: ["formation_id"]
             isOneToOne: false
-            referencedRelation: "offres"
+            referencedRelation: "formations"
             referencedColumns: ["id"]
           },
           {
@@ -625,48 +560,81 @@ export type Database = {
       leads: {
         Row: {
           assigned_to: string | null
+          blocage: Database["public"]["Enums"]["blocage_trading"] | null
           converti_user_id: string | null
           created_at: string
+          delai_objectif: Database["public"]["Enums"]["delai_objectif"] | null
+          eligible: boolean | null
           email: string
           id: string
+          niveau_trading: Database["public"]["Enums"]["niveau_trading"] | null
           nom: string | null
-          offre_recommandee_id: string | null
           prenom: string | null
+          produit_recommande_id: string | null
+          produit_souhaite_id: string | null
+          prop_firm: Database["public"]["Enums"]["prop_firm_statut"] | null
+          situation_pro: Database["public"]["Enums"]["situation_pro"] | null
           source: Database["public"]["Enums"]["lead_source"]
           statut: Database["public"]["Enums"]["lead_statut"]
           telephone: string | null
+          tranche_age: Database["public"]["Enums"]["tranche_age"] | null
+          tranche_budget: Database["public"]["Enums"]["tranche_budget"] | null
           updated_at: string
+          user_id: string | null
           utm: Json
+          zone_geo: Database["public"]["Enums"]["zone_geo"] | null
         }
         Insert: {
           assigned_to?: string | null
+          blocage?: Database["public"]["Enums"]["blocage_trading"] | null
           converti_user_id?: string | null
           created_at?: string
+          delai_objectif?: Database["public"]["Enums"]["delai_objectif"] | null
+          eligible?: boolean | null
           email: string
           id?: string
+          niveau_trading?: Database["public"]["Enums"]["niveau_trading"] | null
           nom?: string | null
-          offre_recommandee_id?: string | null
           prenom?: string | null
+          produit_recommande_id?: string | null
+          produit_souhaite_id?: string | null
+          prop_firm?: Database["public"]["Enums"]["prop_firm_statut"] | null
+          situation_pro?: Database["public"]["Enums"]["situation_pro"] | null
           source?: Database["public"]["Enums"]["lead_source"]
           statut?: Database["public"]["Enums"]["lead_statut"]
           telephone?: string | null
+          tranche_age?: Database["public"]["Enums"]["tranche_age"] | null
+          tranche_budget?: Database["public"]["Enums"]["tranche_budget"] | null
           updated_at?: string
+          user_id?: string | null
           utm?: Json
+          zone_geo?: Database["public"]["Enums"]["zone_geo"] | null
         }
         Update: {
           assigned_to?: string | null
+          blocage?: Database["public"]["Enums"]["blocage_trading"] | null
           converti_user_id?: string | null
           created_at?: string
+          delai_objectif?: Database["public"]["Enums"]["delai_objectif"] | null
+          eligible?: boolean | null
           email?: string
           id?: string
+          niveau_trading?: Database["public"]["Enums"]["niveau_trading"] | null
           nom?: string | null
-          offre_recommandee_id?: string | null
           prenom?: string | null
+          produit_recommande_id?: string | null
+          produit_souhaite_id?: string | null
+          prop_firm?: Database["public"]["Enums"]["prop_firm_statut"] | null
+          situation_pro?: Database["public"]["Enums"]["situation_pro"] | null
           source?: Database["public"]["Enums"]["lead_source"]
           statut?: Database["public"]["Enums"]["lead_statut"]
           telephone?: string | null
+          tranche_age?: Database["public"]["Enums"]["tranche_age"] | null
+          tranche_budget?: Database["public"]["Enums"]["tranche_budget"] | null
           updated_at?: string
+          user_id?: string | null
           utm?: Json
+          zone_geo?: Database["public"]["Enums"]["zone_geo"] | null
         }
         Relationships: [
           {
@@ -684,81 +652,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "leads_offre_recommandee_fkey"
-            columns: ["offre_recommandee_id"]
+            foreignKeyName: "leads_produit_recommande_fkey"
+            columns: ["produit_recommande_id"]
             isOneToOne: false
-            referencedRelation: "offres"
+            referencedRelation: "formations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_produit_souhaite_id_fkey"
+            columns: ["produit_souhaite_id"]
+            isOneToOne: false
+            referencedRelation: "formations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      offres: {
-        Row: {
-          actif: boolean
-          created_at: string
-          description: string | null
-          devise: string
-          duree_semaines: number | null
-          id: string
-          nb_echeances_max: number
-          objectifs_pedagogiques: string | null
-          ordre: number
-          paiement_echelonne_possible: boolean
-          prerequis: string | null
-          prix_cents: number
-          slug: string
-          titre: string
-          updated_at: string
-          volume_horaire: number | null
-        }
-        Insert: {
-          actif?: boolean
-          created_at?: string
-          description?: string | null
-          devise?: string
-          duree_semaines?: number | null
-          id?: string
-          nb_echeances_max?: number
-          objectifs_pedagogiques?: string | null
-          ordre?: number
-          paiement_echelonne_possible?: boolean
-          prerequis?: string | null
-          prix_cents: number
-          slug: string
-          titre: string
-          updated_at?: string
-          volume_horaire?: number | null
-        }
-        Update: {
-          actif?: boolean
-          created_at?: string
-          description?: string | null
-          devise?: string
-          duree_semaines?: number | null
-          id?: string
-          nb_echeances_max?: number
-          objectifs_pedagogiques?: string | null
-          ordre?: number
-          paiement_echelonne_possible?: boolean
-          prerequis?: string | null
-          prix_cents?: number
-          slug?: string
-          titre?: string
-          updated_at?: string
-          volume_horaire?: number | null
-        }
-        Relationships: []
-      }
       orders: {
         Row: {
-          cohorte_id: string | null
           created_at: string
           devise: string
-          echelonne: boolean
+          formation_id: string
           id: string
           lead_id: string | null
           montant_cents: number
-          offre_id: string
           provider: Database["public"]["Enums"]["payment_provider"]
           provider_order_id: string | null
           statut: Database["public"]["Enums"]["order_statut"]
@@ -766,14 +689,12 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          cohorte_id?: string | null
           created_at?: string
           devise?: string
-          echelonne?: boolean
+          formation_id: string
           id?: string
           lead_id?: string | null
           montant_cents: number
-          offre_id: string
           provider: Database["public"]["Enums"]["payment_provider"]
           provider_order_id?: string | null
           statut?: Database["public"]["Enums"]["order_statut"]
@@ -781,14 +702,12 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          cohorte_id?: string | null
           created_at?: string
           devise?: string
-          echelonne?: boolean
+          formation_id?: string
           id?: string
           lead_id?: string | null
           montant_cents?: number
-          offre_id?: string
           provider?: Database["public"]["Enums"]["payment_provider"]
           provider_order_id?: string | null
           statut?: Database["public"]["Enums"]["order_statut"]
@@ -797,10 +716,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "orders_cohorte_id_fkey"
-            columns: ["cohorte_id"]
+            foreignKeyName: "orders_formation_id_fkey"
+            columns: ["formation_id"]
             isOneToOne: false
-            referencedRelation: "cohortes"
+            referencedRelation: "formations"
             referencedColumns: ["id"]
           },
           {
@@ -808,13 +727,6 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_offre_id_fkey"
-            columns: ["offre_id"]
-            isOneToOne: false
-            referencedRelation: "offres"
             referencedColumns: ["id"]
           },
           {
@@ -861,60 +773,6 @@ export type Database = {
           type?: string
         }
         Relationships: []
-      }
-      payment_schedules: {
-        Row: {
-          created_at: string
-          date_prevue: string
-          id: string
-          montant_cents: number
-          numero_echeance: number
-          order_id: string
-          payment_id: string | null
-          relances_envoyees: number
-          statut: Database["public"]["Enums"]["echeance_statut"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          date_prevue: string
-          id?: string
-          montant_cents: number
-          numero_echeance: number
-          order_id: string
-          payment_id?: string | null
-          relances_envoyees?: number
-          statut?: Database["public"]["Enums"]["echeance_statut"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          date_prevue?: string
-          id?: string
-          montant_cents?: number
-          numero_echeance?: number
-          order_id?: string
-          payment_id?: string | null
-          relances_envoyees?: number
-          statut?: Database["public"]["Enums"]["echeance_statut"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_schedules_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_schedules_payment_id_fkey"
-            columns: ["payment_id"]
-            isOneToOne: false
-            referencedRelation: "payments"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       payments: {
         Row: {
@@ -966,61 +824,6 @@ export type Database = {
           },
         ]
       }
-      presences: {
-        Row: {
-          created_at: string
-          duree_minutes: number | null
-          id: string
-          inscription_id: string
-          present: boolean
-          saisi_par: string | null
-          session_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          duree_minutes?: number | null
-          id?: string
-          inscription_id: string
-          present?: boolean
-          saisi_par?: string | null
-          session_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          duree_minutes?: number | null
-          id?: string
-          inscription_id?: string
-          present?: boolean
-          saisi_par?: string | null
-          session_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "presences_inscription_id_fkey"
-            columns: ["inscription_id"]
-            isOneToOne: false
-            referencedRelation: "inscriptions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "presences_saisi_par_fkey"
-            columns: ["saisi_par"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "presences_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1053,6 +856,87 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      propositions: {
+        Row: {
+          created_at: string
+          devise: string
+          expire_le: string | null
+          formateur_id: string
+          formation_id: string
+          id: string
+          lead_id: string | null
+          montant_cents: number
+          order_id: string | null
+          statut: Database["public"]["Enums"]["proposition_statut"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          devise?: string
+          expire_le?: string | null
+          formateur_id: string
+          formation_id: string
+          id?: string
+          lead_id?: string | null
+          montant_cents: number
+          order_id?: string | null
+          statut?: Database["public"]["Enums"]["proposition_statut"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          devise?: string
+          expire_le?: string | null
+          formateur_id?: string
+          formation_id?: string
+          id?: string
+          lead_id?: string | null
+          montant_cents?: number
+          order_id?: string | null
+          statut?: Database["public"]["Enums"]["proposition_statut"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propositions_formateur_id_fkey"
+            columns: ["formateur_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propositions_formation_id_fkey"
+            columns: ["formation_id"]
+            isOneToOne: false
+            referencedRelation: "formations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propositions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propositions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propositions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       refunds: {
         Row: {
@@ -1115,122 +999,75 @@ export type Database = {
           },
         ]
       }
-      replays: {
+      subscriptions: {
         Row: {
           created_at: string
-          disponible_jusqu_au: string | null
-          duree_secondes: number | null
+          formation_id: string
           id: string
-          provider: string
-          provider_asset_id: string
-          publie: boolean
-          session_id: string
+          inscription_id: string | null
+          periode_fin: string | null
+          provider: Database["public"]["Enums"]["payment_provider"]
+          provider_subscription_id: string
+          resiliation_demandee_le: string | null
+          statut: Database["public"]["Enums"]["subscription_statut"]
           updated_at: string
-          uploaded_by: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
-          disponible_jusqu_au?: string | null
-          duree_secondes?: number | null
+          formation_id: string
           id?: string
-          provider: string
-          provider_asset_id: string
-          publie?: boolean
-          session_id: string
+          inscription_id?: string | null
+          periode_fin?: string | null
+          provider: Database["public"]["Enums"]["payment_provider"]
+          provider_subscription_id: string
+          resiliation_demandee_le?: string | null
+          statut?: Database["public"]["Enums"]["subscription_statut"]
           updated_at?: string
-          uploaded_by?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
-          disponible_jusqu_au?: string | null
-          duree_secondes?: number | null
+          formation_id?: string
           id?: string
-          provider?: string
-          provider_asset_id?: string
-          publie?: boolean
-          session_id?: string
+          inscription_id?: string | null
+          periode_fin?: string | null
+          provider?: Database["public"]["Enums"]["payment_provider"]
+          provider_subscription_id?: string
+          resiliation_demandee_le?: string | null
+          statut?: Database["public"]["Enums"]["subscription_statut"]
           updated_at?: string
-          uploaded_by?: string | null
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "replays_session_id_fkey"
-            columns: ["session_id"]
+            foreignKeyName: "subscriptions_formation_id_fkey"
+            columns: ["formation_id"]
             isOneToOne: false
-            referencedRelation: "sessions"
+            referencedRelation: "formations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "replays_uploaded_by_fkey"
-            columns: ["uploaded_by"]
+            foreignKeyName: "subscriptions_inscription_id_fkey"
+            columns: ["inscription_id"]
+            isOneToOne: false
+            referencedRelation: "inscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sessions: {
-        Row: {
-          coach_id: string | null
-          cohorte_id: string
-          created_at: string
-          debut: string
-          fin: string
-          id: string
-          lien_discord: string | null
-          statut: Database["public"]["Enums"]["session_statut"]
-          titre: string
-          type: Database["public"]["Enums"]["session_type"]
-          updated_at: string
-        }
-        Insert: {
-          coach_id?: string | null
-          cohorte_id: string
-          created_at?: string
-          debut: string
-          fin: string
-          id?: string
-          lien_discord?: string | null
-          statut?: Database["public"]["Enums"]["session_statut"]
-          titre: string
-          type?: Database["public"]["Enums"]["session_type"]
-          updated_at?: string
-        }
-        Update: {
-          coach_id?: string | null
-          cohorte_id?: string
-          created_at?: string
-          debut?: string
-          fin?: string
-          id?: string
-          lien_discord?: string | null
-          statut?: Database["public"]["Enums"]["session_statut"]
-          titre?: string
-          type?: Database["public"]["Enums"]["session_type"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sessions_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sessions_cohorte_id_fkey"
-            columns: ["cohorte_id"]
-            isOneToOne: false
-            referencedRelation: "cohortes"
             referencedColumns: ["id"]
           },
         ]
       }
       suivi_notes: {
         Row: {
-          coach_id: string
           contenu: string
           created_at: string
+          formateur_id: string
           id: string
           inscription_id: string
           type: Database["public"]["Enums"]["suivi_note_type"]
@@ -1238,9 +1075,9 @@ export type Database = {
           visible_client: boolean
         }
         Insert: {
-          coach_id: string
           contenu: string
           created_at?: string
+          formateur_id: string
           id?: string
           inscription_id: string
           type?: Database["public"]["Enums"]["suivi_note_type"]
@@ -1248,9 +1085,9 @@ export type Database = {
           visible_client?: boolean
         }
         Update: {
-          coach_id?: string
           contenu?: string
           created_at?: string
+          formateur_id?: string
           id?: string
           inscription_id?: string
           type?: Database["public"]["Enums"]["suivi_note_type"]
@@ -1259,8 +1096,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "suivi_notes_coach_id_fkey"
-            columns: ["coach_id"]
+            foreignKeyName: "suivi_notes_formateur_id_fkey"
+            columns: ["formateur_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1318,12 +1155,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      coach_de_cohorte: { Args: { c: string }; Returns: boolean }
-      coach_de_inscription: { Args: { i: string }; Returns: boolean }
-      coach_de_session: { Args: { s: string }; Returns: boolean }
-      est_inscrit_cohorte: { Args: { c: string }; Returns: boolean }
-      est_inscrit_session: { Args: { s: string }; Returns: boolean }
       est_mon_inscription: { Args: { i: string }; Returns: boolean }
+      formateur_de_inscription: { Args: { i: string }; Returns: boolean }
+      formateur_de_lead: { Args: { l: string }; Returns: boolean }
       has_role: {
         Args: { r: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -1342,7 +1176,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "client" | "coach" | "branding" | "admin" | "owner"
+      app_role: "client" | "formateur" | "branding" | "admin" | "owner"
       appointment_statut:
         | "planifie"
         | "confirme"
@@ -1351,17 +1185,15 @@ export type Database = {
         | "annule"
         | "reporte"
       automation_statut: "succes" | "echec" | "ignore"
-      coaching_statut: "planifiee" | "honoree" | "absente" | "annulee"
-      cohorte_statut:
-        | "brouillon"
-        | "ouverte"
-        | "complete"
-        | "en_cours"
-        | "terminee"
+      blocage_trading:
+        | "strategie"
+        | "discipline"
+        | "gestion_risque"
+        | "prop_firm"
       consent_type: "cgv" | "confidentialite" | "cookies" | "marketing"
+      delai_objectif: "immediat" | "mois_prochain" | "trois_mois"
       discord_action: "grant" | "revoke"
       dispute_statut: "ouvert" | "preuves_envoyees" | "gagne" | "perdu" | "clos"
-      echeance_statut: "a_venir" | "due" | "payee" | "echouee" | "annulee"
       inscription_statut: "active" | "suspendue" | "terminee" | "remboursee"
       lead_source:
         | "instagram"
@@ -1377,6 +1209,8 @@ export type Database = {
         | "proposition"
         | "gagne"
         | "perdu"
+      modalite_formation: "individuel" | "groupe"
+      niveau_trading: "decouverte" | "debutant" | "intermediaire" | "avance"
       order_statut:
         | "brouillon"
         | "en_attente"
@@ -1386,16 +1220,28 @@ export type Database = {
         | "remboursee"
       payment_provider: "stripe" | "paypal"
       payment_statut: "en_attente" | "reussi" | "echoue" | "rembourse"
+      prop_firm_statut: "non" | "en_challenge" | "oui"
+      proposition_statut:
+        | "brouillon"
+        | "envoyee"
+        | "acceptee"
+        | "refusee"
+        | "expiree"
       queue_statut:
         | "en_attente"
         | "en_cours"
         | "reussi"
         | "echoue"
         | "abandonne"
+      rdv_issue: "honore" | "absent" | "annule"
       refund_statut: "demande" | "approuve" | "refuse" | "traite"
-      session_statut: "planifiee" | "en_cours" | "terminee" | "annulee"
-      session_type: "live" | "call_groupe"
+      situation_pro: "salarie" | "independant" | "etudiant" | "sans_emploi"
+      subscription_statut: "active" | "impayee" | "resiliee" | "terminee"
       suivi_note_type: "objectif" | "observation" | "retour"
+      tranche_age: "18_25" | "25_35" | "35_50" | "plus_50"
+      tranche_budget: "500_1000" | "1000_2000" | "2000_5000" | "plus_5000"
+      type_produit: "abonnement" | "accompagnement" | "formation"
+      zone_geo: "europe" | "amerique" | "asie" | "oceanie" | "afrique"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1526,7 +1372,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ["client", "coach", "branding", "admin", "owner"],
+      app_role: ["client", "formateur", "branding", "admin", "owner"],
       appointment_statut: [
         "planifie",
         "confirme",
@@ -1536,18 +1382,16 @@ export const Constants = {
         "reporte",
       ],
       automation_statut: ["succes", "echec", "ignore"],
-      coaching_statut: ["planifiee", "honoree", "absente", "annulee"],
-      cohorte_statut: [
-        "brouillon",
-        "ouverte",
-        "complete",
-        "en_cours",
-        "terminee",
+      blocage_trading: [
+        "strategie",
+        "discipline",
+        "gestion_risque",
+        "prop_firm",
       ],
       consent_type: ["cgv", "confidentialite", "cookies", "marketing"],
+      delai_objectif: ["immediat", "mois_prochain", "trois_mois"],
       discord_action: ["grant", "revoke"],
       dispute_statut: ["ouvert", "preuves_envoyees", "gagne", "perdu", "clos"],
-      echeance_statut: ["a_venir", "due", "payee", "echouee", "annulee"],
       inscription_statut: ["active", "suspendue", "terminee", "remboursee"],
       lead_source: [
         "instagram",
@@ -1565,6 +1409,8 @@ export const Constants = {
         "gagne",
         "perdu",
       ],
+      modalite_formation: ["individuel", "groupe"],
+      niveau_trading: ["decouverte", "debutant", "intermediaire", "avance"],
       order_statut: [
         "brouillon",
         "en_attente",
@@ -1575,11 +1421,24 @@ export const Constants = {
       ],
       payment_provider: ["stripe", "paypal"],
       payment_statut: ["en_attente", "reussi", "echoue", "rembourse"],
+      prop_firm_statut: ["non", "en_challenge", "oui"],
+      proposition_statut: [
+        "brouillon",
+        "envoyee",
+        "acceptee",
+        "refusee",
+        "expiree",
+      ],
       queue_statut: ["en_attente", "en_cours", "reussi", "echoue", "abandonne"],
+      rdv_issue: ["honore", "absent", "annule"],
       refund_statut: ["demande", "approuve", "refuse", "traite"],
-      session_statut: ["planifiee", "en_cours", "terminee", "annulee"],
-      session_type: ["live", "call_groupe"],
+      situation_pro: ["salarie", "independant", "etudiant", "sans_emploi"],
+      subscription_statut: ["active", "impayee", "resiliee", "terminee"],
       suivi_note_type: ["objectif", "observation", "retour"],
+      tranche_age: ["18_25", "25_35", "35_50", "plus_50"],
+      tranche_budget: ["500_1000", "1000_2000", "2000_5000", "plus_5000"],
+      type_produit: ["abonnement", "accompagnement", "formation"],
+      zone_geo: ["europe", "amerique", "asie", "oceanie", "afrique"],
     },
   },
 } as const

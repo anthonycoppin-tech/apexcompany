@@ -11,11 +11,19 @@ La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
-**Le code et le schéma, eux, sont restés à la révision 2.** Les migrations de
-`supabase/migrations/` décrivent encore des cohortes, `app_role` dit encore `coach`, et les
-40 pages du scaffold suivent l'ancienne arborescence. Les écarts sont signalés par ⚠️ **à
-écrire** dans `04-DATA-MODEL.md`. Tant qu'ils ne sont pas comblés, **la base ne décrit plus
-le produit** : lire les docs avant de se fier au schéma, pas l'inverse.
+**Le schéma est passé à la révision 3** (phase 1 bis, sept migrations `20260908*_a_*`) :
+`formations`, `formateur`, trois types de produit, propositions, abonnements, colonnes du
+formulaire, et l'ancrage RLS du formateur déplacé sur `inscriptions.formateur_id`. Vérifié
+par `npm run db:check` et par la suite pgTAP.
+
+**Le scaffold web suit la même arborescence** depuis le 8 septembre 2026 : une page par ligne
+de `02-SITEMAP.md`, le groupe `(formateur)` créé avec sa garde, `/qualification` ouverte,
+`/offres` devenue `/formations`. **Chaque page reste un placeholder** : l'arborescence et les
+gardes de rôle sont vraies, le contenu ne l'est pas encore.
+
+Ce lot appartient normalement au développeur B (`07-REPARTITION.md`) et a été repris pendant
+son absence. À signaler avant qu'il ne reprenne son travail : le renommage de routes touche
+des fichiers qu'il possède.
 
 ## Structure
 
@@ -23,7 +31,7 @@ le produit** : lire les docs avant de se fier au schéma, pas l'inverse.
 apps/web/src/app/
   (public)/      Site public et tunnel — une page par ligne de 02-SITEMAP.md
   (espace)/      Espace client — garde de layout : rôle client
-  (formateur)/   Espace formateur — garde de layout : formateur    ⚠️ à créer (rév. 3)
+  (formateur)/   Espace formateur — garde de layout : formateur
   (admin)/       Back-office — garde de layout : admin, owner
   api/           Webhooks (stripe, paypal, cal, discord)
 apps/web/src/lib/
@@ -39,13 +47,20 @@ docs/            Spécification
 ## Commandes
 
 ```bash
-npm run dev            # Next.js sur :3000
-npm run db:check       # Applique migrations + seed sur PGlite et rejoue les invariants RLS
-npm run db:types       # Régénère packages/db/src/database.types.ts
+npm run dev              # Next.js sur :3000
+npm run db:check         # Applique migrations + seed sur PGlite et rejoue les invariants RLS
+npm run db:push          # Applique les migrations en attente sur le projet hébergé
+npm run db:types:linked  # Régénère packages/db/src/database.types.ts depuis le projet hébergé
+npm run db:types         # Idem depuis une instance locale — exige Docker, donc CI seulement
 npm run typecheck
 ```
 
 Après **toute** modification du schéma : `npm run db:check`.
+
+`db:types` est la commande de référence mais elle passe par `--local`, donc par Docker :
+sur le poste de développement, c'est `db:types:linked` qu'il faut lancer, et seulement
+**après** `db:push`, puisqu'elle lit le schéma réellement appliqué sur la base hébergée.
+`db:push` écrit sur la **base partagée** : prévenir l'autre développeur avant de la lancer.
 
 ## Docker n'est pas disponible en local
 
@@ -84,17 +99,22 @@ dans une requête est du confort. La garantie est dans la politique. Toute nouve
 table : `enable row level security` dans la même migration que le `create table`,
 et une politique explicite — ou une absence de politique assumée et commentée.
 
-**Un coach ne voit que ses cohortes, et jamais d'argent.** Ces deux invariants sont
-testés dans `supabase/tests/01_rls_coach.test.sql`. Un test qui casse là signale une
-fuite de données, pas un test à ajuster. La révision 3 supprime les cohortes : le premier
-invariant devient « ses **affectations** » et change d'ancrage — `inscriptions.formateur_id`
-et `leads.assigned_to` au lieu de `cohorte_coachs`. L'invariant lui-même ne s'assouplit
-pas ; c'est la migration la plus délicate du chantier (voir `01-CAHIER-DES-CHARGES.md` §5).
+**Un formateur ne voit que ses affectations, et jamais d'argent.** Ces deux invariants sont
+testés dans `supabase/tests/01_rls_formateur.test.sql` et rejoués par `npm run db:check`. Un
+test qui casse là signale une fuite de données, pas un test à ajuster. Depuis la révision 3,
+l'ancrage est l'affectation explicite — `inscriptions.formateur_id` et `leads.assigned_to` —
+et non plus `cohorte_coachs`, ni une dérivation depuis `appointments` : « il a eu un appel
+avec cette personne un jour » élargit le périmètre en silence à chaque RDV repris d'un
+collègue absent. Seule exception à « jamais d'argent » : `propositions.montant_cents`, que
+le formateur émet lui-même et qui est le prix catalogue, public. Ce que le client a
+réellement payé lui reste fermé.
 
-**Jamais d'URL de vidéo en base.** `replays` ne stocke que `provider_asset_id`. L'URL
-signée est émise côté serveur, à durée courte, après revérification de l'inscription.
-Règle en sommeil depuis la révision 3 : les replays sont sur Discord et la table part.
-Elle se réveille intacte le jour où une vidéo à accès restreint revient côté site.
+**Jamais d'URL de vidéo en base.** Une table de vidéos ne stocke que `provider_asset_id` ;
+l'URL signée est émise côté serveur, à durée courte, après revérification de l'inscription.
+Règle en sommeil depuis la révision 3 : les replays sont sur Discord, et la table `replays`
+a été supprimée. Elle se réveille intacte le jour où une vidéo à accès restreint revient
+côté site — ce qui pourrait arriver plus vite que prévu, l'un des deux abonnements envisagés
+donnant accès à des « vidéos exclusives » (voir les décisions en attente).
 
 **Les webhooks insèrent d'abord dans `payment_events`.** Dans la même transaction que
 le traitement métier. Violation de la contrainte unique = événement déjà traité, on
@@ -137,17 +157,21 @@ réel (`.github/workflows/ci.yml`, job _database_) en plus des tests RLS.
 Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de l'argent.
 
 - [x] **1 — Fondations** : schéma, RLS, seed multi-rôles, tests pgTAP, poussé et
-      vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`) — **au schéma de la
-      révision 2**, donc à reprendre en 1 bis.
+      vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`). Le projet hébergé
+      porte encore le schéma de la révision 2 : les migrations de la 1 bis restent à y
+      appliquer, et cette base est partagée avec l'autre développeur.
 - [~] Scaffold transverse : Next.js, route groups, clients Supabase, gardes de rôle —
-  vérifié avec de vraies sessions. Chaque page reste un placeholder, et l'arborescence
-  est celle de la révision 2 : `/espace/replays`, `/espace/planning` et `/admin/cohortes`
-  n'ont plus lieu d'être, `/formateur` et `/qualification` manquent.
-- [ ] **1 bis — Migrations de la révision 3** : renommages `offres` → `formations` et
-      `coach` → `formateur`, suppression des cohortes / sessions / présences / replays,
-      colonnes du formulaire, `modalite`, `propositions`, `subscriptions`. Emporte les
-      politiques RLS et les tests pgTAP du rôle formateur. **C'est le préalable à tout le
-      reste.**
+  vérifié avec de vraies sessions, et remis à l'arborescence de la révision 3. Chaque page
+  reste un placeholder. Les gardes de layout n'ont **pas** été revérifiées avec de vraies
+  sessions depuis le resserrage de `/admin` et la création de `(formateur)` : à faire.
+- [x] **1 bis — Migrations de la révision 3** : sept migrations `20260908*_a_*` — renommages
+      `offres` → `formations` et `coach` → `formateur`, suppression des cohortes / sessions /
+      présences / replays / `coaching_sessions` / `payment_schedules`, `type_produit`,
+      `modalite`, `duree_acces_jours`, colonnes du formulaire, `propositions`,
+      `subscriptions`, et la RLS du formateur réancrée sur l'affectation. Seed, tests pgTAP
+      et `scripts/verifier-schema.mjs` refaits avec. **Pas encore poussé sur le projet
+      hébergé** — donc `packages/db/src/database.types.ts` est toujours celui de la
+      révision 2, et sa régénération demande Docker ou la base hébergée.
 - [ ] 2 — Tunnel d'entrée : formulaire natif, création de compte, Discord `invité`, Cal.com
 - [ ] 3 — Espace formateur : tableau de bord, RDV, fiches, propositions, statistiques
 - [ ] 4 — Paiement une fois : Stripe, facture, inscription, rôle Discord
@@ -171,18 +195,32 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   en une fois à accès illimité. Une seule mécanique d'accès couvre les trois —
   `inscriptions.date_fin_acces`, avec `null` pour illimité (`01-CAHIER-DES-CHARGES.md` §1).
   La couche paiement, elle, porte bien deux mécaniques : abonnement Stripe et paiement unique.
+- **Paiement en plusieurs fois** — **tranché le 8 septembre 2026 : non, tout se paie en une
+  fois.** `payment_schedules`, `orders.echelonne` et les deux colonnes d'échelonnement du
+  catalogue ont été supprimées (`20260908095000_a_paiement_une_fois.sql`). Si le 3× revient,
+  il reviendra par une migration — git garde le fichier pour la retrouver.
+- **Les deux abonnements** — **direction donnée, contenu non figé** : un accès communautaire
+  premium sur Discord, et un accès à des **vidéos exclusives**. Le schéma les porte déjà sans
+  rien ajouter — deux lignes `formations` en `type_produit = 'abonnement'`, chacune avec son
+  `discord_role_id`, et un client peut détenir les deux puisque la révocation se raisonne par
+  inscription. **La seule question ouverte est l'hébergement des vidéos exclusives.** Si
+  elles vivent sur Discord, il n'y a rien à construire. Si elles sont sur le site, la règle
+  « jamais d'URL de vidéo en base » se réveille, et avec elle le lecteur à accès restreint que
+  la révision 3 avait justement retiré du périmètre — à poser au chef de projet avant la
+  phase 5.
 - **Vocabulaire** — **tranché** : `formations` et `formateur`. Le schéma dit encore `offres`
   et `coach` ; le renommage est une migration à écrire, et il emporte l'énumération, les
   politiques RLS, les tests pgTAP, le seed et `packages/db`.
-- **Calendrier** — **tranché, décision déléguée aux développeurs** : `Cal.com`. Une page de
-  réservation individuelle par formateur, `/reserver` faisant l'aiguillage — donc aucune
-  fonctionnalité d'équipe à payer. Moins cher que Calendly à besoin égal, plan gratuit bien
-  plus généreux, `appointments.cal_booking_id` et la route `api/cal` restent valables, et
-  l'auto-hébergement reste une porte de sortie. **À vérifier à l'inscription** : si les
-  webhooks s'avèrent réservés au plan Teams, c'est 12 $/utilisateur/mois — sans webhook, pas
-  de ligne `appointments`, donc pas de tableau de bord formateur. **Cal.com ne sert qu'une
-  fois dans le parcours** : l'audit de vente. Les séances qui suivent l'achat ne se réservent
-  pas sur le site.
+- **Calendrier** — **tranché, décision déléguée aux développeurs** : `Cal.com`. Moins cher que
+  Calendly à besoin égal, plan gratuit bien plus généreux, `appointments.cal_booking_id` et la
+  route `api/cal` restent valables, et l'auto-hébergement reste une porte de sortie.
+  **Cal.com ne sert qu'une fois dans le parcours** : l'audit de vente. Les séances qui suivent
+  l'achat ne se réservent pas sur le site.
+  **Un seul compte, une seule page** — précisé le 8 septembre 2026 : c'est Franck qui prend
+  tous les rendez-vous. `/reserver` n'aiguille donc vers personne et il n'y a pas d'écran de
+  choix du formateur. **À vérifier à l'inscription** : si les webhooks s'avèrent réservés au
+  plan Teams, c'est 12 $/mois pour une personne, pas par formateur. Sans webhook, pas de ligne
+  `appointments`, donc pas de tableau de bord formateur.
 - **Individuel ou groupe** — **tranché** : porté par `formations.modalite`, un axe distinct de
   `type_produit` (qui dit comment on paie, pas comment le cours se donne). C'est une colonne
   d'information — fiche produit et back-office. L'accès ne change pas, et **la planification

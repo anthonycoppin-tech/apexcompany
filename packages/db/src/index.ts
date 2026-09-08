@@ -7,7 +7,7 @@ export type { Database, Json } from './database.types.js';
  * des rôles est une décision produit, pas un détail de schéma : elle doit être
  * lisible ici, et une divergence avec la migration doit se voir en relecture.
  */
-export const ROLES = ['client', 'coach', 'branding', 'admin', 'owner'] as const;
+export const ROLES = ['client', 'formateur', 'branding', 'admin', 'owner'] as const;
 
 export type AppRole = (typeof ROLES)[number];
 

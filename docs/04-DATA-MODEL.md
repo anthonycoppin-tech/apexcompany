@@ -5,9 +5,15 @@ suppression des cohortes, des sessions, des présences et des replays ; renommag
 en `formations` et du rôle `coach` en `formateur` ; trois types de produit aux mécaniques
 d'accès distinctes ; arrivée des propositions et des abonnements.
 
-**Attention en lisant ce document.** Le schéma réellement appliqué est encore celui de la
-révision 2 : les neuf migrations de `supabase/migrations/` décrivent des cohortes. Ce document
-décrit la cible. Les écarts sont signalés par ⚠️ **à écrire**.
+**État au 8 septembre 2026.** Le schéma décrit ici est **appliqué** : sept migrations
+`20260908*_a_*` ont porté la base à la révision 3, et `npm run db:check` comme la suite pgTAP
+le vérifient. Ce qui reste à construire est signalé par ⚠️ **à écrire** ; ce qui est en base
+porte ✅ **écrit**.
+
+Une réserve à connaître : ces migrations **ne sont pas encore appliquées sur le projet
+Supabase hébergé**, qui sert de base de dev partagée entre les deux développeurs et porte
+toujours la révision 2. `packages/db/src/database.types.ts` en découle et reste donc périmé
+jusqu'à ce que la base hébergée soit à jour.
 
 ## Identité et rôles
 
@@ -18,7 +24,7 @@ prénom. Il se remplit au paiement, où la facturation l'exige.
 
 **`user_roles`** — `id`, `user_id`, `role`, `granted_by`, `granted_at`
 
-⚠️ **à écrire** : l'énumération devient `client`, `formateur`, `branding`, `admin`, `owner`.
+✅ **écrit** : l'énumération devient `client`, `formateur`, `branding`, `admin`, `owner`.
 La valeur `coach` est renommée.
 
 **Ces rôles n'ont rien à voir avec les rôles Discord.** `user_roles` décide de ce qu'une
@@ -35,14 +41,16 @@ personne est un `client` sans inscription active. Voir `01-CAHIER-DES-CHARGES.md
 Le champ `source` répond directement au besoin du pôle branding : savoir quel réseau convertit.
 Il est renseigné au premier contact et ne doit jamais être écrasé ensuite.
 
-⚠️ **à écrire** — colonnes issues du formulaire de qualification :
+✅ **écrit** — colonnes issues du formulaire de qualification :
 
 | Colonne                 | Type                                                     |
 | ----------------------- | -------------------------------------------------------- |
 | `user_id`               | FK profiles, unique — tout lead a désormais un compte    |
 | `zone_geo`              | `europe`, `amerique`, `asie`, `oceanie`, `afrique`       |
 | `tranche_age`           | `18_25`, `25_35`, `35_50`, `plus_50`                     |
+| `situation_pro`         | `salarie`, `independant`, `etudiant`, `sans_emploi`      |
 | `niveau_trading`        | `decouverte`, `debutant`, `intermediaire`, `avance`      |
+| `prop_firm`             | `non`, `en_challenge`, `oui`                             |
 | `blocage`               | `strategie`, `discipline`, `gestion_risque`, `prop_firm` |
 | `tranche_budget`        | `500_1000`, `1000_2000`, `2000_5000`, `plus_5000`        |
 | `delai_objectif`        | `immediat`, `mois_prochain`, `trois_mois`                |
@@ -53,6 +61,17 @@ Il est renseigné au premier contact et ne doit jamais être écrasé ensuite.
 `tranche_age` ne contient **pas** `moins_18` : un mineur est refusé avant toute écriture en
 base, il ne devient jamais un lead. Une valeur d'énumération qui ne peut pas exister en base
 n'a pas à y être déclarée.
+
+`situation_pro` et `prop_firm` ont été ajoutées à cette liste le 8 septembre 2026 : les deux
+questions sont **obligatoires** dans le formulaire (§9, écrans 3 et 5) et n'avaient pourtant
+pas de colonne. Elles seraient restées dans le seul payload jsonb de `lead_events`, donc
+invisibles au tri du CRM. Ce sont des énumérations fermées et des critères de segmentation
+commerciale, au même titre que `tranche_budget` : elles méritent une colonne. Le principe
+reste le même — la colonne est une projection, l'original vit dans `lead_events`.
+
+Toutes ces colonnes sont **nullables**. L'obligation de réponse appartient au formulaire, pas
+au schéma : un lead saisi à la main par un admin, ou importé d'avant le tunnel inversé, n'a
+jamais répondu.
 
 `produit_souhaite_id` et `produit_recommande_id` sont deux données distinctes et le restent :
 « suivant comment se passe le RDV la formation peut changer ». Les fusionner ferait
@@ -66,13 +85,13 @@ et au filtrage ; l'original vit ici, et reste lisible même si les questions cha
 
 **`appointments`** — `id`, `lead_id`, `cal_booking_id`, `debut`, `fin`, `statut`, `conseiller_id`
 
-⚠️ **à écrire** : `issue` (`honore`, `absent`, `annule`) et `compte_rendu`. Sans `issue`, pas
+✅ **écrit** : `issue` (`honore`, `absent`, `annule`) et `compte_rendu`. Sans `issue`, pas
 de statistique de no-show — le premier poste de perte d'un tunnel de vente par appel.
 
 `cal_booking_id` reste : le calendrier retenu est **Cal.com** (`01-CAHIER-DES-CHARGES.md`
 §3, étape 2).
 
-⚠️ **à écrire** — **`propositions`** : `id`, `lead_id`, `user_id`, `formation_id`,
+✅ **écrit** — **`propositions`** : `id`, `lead_id`, `user_id`, `formation_id`,
 `formateur_id`, `montant_cents`, `statut`, `expire_le`, `order_id`, `created_at`
 
 Ce que le formateur émet à la fin de l'audit, à la place d'un lien de paiement collé à la
@@ -81,7 +100,7 @@ est-ce que ça a été payé.
 
 ## Catalogue
 
-⚠️ **à écrire** — **`formations`** (ex-`offres`) — `id`, `slug`, `titre`, `description`,
+✅ **écrit** — **`formations`** (ex-`offres`) — `id`, `slug`, `titre`, `description`,
 `objectifs_pedagogiques`, `prerequis`, `duree_semaines`, `volume_horaire`, `prix_cents`,
 `actif`, `ordre`, plus :
 
@@ -121,9 +140,16 @@ pour trois modèles économiques.
 **`inscriptions`** — `id`, `user_id`, `formation_id`, `statut` (`active`, `suspendue`,
 `terminee`, `remboursee`), `date_debut`, `date_fin_acces`, `order_id`
 
-⚠️ **à écrire** : `formateur_id`, et suppression de `cohorte_id`.
+✅ **écrit** : `formateur_id`, et suppression de `cohorte_id`.
 
 `formateur_id` est le nouvel ancrage de sécurité du rôle formateur — voir la RLS plus bas.
+
+**Le filet contre la double inscription a changé de forme.** Il portait sur
+`(user_id, cohorte_id)` ; il porte désormais sur `(user_id, formation_id)` mais **restreint
+aux inscriptions actives**, par index unique partiel. La restriction n'est pas un
+assouplissement : sans elle, un client dont l'accompagnement s'est terminé ne pourrait jamais
+en racheter un, et le filet censé le protéger d'un webhook rejoué l'empêcherait de revenir.
+Les deux cas sont testés.
 
 **`suivi_notes`** — `id`, `inscription_id`, `formateur_id`, `type` (`objectif`, `observation`,
 `retour`), `contenu`, `visible_client`, `created_at`
@@ -152,13 +178,13 @@ statistique de présence côté formateur — c'est un choix, pas un oubli.
 **`payments`** — `id`, `order_id`, `montant_cents`, `statut`, `provider`, `provider_payment_id`,
 `methode`, `paid_at`
 
-**`payment_schedules`** — échéances des paiements échelonnés
-`id`, `order_id`, `numero_echeance`, `montant_cents`, `date_prevue`, `statut`, `payment_id`
+**Table supprimée** : `payment_schedules`, avec `orders.echelonne` et les deux colonnes
+d'échelonnement du catalogue. L'arbitrage attendu au §8.3 est tombé le 8 septembre 2026 :
+**tout se paie en une fois.** Une table morte n'est pas neutre — elle apparaît dans les types
+générés, dans les écrans de back-office, dans la revue de sécurité, et elle finit par se faire
+remplir « au cas où ». Si le 3× revient, il reviendra par une migration.
 
-Inutilisée en l'état : le chef de projet annonce des paiements en une fois. Conservée en
-attendant l'arbitrage sur le 3× (`01-CAHIER-DES-CHARGES.md` §8.3).
-
-⚠️ **à écrire** — **`subscriptions`** : `id`, `user_id`, `formation_id`, `provider`,
+✅ **écrit** — **`subscriptions`** : `id`, `user_id`, `formation_id`, `provider`,
 `provider_subscription_id`, `statut`, `periode_fin`, `resiliation_demandee_le`, `created_at`
 
 Un abonnement n'est pas une commande avec une date de fin : il a un cycle de vie propre —
@@ -223,7 +249,7 @@ returns boolean language sql stable security definer as $$
 $$;
 ```
 
-⚠️ **à écrire** — `coach_de_cohorte()` disparaît avec les cohortes. Son remplaçant s'appuie
+✅ **écrit** — `coach_de_cohorte()` disparaît avec les cohortes. Son remplaçant s'appuie
 sur l'affectation explicite :
 
 ```sql

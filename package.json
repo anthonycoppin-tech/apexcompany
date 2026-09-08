@@ -22,6 +22,8 @@
     "db:reset": "supabase db reset",
     "db:diff": "supabase db diff -f",
     "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts",
+    "db:types:linked": "supabase gen types typescript --linked > packages/db/src/database.types.ts",
+    "db:push": "supabase db push --linked",
     "db:test": "supabase test db",
     "format": "prettier --write \"**/*.{ts,tsx,mjs,js,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,md,css}\"",

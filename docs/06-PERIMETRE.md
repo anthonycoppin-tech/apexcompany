@@ -148,17 +148,17 @@ Le découpage de la révision 2 était organisé autour des cohortes et des repl
 disparu. Le nouveau suit le chemin de l'argent — c'est aussi le chemin le plus court vers
 quelque chose d'utilisable.
 
-| Phase | Contenu                                                                     | Estimation |
-| ----- | --------------------------------------------------------------------------- | ---------- |
-| 1     | Fondations : repo, CI, schéma, auth, RLS — **fait**                         | 1,5 sem ✓  |
-| 1 bis | Migrations de la révision 3 : renommages, suppressions, nouvelles tables    | 1 sem      |
-| 2     | Tunnel d'entrée : formulaire natif, compte, Discord `invité`, Cal.com       | 2 sem      |
-| 3     | Espace formateur : tableau de bord, RDV, fiches, propositions, statistiques | 2 sem      |
-| 4     | Paiement une fois : Stripe, facture, inscription, rôle Discord              | 2 sem      |
-| 5     | Abonnement : renouvellement, échec de prélèvement, résiliation, révocation  | 1,5 sem    |
-| 6     | Espace client                                                               | 1 sem      |
-| 7     | Site public : contenu marketing, SEO, pages légales                         | 2 sem      |
-| 8     | Événements, migration des données, recette, mise en production              | 1,5 sem    |
+| Phase | Contenu                                                                             | Estimation |
+| ----- | ----------------------------------------------------------------------------------- | ---------- |
+| 1     | Fondations : repo, CI, schéma, auth, RLS — **fait**                                 | 1,5 sem ✓  |
+| 1 bis | Migrations de la révision 3 : renommages, suppressions, nouvelles tables — **fait** | 1 sem ✓    |
+| 2     | Tunnel d'entrée : formulaire natif, compte, Discord `invité`, Cal.com               | 2 sem      |
+| 3     | Espace formateur : tableau de bord, RDV, fiches, propositions, statistiques         | 2 sem      |
+| 4     | Paiement une fois : Stripe, facture, inscription, rôle Discord                      | 2 sem      |
+| 5     | Abonnement : renouvellement, échec de prélèvement, résiliation, révocation          | 1,5 sem    |
+| 6     | Espace client                                                                       | 1 sem      |
+| 7     | Site public : contenu marketing, SEO, pages légales                                 | 2 sem      |
+| 8     | Événements, migration des données, recette, mise en production                      | 1,5 sem    |
 
 Soit environ **13 semaines restantes**, 14,5 en comptant la phase 1 déjà livrée. La révision 3
 retire 1,5 semaine de replays et de planning de sessions, mais ajoute l'espace formateur et la
@@ -176,12 +176,18 @@ le rôle `invité` est attribué pour la première fois.
 
 ## Ce qui reste à trancher
 
-La question des replays, qui occupait cette place en révision 2, est close : Discord.
-Restent, détaillées dans `01-CAHIER-DES-CHARGES.md` §8 :
+La question des replays, qui occupait cette place en révision 2, est close : Discord. Celle du
+paiement en plusieurs fois l'est aussi depuis le 8 septembre 2026 — **non, tout se paie en une
+fois**, et `payment_schedules` a été supprimée. Restent, détaillées dans
+`01-CAHIER-DES-CHARGES.md` §8 :
 
 - **Les règles d'éligibilité du formulaire** — la plus urgente, elle bloque la
   reconstruction du tunnel à l'identique.
-- **La vente en self-service de l'abonnement communauté**, qui ferait une entorse assumée au
-  principe du tunnel unique.
-- **Le paiement en plusieurs fois** sur les paniers annoncés jusqu'à 5 000 € et plus.
+- **L'hébergement des vidéos exclusives.** Le 8 septembre 2026, le chef de projet a annoncé
+  **deux abonnements** : un accès communautaire premium sur Discord, et un accès à des vidéos
+  exclusives. Si ces vidéos vivent sur Discord, ce document reste vrai tel quel. Si elles sont
+  sur le site, le premier retrait de cette liste — le lecteur à accès restreint et les URL
+  signées — revient dans le périmètre, et il coûte. À trancher avant la phase 5.
+- **La vente en self-service des abonnements**, qui ferait une entorse assumée au principe du
+  tunnel unique.
 - **La TVA hors Europe** — question pour le comptable, à poser avant la première facture.
