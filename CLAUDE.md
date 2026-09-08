@@ -5,7 +5,9 @@ La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
 `01-CAHIER-DES-CHARGES.md` (parcours client, rôles, écrans — **à lire en premier**),
 `02-SITEMAP.md` (arborescence et matrice d'accès), `04-DATA-MODEL.md` (schéma et RLS),
 `06-PERIMETRE.md` (ce qu'on construit et ce qu'on ne construit pas),
-`07-REPARTITION.md` (qui possède quoi entre les deux développeurs).
+`07-REPARTITION.md` (qui possède quoi entre les deux développeurs),
+`08-CE-QUI-MANQUE.md` (**tout ce que le code attend de l'extérieur** : clés, informations
+juridiques, contenu — à donner au client, pas à un développeur).
 
 **Les quatre documents sont à la révision 3** (8 septembre 2026) : tunnel inversé, trois
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
