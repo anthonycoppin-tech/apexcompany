@@ -60,7 +60,7 @@ signature à inventer.
 
 **Aucune page de planning, et aucun écran de réservation de séance.** Après l'achat, les
 séances individuelles s'organisent directement entre le formateur et son client, et les
-séances de groupe sont annoncées sur Discord, dans le salon du produit
+séances de groupe suivent un planning hebdomadaire affiché dans un salon Discord dédié
 (`01-CAHIER-DES-CHARGES.md` §3, étape 4 bis). **Cal.com ne sert qu'au premier rendez-vous**,
 l'audit de vente. Le site n'affiche jamais de lien de visioconférence.
 

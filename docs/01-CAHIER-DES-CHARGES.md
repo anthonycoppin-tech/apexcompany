@@ -351,10 +351,15 @@ Précisé par les formateurs le 8 septembre 2026, après un aller-retour qui a d
 l'inverse. **La plateforme ne planifie aucune séance.** Elle ne sert qu'à ouvrir l'accès ;
 ce qui se passe ensuite se passe entre le formateur et son client.
 
-| Ce qui se passe après l'achat | Où                                                |
-| ----------------------------- | ------------------------------------------------- |
-| Séance individuelle           | Le formateur et le client s'arrangent directement |
-| Séance de groupe              | Annoncée sur Discord, dans le salon du produit    |
+| Ce qui se passe après l'achat | Où                                                             |
+| ----------------------------- | -------------------------------------------------------------- |
+| Séance individuelle           | Le formateur et le client s'arrangent directement              |
+| Séance de groupe              | **Planning hebdomadaire**, affiché dans un salon Discord dédié |
+
+Le planning de groupe est donc un **salon Discord de plus** à créer, distinct du salon vocal
+où se tiennent les calls : un salon texte où l'équipe publie la semaine à venir. Sa tenue est
+un geste hebdomadaire de l'équipe, pas une fonctionnalité — et c'est bien ce qui la rend
+gratuite à mettre en place.
 
 **Cal.com ne sert donc qu'une fois dans le parcours** : l'audit de vente de l'étape 2. Ni
 type d'événement par produit, ni places par créneau, ni webhook de séance — rien de tout ça

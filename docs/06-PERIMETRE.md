@@ -99,7 +99,8 @@ Circle, et il a fait l'objet d'un aller-retour le 8 septembre 2026 : on a d'abor
 réservation reviendrait sur le site via Cal.com, avant que les formateurs ne décrivent leur
 fonctionnement réel. **Seul le premier rendez-vous se réserve** — l'audit de vente. Ensuite,
 les séances individuelles s'organisent directement entre le formateur et son client, et les
-séances de groupe s'annoncent sur Discord.
+séances de groupe suivent un **planning hebdomadaire affiché dans un salon Discord dédié**,
+tenu à la main par l'équipe.
 
 Deux raisons données par les formateurs, et qui ne s'inventent pas depuis un fauteuil de
 développeur :
