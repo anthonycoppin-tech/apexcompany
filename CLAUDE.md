@@ -18,8 +18,15 @@ par `npm run db:check` et par la suite pgTAP.
 
 **Le scaffold web suit la même arborescence** depuis le 8 septembre 2026 : une page par ligne
 de `02-SITEMAP.md`, le groupe `(formateur)` créé avec sa garde, `/qualification` ouverte,
-`/offres` devenue `/formations`. **Chaque page reste un placeholder** : l'arborescence et les
-gardes de rôle sont vraies, le contenu ne l'est pas encore.
+`/offres` devenue `/formations`.
+
+**Le chemin de l'argent est écrit de bout en bout** — formulaire, compte, rendez-vous, fiche
+client, proposition, paiement, ouverture de l'accès. Le site public, le back-office et le
+reste de l'espace client sont encore des placeholders.
+
+**Rien de tout ça n'a jamais tourné en réel** : ni serveur Discord, ni compte Cal.com, ni clés
+Stripe, ni clé serveur Supabase. Typecheck, lint et invariants de base au vert, c'est tout ce
+qu'on peut affirmer.
 
 Ce lot appartient normalement au développeur B (`07-REPARTITION.md`) et a été repris pendant
 son absence. À signaler avant qu'il ne reprenne son travail : le renommage de routes touche
@@ -121,6 +128,14 @@ le traitement métier. Violation de la contrainte unique = événement déjà tr
 sort sans rien faire. Stripe et PayPal rejouent : c'est le fonctionnement normal, pas
 un cas limite.
 
+« Même transaction » est impossible à tenir depuis le client JavaScript, où chaque appel est
+sa propre transaction. C'est pourquoi tout le traitement vit dans **`traiter_paiement()`**
+(et `renouveler_abonnement()` pour les mois suivants) : le handler vérifie la signature,
+extrait les métadonnées, et fait **un seul** appel. Ajouter une écriture métier côté
+TypeScript, après l'appel, rouvrirait exactement la faille — un événement marqué traité et
+un client sans accès, sans rien pour le rattraper. Ces deux fonctions sont testées pour
+l'idempotence en PGlite **et** en pgTAP.
+
 **Discord passe par la file.** On écrit dans `discord_sync_queue`, jamais d'appel
 direct à l'API Discord depuis un handler de paiement. Une coupure Discord ne doit pas
 faire perdre un accès client silencieusement.
@@ -172,10 +187,19 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
       et `scripts/verifier-schema.mjs` refaits avec. **Pas encore poussé sur le projet
       hébergé** — donc `packages/db/src/database.types.ts` est toujours celui de la
       révision 2, et sa régénération demande Docker ou la base hébergée.
-- [ ] 2 — Tunnel d'entrée : formulaire natif, création de compte, Discord `invité`, Cal.com
-- [ ] 3 — Espace formateur : tableau de bord, RDV, fiches, propositions, statistiques
-- [ ] 4 — Paiement une fois : Stripe, facture, inscription, rôle Discord
-- [ ] 5 — Abonnement : renouvellement, échec de prélèvement, résiliation, révocation
+- [~] **2 — Tunnel d'entrée** : formulaire natif en cinq écrans, création de compte et session,
+  liaison Discord par `linkIdentity` puis `grant` du rôle `invité`, webhook Cal.com. **Écrit,
+  jamais exécuté** : ni serveur Discord, ni compte Cal.com, ni clé serveur Supabase.
+- [~] **3 — Espace formateur** : tableau de bord, rendez-vous avec issue et compte rendu, liste
+  et fiche client, émission de proposition, statistiques. Même réserve — aucune de ces pages
+  n'a tourné contre de vraies données.
+- [~] **4 — Paiement une fois** : ouverture du paiement depuis la proposition, webhook Stripe,
+  et `traiter_paiement()` qui fait tout le reste **en une transaction** — idempotence,
+  commande, encaissement, inscription, facture, rôle Discord, proposition, prospect. Son
+  idempotence est testée en PGlite et en pgTAP. Manquent les clés Stripe.
+- [~] 5 — Abonnement : renouvellement et résiliation traités par le webhook
+  (`renouveler_abonnement()`, résiliation à effet différé). **Restent à écrire** : la tâche
+  planifiée de révocation en fin d'accès, et l'écran de résiliation côté client.
 - [ ] 6 — Espace client
 - [ ] 7 — Site public : contenu marketing, SEO, pages légales
 - [ ] 8 — Événements, migration des données, recette, mise en production

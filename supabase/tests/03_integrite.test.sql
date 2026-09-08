@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(17);
+select plan(24);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -125,14 +125,66 @@ select throws_ok(
   'un accompagnement doit déclarer sa durée daccès'
 );
 
+-- ── Le chemin de largent, rejoué ───────────────────────────────────────────
+-- Le code le plus critique du projet. Un webhook rejoué ne doit ni créer deux
+-- inscriptions, ni émettre deux factures, ni offrir deux mois daccès.
+
+select is(
+  (public.traiter_paiement(
+    'stripe', 'evt_paiement_pgtap', 'checkout.session.completed', '{}'::jsonb,
+    '66666666-6666-6666-6666-666666666666',
+    'a0000000-0000-0000-0000-000000000003',
+    99000, 'EUR', 'cs_pgtap', 'pi_pgtap', null, null
+  ) ->> 'deja_traite')::boolean,
+  false,
+  'un premier paiement est traité'
+);
+
+select is(
+  (select count(*) from public.inscriptions
+   where user_id = '66666666-6666-6666-6666-666666666666'
+     and formation_id = 'a0000000-0000-0000-0000-000000000003')::int,
+  1,
+  'le paiement ouvre exactement une inscription'
+);
+
+-- Une formation est à accès illimité : sans ce `null`, la révocation
+-- quotidienne finirait par couper un accès vendu à vie.
+select is(
+  (select date_fin_acces from public.inscriptions
+   where user_id = '66666666-6666-6666-6666-666666666666'
+     and formation_id = 'a0000000-0000-0000-0000-000000000003'),
+  null,
+  'une formation ouvre un accès sans date de fin'
+);
+
+select is(
+  (public.traiter_paiement(
+    'stripe', 'evt_paiement_pgtap', 'checkout.session.completed', '{}'::jsonb,
+    '66666666-6666-6666-6666-666666666666',
+    'a0000000-0000-0000-0000-000000000003',
+    99000, 'EUR', 'cs_pgtap', 'pi_pgtap', null, null
+  ) ->> 'deja_traite')::boolean,
+  true,
+  'le même événement rejoué sort sans rien faire'
+);
+
+select is(
+  (select count(*) from public.inscriptions
+   where user_id = '66666666-6666-6666-6666-666666666666'
+     and formation_id = 'a0000000-0000-0000-0000-000000000003')::int,
+  1,
+  'le rejeu na pas créé de deuxième inscription'
+);
+
 -- ── Rôle admin ─────────────────────────────────────────────────────────────
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
 
 select is(
-  (select count(*) from public.inscriptions)::int, 3,
-  'admin voit toutes les inscriptions, y compris celle rouverte plus haut'
+  (select count(*) from public.inscriptions)::int, 4,
+  'admin voit toutes les inscriptions, y compris celle ouverte par le paiement'
 );
 
 select is(
