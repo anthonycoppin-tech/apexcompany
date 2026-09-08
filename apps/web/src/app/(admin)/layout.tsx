@@ -3,19 +3,25 @@ import type { ReactNode } from 'react';
 import { requireRole } from '@/lib/auth/roles';
 
 /**
- * Garde d'accès large et volontairement imprécise : coach, admin et owner
- * entrent tous dans /admin, parce que la matrice d'accès (docs/02-SITEMAP.md)
- * donne au coach un accès *partiel* — ses cohortes, ses sessions, ses
- * apprenants — à plusieurs écrans de cette zone. Le refus fin par section
- * (paiements, utilisateurs, logs, audit → admin/owner selon le cas) reste à
- * poser page par page quand chaque écran sera construit pour de vrai.
+ * Garde d'accès : admin et owner, personne d'autre.
+ *
+ * La révision 3 a resserré cette garde. Elle laissait entrer le coach, parce
+ * que la matrice d'accès de la révision 2 lui donnait un accès *partiel* à
+ * plusieurs écrans de cette zone — ses cohortes, ses sessions, ses apprenants.
+ * Le formateur a désormais sa propre zone, `/formateur`, et la matrice
+ * (docs/02-SITEMAP.md) ne lui laisse plus une seule coche ici. Une zone dédiée
+ * plutôt qu'un back-office dégradé, précisément pour ne pas obliger chaque page
+ * d'administration à masquer la moitié de son contenu pour toujours.
+ *
+ * Le refus fin par section (utilisateurs, logs → admin/owner ; audit,
+ * paramètres → owner) reste à poser page par page quand chaque écran sera
+ * construit pour de vrai.
  *
  * Ce garde décide qui VOIT l'écran. Ce que chaque requête peut réellement lire
- * — un coach qui ne voit que sa cohorte, jamais un paiement, quelle que soit
- * la page — reste imposé par la RLS. C'est elle la vraie frontière.
+ * reste imposé par la RLS. C'est elle la vraie frontière.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const roles = await requireRole(['coach', 'admin', 'owner']);
+  const roles = await requireRole(['admin', 'owner']);
 
   return (
     <div className="flex min-h-screen flex-col">
