@@ -164,6 +164,15 @@ Soit environ **13 semaines restantes**, 14,5 en comptant la phase 1 déjà livr�
 retire 1,5 semaine de replays et de planning de sessions, mais ajoute l'espace formateur et la
 mécanique d'abonnement, qui coûtent davantage.
 
+**État au 8 septembre 2026.** Les phases 1 et 1 bis sont livrées. Les phases 2 à 7 sont
+**écrites mais jamais exécutées en réel** : ni serveur Discord, ni compte Cal.com, ni clés
+Stripe, ni clé serveur Supabase. Le back-office est commencé — garde, navigation et tableau de
+bord ; ses autres écrans restent des placeholders. Restent entièrement à faire : la phase 8,
+les six pages légales, et le contenu client (biographies, témoignages, visuels, catalogue réel).
+
+Ces estimations ne sont donc pas consommées à hauteur de ce qui est écrit : tant qu'une
+fonctionnalité n'a pas tourné contre les vrais services, il faut compter la recette qui va avec.
+
 Annoncez 16 semaines au client. Une estimation tenue vaut mieux qu'une estimation flatteuse.
 
 **Les phases 4 et 5 sont séparées volontairement.** Le paiement unique suffit à vendre les
