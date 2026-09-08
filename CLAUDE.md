@@ -197,9 +197,11 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   et `traiter_paiement()` qui fait tout le reste **en une transaction** — idempotence,
   commande, encaissement, inscription, facture, rôle Discord, proposition, prospect. Son
   idempotence est testée en PGlite et en pgTAP. Manquent les clés Stripe.
-- [~] 5 — Abonnement : renouvellement et résiliation traités par le webhook
-  (`renouveler_abonnement()`, résiliation à effet différé). **Restent à écrire** : la tâche
-  planifiée de révocation en fin d'accès, et l'écran de résiliation côté client.
+- [~] **5 — Abonnement** : renouvellement et résiliation traités par le webhook
+  (`renouveler_abonnement()`, résiliation à effet différé), et révocation en fin d'accès par
+  `revoquer_acces_expires()`, déclenchée par `api/cron/revocation`. **Reste à écrire** : l'écran
+  de résiliation côté client. **Reste à brancher** : un planificateur qui appelle réellement la
+  route chaque jour — sans lui, la fonction existe et ne tourne jamais.
 - [ ] 6 — Espace client
 - [ ] 7 — Site public : contenu marketing, SEO, pages légales
 - [ ] 8 — Événements, migration des données, recette, mise en production

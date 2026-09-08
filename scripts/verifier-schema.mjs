@@ -435,6 +435,65 @@ async function main() {
   verifier('aucune deuxième facture', apres2.factures - apres1.factures, 0);
   verifier('aucun deuxième rôle empilé', apres2.file - apres1.file, 0);
 
+  // ── La révocation en fin daccès ──────────────────────────────────────────
+  console.log('\nRévocation des accès expirés\n');
+
+  // Un produit qui partage le rôle Discord de « fondations ». Cest le cas qui
+  // fait tomber une révocation raisonnée par personne : le client A garde
+  // fondations, il ne doit donc pas perdre ce rôle quand celui-ci expire.
+  await db.exec(`
+    insert into public.formations (id, slug, titre, prix_cents, type_produit, modalite,
+                                   duree_acces_jours, discord_role_id, actif, ordre)
+    values ('a0000000-0000-0000-0000-000000000005', 'duo-test', 'Produit au rôle partagé',
+            10000, 'accompagnement', 'individuel', 30, '900000000000000003', false, 9);
+
+    insert into public.inscriptions (user_id, formation_id, statut, date_debut, date_fin_acces)
+    values ('66666666-6666-6666-6666-666666666666',
+            'a0000000-0000-0000-0000-000000000005',
+            'active', current_date - 40, current_date - 1);
+
+    update public.inscriptions set date_fin_acces = current_date - 1
+    where id = 'e0000000-0000-0000-0000-00000000000b';
+  `);
+
+  const fileAvant = await compter('public.discord_sync_queue');
+  const revocation = (await db.query('select public.revoquer_acces_expires() as r')).rows[0].r;
+  const fileApres = await compter('public.discord_sync_queue');
+
+  verifier('deux inscriptions échues sont terminées', revocation.inscriptions_terminees, 2);
+  verifier('un seul rôle est réellement retiré', revocation.roles_revoques, 1);
+  verifier(
+    'le rôle détenu par une autre inscription active est conservé',
+    revocation.roles_conserves,
+    1,
+  );
+  verifier('un seul revoke est empilé', fileApres - fileAvant, 1);
+
+  // Linvariant central : une date de fin nulle nest jamais sélectionnée. Cest
+  // ce qui donne aux formations leur accès à vie, sans cas particulier.
+  verifier(
+    'laccès illimité nest pas révoqué',
+    await compter(
+      `public.inscriptions where formation_id = 'a0000000-0000-0000-0000-000000000003' and statut = 'active'`,
+    ),
+    1,
+  );
+
+  verifier(
+    'labonnement suit son inscription',
+    await compter(`public.subscriptions where statut = 'terminee'`),
+    1,
+  );
+
+  // Deuxième passage : plus rien à faire, et surtout pas un second revoke.
+  const seconde = (await db.query('select public.revoquer_acces_expires() as r')).rows[0].r;
+  verifier('un second passage ne retrouve rien', seconde.inscriptions_terminees, 0);
+  verifier(
+    'et nempile aucun revoke de plus',
+    (await compter('public.discord_sync_queue')) - fileApres,
+    0,
+  );
+
   // ── Filet : aucune table sans RLS ────────────────────────────────────────
   console.log('\nCouverture RLS\n');
   const sansRls = await db.query(`

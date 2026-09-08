@@ -1176,6 +1176,7 @@ export type Database = {
         }
         Returns: Json
       }
+      revoquer_acces_expires: { Args: never; Returns: Json }
       stats_conversion: {
         Args: { depuis?: string }
         Returns: {

@@ -216,13 +216,21 @@ d'abonnement : un événement rejoué ne doit pas offrir deux mois d'accès.
 Une file, pas un appel direct. L'API Discord est limitée en débit et peut être indisponible ;
 sans file, un paiement pendant une coupure Discord donne un client sans accès et aucune trace.
 
-⚠️ **à écrire** — **la révocation automatique**. Une tâche planifiée quotidienne cherche les
+✅ **écrit** — **la révocation automatique**, dans `revoquer_acces_expires()`. Elle cherche les
 inscriptions dont `date_fin_acces` est dépassée, les passe en `terminee` et empile un `revoke`.
 Les lignes à `date_fin_acces null` ne sont jamais sélectionnées — c'est ce qui donne aux
 formations leur accès illimité, sans cas particulier dans le code.
 
 La révocation se raisonne **par inscription, jamais par personne** : un client qui perd son
 accompagnement mais garde son abonnement communauté ne doit perdre que le rôle correspondant.
+La fonction vérifie donc, avant chaque `revoke`, qu'aucune **autre** inscription active du
+même client ne porte ce rôle. Les deux cas sont testés.
+
+Le déclencheur est une route protégée par un secret, `api/cron/revocation`, appelable par
+n'importe quel planificateur. `pg_cron` serait plus robuste — la tâche tournerait dans la base
+sans dépendre du site — mais `npm run db:check` retire les `create extension`, donc la
+planification ne serait jamais rejouée hors ligne. La fonction reste appelable des deux
+façons : basculer plus tard ne demande qu'un `cron.schedule`.
 
 ## Traçabilité
 
