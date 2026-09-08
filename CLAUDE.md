@@ -269,8 +269,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   `/admin/parametres` pose sa garde `owner` comme `/admin/audit`, et montre quels services
   sont réellement branchés — sans jamais afficher la valeur d'une clé.
   **Restent des placeholders** : `/admin/emails` et `/admin/clients/[id]`.
-  L'édition du catalogue reste à écrire : elle touche au prix, au type et au rôle Discord,
-  donc à l'argent et aux accès — elle mérite son écran et sa relecture.
+  **L'édition du catalogue est écrite** (`/admin/formations/[id]` et `/nouveau`), avec deux
+  garde-fous : la cohérence type de produit / durée d'accès est vérifiée avant la base pour
+  donner un message lisible, et **un produit ne peut pas être publié sans rôle Discord** — il
+  encaisserait un paiement sans ouvrir d'accès. Un brouillon, si.
 - [ ] 8 — Événements, migration des données, recette, mise en production
 - [~] **Transverse — Discord** : worker écrit (apps/bot), suit `discord_sync_queue` au plus
   près du schéma — **jamais testé en réel**, aucune application Discord n'existe encore.
