@@ -14,31 +14,33 @@ export type ReponsesQualification = {
 };
 
 /**
- * L'éligibilité du prospect — **la règle n'est pas connue**.
+ * L'éligibilité du prospect — **il n'y a pas de règle, et c'est la réponse**.
  *
- * Le formulaire Tally en production affiche « ton profil est éligible » à la
- * fin, donc une règle existe déjà quelque part. Laquelle, et ce qu'on affiche à
- * quelqu'un qui n'est pas éligible, sont le point ouvert §8.1 du cahier des
- * charges, et le plus urgent des points restants.
+ * Tranché par le chef de projet le 8 septembre 2026 : le « ton profil est
+ * éligible » affiché par le formulaire Tally en production n'est adossé à aucun
+ * filtrage réel. Tout prospect qui soumet le formulaire est éligible.
  *
- * En attendant, cette fonction renvoie `null`, qui veut dire « pas encore
- * évalué » — exactement ce que `leads.eligible` accepte, et ce qu'un lead
- * saisi à la main porte aussi.
+ * Cette fonction renvoie donc `true`, et non plus `null`. La nuance compte :
+ * `null` voulait dire « pas encore évalué », c'est-à-dire une case à traiter
+ * plus tard, dans le CRM comme dans les statistiques. `true` dit que
+ * l'évaluation a eu lieu et qu'elle est positive. Laisser `null` par prudence
+ * aurait produit un pipeline entier de prospects en attente d'un arbitrage qui
+ * n'existe pas.
  *
- * Deux choses volontaires ici. D'abord, ce fichier existe déjà, vide de règle :
- * le jour où la réponse arrive, elle se pose à un seul endroit, testable, au
- * lieu de se disséminer dans le composant et dans l'action. Ensuite, on ne
- * devine pas : inventer un seuil de budget « raisonnable » en attendant, c'est
- * refuser des gens en silence sur un critère que personne n'a validé, et le
- * découvrir six mois plus tard dans les statistiques de conversion.
+ * Deux choses que cette décision ne change pas :
  *
- * Ce qui est déjà décidé et ne dépend pas de cette fonction : le refus des
- * moins de 18 ans, qui est un refus dur intervenant AVANT toute écriture en
- * base (voir `questionnaire.ts`). Il n'a rien à faire ici.
+ * - **Le refus des moins de 18 ans reste entier.** C'est un refus dur, et il
+ *   intervient avant toute écriture en base — un mineur ne devient jamais un
+ *   lead. Il ne passe pas par ici (voir `questionnaire.ts`).
+ * - **Le tunnel n'a aucune branche « non éligible » à construire.** Il n'y a
+ *   pas d'écran de refus à écrire, pas de message à rédiger.
+ *
+ * Le fichier survit malgré son corps d'une ligne, et c'est délibéré : le jour
+ * où une règle apparaît — un budget plancher, une zone géographique exclue pour
+ * des raisons fiscales — elle se pose ici, à un seul endroit, testable, au lieu
+ * de se disséminer dans le composant et dans l'action.
  */
-// La signature est déjà celle qu'aura la règle ; seul son corps attend la
-// réponse du client. Le paramètre reste donc nommé et documenté.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function evaluerEligibilite(reponses: ReponsesQualification): boolean | null {
-  return null;
+export function evaluerEligibilite(reponses: ReponsesQualification): boolean {
+  void reponses;
+  return true;
 }

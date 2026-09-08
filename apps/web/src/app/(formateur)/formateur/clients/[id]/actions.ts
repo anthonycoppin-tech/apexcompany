@@ -22,10 +22,17 @@ export type EtatProposition = { readonly erreur: string | null; readonly ok: boo
  *   janvier soit payé en septembre au tarif de janvier ;
  * - **le prix est tracé.**
  *
- * Le montant n'est pas saisi : il est repris du catalogue. La remise accordée
- * par un formateur n'est pas arbitrée (§8.6) — tant qu'aucun plafond n'est
- * décidé, offrir un champ libre reviendrait à autoriser en silence ce qui n'a
- * pas été autorisé.
+ * **Le montant est saisissable, sans plafond.** Tranché par le chef de projet
+ * le 8 septembre 2026 : Franck dirige l'accompagnement commercial et décide
+ * seul du prix qu'il propose. Le prix catalogue sert de valeur par défaut, pas
+ * de valeur imposée.
+ *
+ * Ce qui remplace le plafond, c'est la trace. Le montant proposé est écrit dans
+ * la proposition, et l'écart avec le prix catalogue est consigné dans
+ * `lead_events` : une remise accordée reste visible dans l'historique du
+ * prospect, sans que personne ait à la déclarer. C'est la quatrième raison
+ * d'exister de cette table — « le prix est tracé » — et elle prend tout son
+ * sens maintenant que le prix peut bouger.
  *
  * Écrit sous RLS : `propositions_formateur_emet` impose `formateur_id =
  * auth.uid()`, donc un formateur ne peut pas émettre au nom d'un autre, même en
@@ -38,6 +45,11 @@ export async function emettreProposition(
   const leadId = (donnees.get('lead_id') ?? '').toString();
   const formationId = (donnees.get('formation_id') ?? '').toString();
   const jours = Number((donnees.get('validite_jours') ?? '7').toString());
+
+  // Saisi en euros, stocké en centimes : l'argent est un entier partout
+  // ailleurs, et la conversion se fait à la frontière plutôt que de laisser
+  // filer un flottant dans le reste du code.
+  const montantSaisi = (donnees.get('montant_euros') ?? '').toString().trim().replace(',', '.');
 
   if (!leadId || !formationId) return { erreur: 'Formation manquante.', ok: false };
   if (!Number.isFinite(jours) || jours < 1 || jours > 90) {
@@ -80,6 +92,14 @@ export async function emettreProposition(
 
   if (!formation) return { erreur: 'Formation introuvable.', ok: false };
 
+  // Le prix catalogue est la valeur par défaut, pas la valeur imposée : un
+  // champ vide vaut « le tarif affiché ».
+  const montantCents = montantSaisi ? Math.round(Number(montantSaisi) * 100) : formation.prix_cents;
+
+  if (!Number.isFinite(montantCents) || montantCents < 0) {
+    return { erreur: 'Le montant proposé n’est pas un nombre valide.', ok: false };
+  }
+
   // La nouvelle périme les précédentes. Deux propositions valides en même temps
   // pour la même personne, c'est exactement le désordre que cette table existe
   // pour supprimer.
@@ -97,7 +117,7 @@ export async function emettreProposition(
     user_id: lead.user_id,
     formation_id: formation.id,
     formateur_id: user.id,
-    montant_cents: formation.prix_cents,
+    montant_cents: montantCents,
     devise: formation.devise,
     statut: 'envoyee',
     expire_le: expireLe.toISOString(),
@@ -111,10 +131,20 @@ export async function emettreProposition(
   // webhook qui le posera, pas cet écran.
   await supabase.from('leads').update({ statut: 'proposition' }).eq('id', lead.id);
 
+  // La trace du prix, y compris quand il s'écarte du catalogue. Sans plafond
+  // sur la remise, c'est cet historique qui permet de constater après coup ce
+  // qui a été accordé — et il s'écrit tout seul, sans que le formateur ait à
+  // déclarer quoi que ce soit.
   await supabase.from('lead_events').insert({
     lead_id: lead.id,
     type: 'proposition_emise',
-    payload: { formation_id: formation.id, expire_le: expireLe.toISOString() },
+    payload: {
+      formation_id: formation.id,
+      expire_le: expireLe.toISOString(),
+      montant_cents: montantCents,
+      prix_catalogue_cents: formation.prix_cents,
+      remise_cents: Math.max(0, formation.prix_cents - montantCents),
+    },
     created_by: user.id,
   });
 

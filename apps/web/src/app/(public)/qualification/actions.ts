@@ -11,7 +11,7 @@ import {
   MOINS_18,
   VERSION_CONSENTEMENT,
 } from '@/lib/qualification/questionnaire';
-import { createClient } from '@/lib/supabase/server';
+import { creerCompteEtSession } from '@/lib/auth/creation-compte';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 type LeadSource = Database['public']['Enums']['lead_source'];
@@ -104,34 +104,26 @@ export async function soumettreQualification(
 
   const supabase = createServiceRoleClient();
 
-  // ── 1. Le compte ─────────────────────────────────────────────────────────
+  // ── 1. Le compte, le consentement et la session ──────────────────────────
+  // Mutualisé avec la souscription directe à un abonnement : deux parcours
+  // créent un compte, et ils doivent le faire à l'identique — sur le
+  // consentement RGPD notamment, dont l'écart ne se découvre qu'au moment où
+  // il faut le prouver.
+  //
   // `nom` reste vide : le formulaire ne le demande pas, il se collecte au
   // paiement, là où la facturation l'exige réellement.
-  //
-  // L'email n'est pas confirmé ici. Il ne bloque pas la prise de rendez-vous —
-  // ce serait perdre des prospects sur une étape qui ne coûte rien — mais il
-  // devra l'être avant le paiement, sinon une facture part vers une adresse
-  // non vérifiée (§8.5).
-  const { data: compte, error: erreurCompte } = await supabase.auth.admin.createUser({
+  const creation = await creerCompteEtSession({
     email,
-    email_confirm: false,
-    user_metadata: { prenom: reponses.prenom },
+    prenom: reponses.prenom,
+    telephone: reponses.telephone,
+    versionConsentement: VERSION_CONSENTEMENT,
   });
 
-  if (erreurCompte || !compte.user) {
-    const existe = erreurCompte?.message?.toLowerCase().includes('already');
-    return {
-      erreur: existe
-        ? 'Un compte existe déjà avec cette adresse. Connecte-toi pour reprendre où tu en étais.'
-        : 'La création du compte a échoué. Réessaie dans un instant.',
-    };
+  if (!creation.ok) {
+    return { erreur: creation.erreur };
   }
 
-  const userId = compte.user.id;
-
-  // Le trigger `handle_new_user` a créé le profil et le rôle `client`. Le
-  // téléphone, lui, ne passe pas par les métadonnées d'authentification.
-  await supabase.from('profiles').update({ telephone: reponses.telephone }).eq('id', userId);
+  const userId = creation.userId;
 
   // ── 2. Le lead ───────────────────────────────────────────────────────────
   const { data: lead, error: erreurLead } = await supabase
@@ -168,32 +160,7 @@ export async function soumettreQualification(
     payload: reponses,
   });
 
-  // ── 4. Le consentement ───────────────────────────────────────────────────
-  await supabase.from('consents').insert({
-    user_id: userId,
-    type: 'confidentialite',
-    accorde: true,
-    version_texte: VERSION_CONSENTEMENT,
-  });
-
-  // ── 5. La session ────────────────────────────────────────────────────────
-  // Le compte vient d'être créé côté administration, donc sans session : la
-  // personne serait anonyme sur la page suivante. Or la suite du parcours en a
-  // besoin — lier son Discord suppose de savoir QUI on lie, et sa proposition
-  // sera protégée par la RLS, pas par un jeton dans une URL.
-  //
-  // `generateLink` fabrique le jeton d'un lien magique sans l'envoyer par
-  // email ; `verifyOtp`, appelé avec le client à cookies, le consomme
-  // immédiatement et pose la session. La personne enchaîne sur son rendez-vous
-  // sans passer par sa boîte mail, ce qui est le comportement qu'on veut sur
-  // l'étape qui produit le chiffre d'affaires.
-  const { data: lien } = await supabase.auth.admin.generateLink({ type: 'magiclink', email });
-  const jeton = lien?.properties?.hashed_token;
-
-  if (jeton) {
-    const avecSession = await createClient();
-    await avecSession.auth.verifyOtp({ type: 'magiclink', token_hash: jeton });
-  }
+  // Le consentement et la session sont posés par `creerCompteEtSession`.
 
   // ── Et le rôle Discord `invité` ? ────────────────────────────────────────
   // Pas ici, et c'est délibéré. Le worker accorde un rôle à un identifiant
