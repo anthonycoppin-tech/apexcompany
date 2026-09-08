@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(24);
+select plan(28);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -228,6 +228,54 @@ select throws_ok(
   '42501',
   null,
   'un client ne peut pas appeler la fonction de statistiques'
+);
+
+-- ── La révocation en fin daccès ───────────────────────────────────────────
+-- Le pendant du paiement : largent qui entre ouvre une porte, laccès qui
+-- expire doit la refermer. Placée en fin de fichier pour ne pas fausser les
+-- décomptes des sections précédentes.
+
+reset role;
+
+-- Un produit qui partage le rôle Discord de « fondations ». Cest le cas qui
+-- fait tomber une révocation raisonnée par personne plutôt que par inscription.
+insert into public.formations (id, slug, titre, prix_cents, type_produit, modalite,
+                               duree_acces_jours, discord_role_id, actif, ordre)
+values ('a0000000-0000-0000-0000-000000000005', 'duo-test', 'Produit au rôle partagé',
+        10000, 'accompagnement', 'individuel', 30, '900000000000000003', false, 9);
+
+insert into public.inscriptions (user_id, formation_id, statut, date_debut, date_fin_acces)
+values ('66666666-6666-6666-6666-666666666666',
+        'a0000000-0000-0000-0000-000000000005',
+        'active', current_date - 40, current_date - 1);
+
+select is(
+  (public.revoquer_acces_expires() ->> 'inscriptions_terminees')::int, 1,
+  'la révocation termine linscription échue, et elle seule'
+);
+
+-- Le client garde « fondations », qui porte le même rôle : on ne lui retire
+-- rien. Un client fidèle mis dehors parce quun autre accès expire est le genre
+-- dincident quon découvre par un message furieux.
+select is(
+  (select count(*) from public.discord_sync_queue
+   where action = 'revoke' and role_id = '900000000000000003')::int, 0,
+  'le rôle détenu par une autre inscription active est conservé'
+);
+
+-- Linvariant central : une date de fin nulle nest jamais sélectionnée. Cest
+-- ce qui donne aux formations leur accès à vie, sans cas particulier.
+select is(
+  (select statut::text from public.inscriptions
+   where user_id = '66666666-6666-6666-6666-666666666666'
+     and formation_id = 'a0000000-0000-0000-0000-000000000003'),
+  'active',
+  'un accès illimité nest jamais révoqué'
+);
+
+select is(
+  (public.revoquer_acces_expires() ->> 'inscriptions_terminees')::int, 0,
+  'un second passage ne retrouve rien à révoquer'
 );
 
 select * from finish();
