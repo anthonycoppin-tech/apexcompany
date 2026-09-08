@@ -1156,6 +1156,7 @@ export type Database = {
     }
     Functions: {
       est_mon_inscription: { Args: { i: string }; Returns: boolean }
+      est_mon_lead: { Args: { l: string }; Returns: boolean }
       formateur_de_inscription: { Args: { i: string }; Returns: boolean }
       formateur_de_lead: { Args: { l: string }; Returns: boolean }
       has_role: {
