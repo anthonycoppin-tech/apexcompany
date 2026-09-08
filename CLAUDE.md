@@ -145,8 +145,9 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   n'ont plus lieu d'être, `/formateur` et `/qualification` manquent.
 - [ ] **1 bis — Migrations de la révision 3** : renommages `offres` → `formations` et
       `coach` → `formateur`, suppression des cohortes / sessions / présences / replays,
-      colonnes du formulaire, `propositions`, `subscriptions`. Emporte les politiques RLS et
-      les tests pgTAP du rôle formateur. **C'est le préalable à tout le reste.**
+      colonnes du formulaire, `modalite`, `propositions`, `subscriptions`, `seances`. Emporte
+      les politiques RLS et les tests pgTAP du rôle formateur. **C'est le préalable à tout le
+      reste.**
 - [ ] 2 — Tunnel d'entrée : formulaire natif, création de compte, Discord `invité`, Cal.com
 - [ ] 3 — Espace formateur : tableau de bord, RDV, fiches, propositions, statistiques
 - [ ] 4 — Paiement une fois : Stripe, facture, inscription, rôle Discord
@@ -179,7 +180,15 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   plus généreux, `appointments.cal_booking_id` et la route `api/cal` restent valables, et
   l'auto-hébergement reste une porte de sortie. **À vérifier à l'inscription** : si les
   webhooks s'avèrent réservés au plan Teams, c'est 12 $/utilisateur/mois — sans webhook, pas
-  de ligne `appointments`, donc pas de tableau de bord formateur.
+  de ligne `appointments`, donc pas de tableau de bord formateur. Cal.com sert deux fois dans
+  le parcours : l'audit de vente, puis les séances après l'achat. **Deuxième chose à vérifier**
+  du coup : les places par créneau (séances de groupe), leur disponibilité en gratuit et ce
+  que le webhook envoie au deuxième participant d'une même séance.
+- **Individuel ou groupe** — **tranché** : porté par `formations.modalite`, un axe distinct de
+  `type_produit` (qui dit comment on paie, pas comment le cours se donne). L'accès ne change
+  pas — un rôle Discord, une `date_fin_acces`, quelle que soit la modalité ; c'est la
+  réservation qui diffère (`01-CAHIER-DES-CHARGES.md` §3, étape 4 bis). Emporte une table
+  `seances` accrochée à `inscriptions`, qui reprend le rôle de l'ex-`coaching_sessions`.
 - **Plan Supabase Pro** — non tranché, et c'est une dépense : 25 $/mois par
   organisation. Ce qu'on achète réellement, c'est le **branching** (une base éphémère par
   pull request), qui supprime les conflits sur la base de dev partagée, et la fin de la

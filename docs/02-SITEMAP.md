@@ -44,7 +44,8 @@ plateforme.
 Léger, puisque le contenu est ailleurs.
 
 ```
-/espace                     Ses accès en cours, lien Discord, prochain RDV
+/espace                     Ses accès en cours, lien Discord, prochaine séance
+/espace/seances             Réserver une séance (Cal.com), et celles à venir
 /espace/rendez-vous         Rendez-vous passés et à venir
 /espace/propositions/[id]   Proposition reçue après l'audit → paiement
 /espace/factures            Factures, échéances, gestion de l'abonnement
@@ -58,12 +59,14 @@ Pas de messagerie : l'échange conversationnel reste sur Discord (voir `06-PERIM
 bénéfice direct du compte créé tôt : la RLS protège la proposition, sans mécanisme de
 signature à inventer.
 
-**Aucune page de planning.** Les calls de groupe et les lives sont annoncés et tenus sur
-Discord, dans le salon du produit — le site n'en tient pas le calendrier (voir
-`06-PERIMETRE.md`, « Les calls de groupe et leur planning »). `/espace` affiche le lien
-Discord, rien de plus :
-un deuxième calendrier tenu côté site divergerait du premier, et personne ne saurait lequel
-fait foi.
+**`/espace/seances` s'adapte à la modalité du produit.** Un choix de créneau en tête-à-tête si
+`formations.modalite` vaut `individuel`, la liste des séances planifiées avec leurs places
+restantes si elle vaut `groupe`. Dans les deux cas la réservation passe par Cal.com et la
+séance se tient dans le salon Discord du produit : **Cal.com porte le créneau et les places,
+Discord porte la séance** (voir `06-PERIMETRE.md`). Le site n'affiche donc jamais de lien de
+visioconférence.
+
+Un client qui cumule deux inscriptions y voit les deux, comme partout ailleurs dans l'espace.
 
 **`/espace/factures` doit permettre de résilier l'abonnement.** Un abonnement qu'on ne peut
 annuler que par email est une source de litige, et selon les cas une non-conformité.
@@ -79,10 +82,11 @@ correspondent ; le mélanger au back-office obligerait chaque page d'administrat
 la moitié de son contenu pour toujours.
 
 ```
-/formateur                  Tableau de bord : RDV du jour, à venir, propositions en attente
-/formateur/rendez-vous      Passés et à venir, issue et compte rendu
+/formateur                  Tableau de bord : RDV et séances du jour, propositions en attente
+/formateur/rendez-vous      Audits passés et à venir, issue et compte rendu
+/formateur/seances          Séances à venir et passées, présence et compte rendu
 /formateur/clients          Ses clients et ses prospects
-/formateur/clients/[id]     Réponses au formulaire, historique, RDV, notes, statut d'accès
+/formateur/clients/[id]     Réponses au formulaire, historique, RDV, séances, notes, accès
 /formateur/statistiques     RDV honorés, no-show, propositions émises, conversion
 ```
 
