@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(28);
+select plan(32);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -276,6 +276,42 @@ select is(
 select is(
   (public.revoquer_acces_expires() ->> 'inscriptions_terminees')::int, 0,
   'un second passage ne retrouve rien à révoquer'
+);
+
+-- ── Le remboursement, rejoué ───────────────────────────────────────────────
+-- De largent qui sort : le seul risque qui compte est de le faire deux fois.
+-- `provider_refund_id` est ce qui prouve que lopération a abouti, et donc ce
+-- qui empêche de la relancer.
+
+insert into public.refunds (id, payment_id, montant_cents, motif, statut)
+select '9a000000-0000-0000-0000-00000000000a', id, 50000, 'Test', 'approuve'
+from public.payments where provider_payment_id = 'pi_test_seed_a';
+
+select is(
+  (public.enregistrer_remboursement(
+    '9a000000-0000-0000-0000-00000000000a', 're_pgtap', null
+  ) ->> 'deja_traite')::boolean,
+  false,
+  'un premier remboursement est enregistré'
+);
+
+-- Rembourser sans fermer laccès, cest offrir le produit.
+select is(
+  (select count(*) from public.inscriptions where statut = 'remboursee')::int, 1,
+  'linscription correspondante passe en remboursee'
+);
+
+select is(
+  (public.enregistrer_remboursement(
+    '9a000000-0000-0000-0000-00000000000a', 're_pgtap', null
+  ) ->> 'deja_traite')::boolean,
+  true,
+  'un remboursement rejoué sort sans rien faire'
+);
+
+select is(
+  (select count(*) from public.inscriptions where statut = 'remboursee')::int, 1,
+  'le rejeu na pas fermé un second accès'
 );
 
 select * from finish();

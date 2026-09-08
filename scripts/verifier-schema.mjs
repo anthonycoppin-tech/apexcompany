@@ -84,9 +84,16 @@ create table if not exists auth.identities (
 
 -- Même signature et même sémantique que chez Supabase : lidentifiant du porteur
 -- de la session, lu dans les claims du JWT injectés par PostgREST.
+--
+-- Le nullif porte sur le RÉGLAGE, avant le cast en jsonb — comme dans la vraie
+-- définition Supabase. Lécrire dans lautre sens (caster puis neutraliser)
+-- paraît équivalent et ne lest pas : une session sans claims porte la chaîne
+-- vide, et caster une chaîne vide en jsonb lève « invalid input syntax for type
+-- json ». Le piège ne se voit quà lexécution dune fonction appelant auth.uid()
+-- hors session — un trigger daudit, typiquement.
 create or replace function auth.uid() returns uuid
 language sql stable as $$
-  select nullif(current_setting('request.jwt.claims', true)::jsonb ->> 'sub', '')::uuid;
+  select (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')::uuid;
 $$;
 
 -- pgcrypto nest pas embarqué dans PGlite ; le seed ne sen sert que pour
@@ -502,6 +509,60 @@ async function main() {
     'et nempile aucun revoke de plus',
     (await compter('public.discord_sync_queue')) - fileApres,
     0,
+  );
+
+  // ── Le remboursement, rejoué ─────────────────────────────────────────────
+  // De largent qui sort : le seul risque qui compte est de le faire deux fois.
+  console.log('\nTraitement dun remboursement\n');
+
+  const paiementARembourser = (
+    await db.query(
+      `select id from public.payments where provider_payment_id = 'pi_test_seed_a' limit 1`,
+    )
+  ).rows[0].id;
+
+  const remboursement = (
+    await db.query(`insert into public.refunds (payment_id, montant_cents, motif, statut)
+                    values ('${paiementARembourser}', 50000, 'Vérification', 'approuve')
+                    returning id`)
+  ).rows[0].id;
+
+  const fileAvantR = await compter('public.discord_sync_queue');
+
+  const premierR = (
+    await db.query(
+      `select public.enregistrer_remboursement('${remboursement}', 're_verif', null) as r`,
+    )
+  ).rows[0].r;
+
+  verifier('le remboursement est enregistré', premierR.deja_traite, false);
+  verifier(
+    'linscription correspondante passe en remboursee',
+    await compter(`public.inscriptions where statut = 'remboursee'`),
+    1,
+  );
+  verifier(
+    'la commande passe en remboursee',
+    await compter(`public.orders where statut = 'remboursee'`),
+    1,
+  );
+  verifier(
+    'le rôle est retiré par la file',
+    (await compter(`public.discord_sync_queue where action = 'revoke'`)) > 0,
+    true,
+  );
+
+  const secondR = (
+    await db.query(
+      `select public.enregistrer_remboursement('${remboursement}', 're_verif', null) as r`,
+    )
+  ).rows[0].r;
+
+  verifier('un remboursement rejoué sort sans rien faire', secondR.deja_traite, true);
+  verifier(
+    'et nempile aucun revoke de plus',
+    (await compter('public.discord_sync_queue')) - fileAvantR,
+    1,
   );
 
   // ── Filet : aucune table sans RLS ────────────────────────────────────────

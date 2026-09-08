@@ -942,10 +942,12 @@ export type Database = {
         Row: {
           created_at: string
           demande_par: string | null
+          erreur: string | null
           id: string
           montant_cents: number
           motif: string | null
           payment_id: string
+          provider_refund_id: string | null
           statut: Database["public"]["Enums"]["refund_statut"]
           traite_at: string | null
           traite_par: string | null
@@ -954,10 +956,12 @@ export type Database = {
         Insert: {
           created_at?: string
           demande_par?: string | null
+          erreur?: string | null
           id?: string
           montant_cents: number
           motif?: string | null
           payment_id: string
+          provider_refund_id?: string | null
           statut?: Database["public"]["Enums"]["refund_statut"]
           traite_at?: string | null
           traite_par?: string | null
@@ -966,10 +970,12 @@ export type Database = {
         Update: {
           created_at?: string
           demande_par?: string | null
+          erreur?: string | null
           id?: string
           montant_cents?: number
           motif?: string | null
           payment_id?: string
+          provider_refund_id?: string | null
           statut?: Database["public"]["Enums"]["refund_statut"]
           traite_at?: string | null
           traite_par?: string | null
@@ -1155,6 +1161,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      enregistrer_remboursement: {
+        Args: {
+          p_provider_refund_id: string
+          p_refund_id: string
+          p_traite_par: string
+        }
+        Returns: Json
+      }
       est_mon_inscription: { Args: { i: string }; Returns: boolean }
       est_mon_lead: { Args: { l: string }; Returns: boolean }
       formateur_de_inscription: { Args: { i: string }; Returns: boolean }

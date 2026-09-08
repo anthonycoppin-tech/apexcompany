@@ -7,6 +7,8 @@ import { EnTete, Pastille, Tableau, Vide, type Ton } from '@/components/admin';
 import { dateCourte, dateHeure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
+import { FormulaireRemboursement } from './formulaire-remboursement';
+
 const ETATS_INSCRIPTION: Record<string, Ton> = {
   active: 'bon',
   suspendue: 'attente',
@@ -51,7 +53,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     supabase
       .from('orders')
       .select(
-        'id, montant_cents, devise, statut, provider, provider_order_id, created_at, formations(titre), payments(statut, paid_at, provider_payment_id)',
+        'id, montant_cents, devise, statut, provider, provider_order_id, created_at, formations(titre), payments(id, statut, paid_at, provider_payment_id)',
       )
       .eq('user_id', id)
       .order('created_at', { ascending: false }),
@@ -217,6 +219,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                           <span className="mt-1 block font-mono text-xs text-encre-faible">
                             {paiement.provider_payment_id}
                           </span>
+                          {/* La demande se fait ici, où l'on a le contexte ;
+                              l'exécution se fait depuis les remboursements. */}
+                          {paiement.statut === 'reussi' && (
+                            <FormulaireRemboursement
+                              paymentId={paiement.id}
+                              montantMax={(c.montant_cents / 100).toString()}
+                            />
+                          )}
                         </>
                       ) : (
                         <span className="text-encre-faible">aucun</span>
