@@ -393,6 +393,48 @@ async function main() {
   }
   verifier('un accompagnement doit déclarer sa durée daccès', accompagnementSansDuree, true);
 
+  // ── Le chemin de largent, rejoué ─────────────────────────────────────────
+  // Cest le code le plus critique du projet : un webhook rejoué ne doit ni
+  // créer deux inscriptions, ni émettre deux factures, ni offrir deux mois.
+  console.log('\nTraitement dun paiement\n');
+
+  const compteur = async () => ({
+    inscriptions: await compter(
+      `public.inscriptions where user_id = '66666666-6666-6666-6666-666666666666'`,
+    ),
+    factures: await compter('public.invoices'),
+    file: await compter('public.discord_sync_queue'),
+  });
+
+  const avant = await compteur();
+
+  const paiement = `select public.traiter_paiement(
+    'stripe', 'evt_paiement_verif', 'checkout.session.completed', '{}'::jsonb,
+    '66666666-6666-6666-6666-666666666666',
+    'a0000000-0000-0000-0000-000000000003',
+    99000, 'EUR', 'cs_verif', 'pi_verif', null, null
+  ) as r;`;
+
+  const premier = await db.query(paiement);
+  const apres1 = await compteur();
+
+  verifier('le paiement crée une inscription', apres1.inscriptions - avant.inscriptions, 1);
+  verifier('le paiement émet une facture', apres1.factures - avant.factures, 1);
+  verifier('le paiement empile un rôle Discord', apres1.file - avant.file, 1);
+  verifier('le paiement nest pas signalé déjà traité', premier.rows[0].r.deja_traite, false);
+
+  // Une formation est à accès illimité : la date de fin doit rester nulle,
+  // sinon la révocation quotidienne finirait par couper un accès à vie.
+  verifier('une formation ouvre un accès sans date de fin', premier.rows[0].r.date_fin_acces, null);
+
+  const second = await db.query(paiement);
+  const apres2 = await compteur();
+
+  verifier('le même événement rejoué sort sans rien faire', second.rows[0].r.deja_traite, true);
+  verifier('aucune deuxième inscription', apres2.inscriptions - apres1.inscriptions, 0);
+  verifier('aucune deuxième facture', apres2.factures - apres1.factures, 0);
+  verifier('aucun deuxième rôle empilé', apres2.file - apres1.file, 0);
+
   // ── Filet : aucune table sans RLS ────────────────────────────────────────
   console.log('\nCouverture RLS\n');
   const sansRls = await db.query(`

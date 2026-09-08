@@ -1,8 +1,12 @@
 import { notFound } from 'next/navigation';
 
+import { formaterMontant } from '@apex/db';
+
 import { dateCourte, dateHeure } from '@/lib/format';
 import { libelle } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
+
+import { FormulaireProposition } from './formulaire-proposition';
 
 /**
  * `/formateur/clients/[id]` — la fiche qui prépare l'appel.
@@ -40,7 +44,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   // confirmerait l'existence d'un client à un formateur qui n'a pas à le savoir.
   if (!lead) notFound();
 
-  const [rdv, inscriptions] = await Promise.all([
+  const [rdv, inscriptions, catalogue, propositions] = await Promise.all([
     supabase
       .from('appointments')
       .select('id, debut, statut, issue, compte_rendu')
@@ -51,6 +55,18 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           .from('inscriptions')
           .select('id, statut, date_debut, date_fin_acces, formations(titre, modalite)')
           .eq('user_id', lead.user_id)
+      : Promise.resolve({ data: [] as never[] }),
+    supabase
+      .from('formations')
+      .select('id, titre, prix_cents, devise, type_produit, modalite')
+      .eq('actif', true)
+      .order('ordre'),
+    lead.user_id
+      ? supabase
+          .from('propositions')
+          .select('id, statut, montant_cents, devise, expire_le, created_at, formations(titre)')
+          .eq('user_id', lead.user_id)
+          .order('created_at', { ascending: false })
       : Promise.resolve({ data: [] as never[] }),
   ]);
 
@@ -147,6 +163,37 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         ) : (
           <p className="text-sm text-neutral-500">Aucun rendez-vous.</p>
         )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Propositions</h2>
+
+        {propositions.data?.length ? (
+          <ul className="divide-y rounded border text-sm">
+            {propositions.data.map((p) => (
+              <li key={p.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3">
+                <span className="flex-1">{p.formations?.titre ?? 'Formation'}</span>
+                <span className="tabular-nums text-neutral-600">
+                  {formaterMontant(p.montant_cents, p.devise)}
+                </span>
+                <span className="text-neutral-500">
+                  {p.statut}
+                  {p.expire_le && p.statut === 'envoyee'
+                    ? ` · expire le ${dateCourte(p.expire_le)}`
+                    : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-neutral-500">Aucune proposition émise.</p>
+        )}
+
+        <FormulaireProposition
+          leadId={lead.id}
+          formations={catalogue.data ?? []}
+          sansCompte={!lead.user_id}
+        />
       </section>
 
       <section className="space-y-3">

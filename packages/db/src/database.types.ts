@@ -1164,6 +1164,18 @@ export type Database = {
       }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      renouveler_abonnement: {
+        Args: {
+          p_event_id: string
+          p_event_type: string
+          p_montant_cents?: number
+          p_payload: Json
+          p_provider: Database["public"]["Enums"]["payment_provider"]
+          p_provider_payment_id?: string
+          p_subscription_id: string
+        }
+        Returns: Json
+      }
       stats_conversion: {
         Args: { depuis?: string }
         Returns: {
@@ -1173,6 +1185,23 @@ export type Database = {
           source: Database["public"]["Enums"]["lead_source"]
           taux_conversion: number
         }[]
+      }
+      traiter_paiement: {
+        Args: {
+          p_devise: string
+          p_event_id: string
+          p_event_type: string
+          p_formation_id: string
+          p_montant_cents: number
+          p_payload: Json
+          p_proposition_id?: string
+          p_provider: Database["public"]["Enums"]["payment_provider"]
+          p_provider_order_id: string
+          p_provider_payment_id: string
+          p_subscription_id?: string
+          p_user_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {
