@@ -26,7 +26,7 @@ Pour la débloquer :
    (scope `bot`, permission `Manage Roles`).
 3. **Le rôle du bot doit être positionné au-dessus, dans la hiérarchie des
    rôles du serveur, de tous les rôles qu'il doit attribuer** (`discord_role_id`
-   des cohortes). C'est une règle Discord, pas un bug ici : sans ça, chaque
+   des formations). C'est une règle Discord, pas un bug ici : sans ça, chaque
    appel échoue en 403 quel que soit le code.
 4. Copier l'ID du serveur (mode développeur activé → clic droit sur le
    serveur → Copier l'ID) → `DISCORD_GUILD_ID`.
@@ -49,8 +49,8 @@ npm run dev --workspace=@apex/bot
   rôles, pas les salons. Si la création devient répétitive à chaque nouveau produit,
   c'est un `POST /guilds/{id}/channels` à ajouter ici — pas avant.
 - La ligne `discord_sync_queue` insérée à la bonne étape du webhook Stripe/
-  PayPal (phase 3) et de la synchronisation de cohorte (`cohorte_coachs` /
-  `discord_role_id`, phase 2).
+  PayPal (phase 4) et de la révocation en fin d'accès (`inscriptions.date_fin_acces` /
+  `formations.discord_role_id`, phase 5).
 - Décider quoi faire d'un `MembreIntrouvable` répété : relancer une invite,
   ou juste laisser l'alerte dans `admin/logs` pour une action manuelle. Non
   tranché dans docs/06-PERIMETRE.md.
