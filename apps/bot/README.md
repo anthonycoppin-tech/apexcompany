@@ -41,12 +41,13 @@ npm run dev --workspace=@apex/bot
 ## Ce qui manque avant la phase 4
 
 - Test réel contre un serveur Discord de développement.
-- **Un salon vocal privé par produit**, visible uniquement du rôle du produit
-  (`formations.discord_role_id`). C'est ce salon qui remplace le lien Zoom des calls de
-  groupe (docs/06-PERIMETRE.md, « Les calls de groupe et leur planning »). À créer à la
-  main : le worker ne gère que les rôles, pas les salons. Si la création devient
-  répétitive à chaque nouveau produit, c'est un `POST /guilds/{id}/channels` à ajouter
-  ici — pas avant.
+- **Deux salons par produit**, visibles uniquement du rôle du produit
+  (`formations.discord_role_id`) : un **salon vocal** où se tiennent les calls, qui
+  remplace le lien Zoom, et un **salon texte** où l'équipe publie le planning
+  hebdomadaire des séances de groupe. Voir docs/06-PERIMETRE.md, « La visioconférence »
+  et « La planification des séances ». À créer à la main : le worker ne gère que les
+  rôles, pas les salons. Si la création devient répétitive à chaque nouveau produit,
+  c'est un `POST /guilds/{id}/channels` à ajouter ici — pas avant.
 - La ligne `discord_sync_queue` insérée à la bonne étape du webhook Stripe/
   PayPal (phase 3) et de la synchronisation de cohorte (`cohorte_coachs` /
   `discord_role_id`, phase 2).

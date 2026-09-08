@@ -91,13 +91,15 @@ est-ce que ça a été payé.
 | `duree_acces_jours` | 30 / 90 / 180 pour un accompagnement, **`null` = illimité** |
 | `discord_role_id`   | Le rôle Discord à attribuer — déplacé depuis `cohortes`     |
 | `modalite`          | `individuel` ou `groupe` — comment le cours se donne        |
-| `cal_event_type_id` | Le type d'événement Cal.com des séances                     |
 
 **`modalite` est un axe distinct de `type_produit`**, et les fusionner serait une erreur : le
 premier dit comment le cours se donne, le second comment il se paie. Un accompagnement peut
-être un tête-à-tête comme un groupe qui avance ensemble. Cette colonne ne touche pas à
-l'accès — un rôle Discord et une `date_fin_acces` par inscription, quelle que soit la
-modalité — elle décide de ce que `/espace/seances` affiche à la réservation.
+être un tête-à-tête comme un groupe qui avance ensemble.
+
+C'est une colonne d'information, pas de mécanique : elle s'affiche sur la fiche produit et
+dans le back-office, et c'est tout. Elle ne touche pas à l'accès — un rôle Discord et une
+`date_fin_acces` par inscription, quelle que soit la modalité — ni à la planification, qui se
+fait hors plateforme (`01-CAHIER-DES-CHARGES.md` §3, étape 4 bis).
 
 **Trois types de produit, une seule mécanique d'accès.** C'est l'invariant central de la
 révision 3 :
@@ -131,23 +133,16 @@ interne mal cloisonnée qui remonte dans l'espace client est le genre d'incident
 En v1 les notes restent internes à `/formateur` : aucun écran client ne les lit encore, mais
 la colonne reste, parce que la RLS qui la protège doit exister avant l'écran qui l'utilisera.
 
-⚠️ **à écrire** — **`seances`** : `id`, `inscription_id`, `formateur_id`, `cal_booking_id`,
-`debut`, `fin`, `statut`, `issue` (`honore`, `absent`, `annule`), `compte_rendu`, `created_at`
+**Tables supprimées** : `sessions`, `presences`, `replays`, `coaching_sessions`. Les lives et
+les replays sont sur Discord ; l'émargement par promotion n'a plus d'objet.
 
-Les séances réservées **après** l'achat, sur Cal.com (`01-CAHIER-DES-CHARGES.md` §3, étape
-4 bis). À ne pas confondre avec `appointments`, qui porte l'audit de vente et s'accroche à
-`leads` : `seances` s'accroche à `inscriptions`, donc à `formateur_id`, comme le reste de la
-RLS formateur.
-
-Une ligne par client, y compris sur une séance de groupe où plusieurs lignes partagent le même
-créneau. C'est ce qui donne la présence sans ressusciter une table d'émargement : `issue` dit
-qui est venu.
-
-**Tables supprimées** : `sessions`, `presences`, `replays`. Les lives et les replays sont sur
-Discord ; l'émargement par promotion n'a plus d'objet. `coaching_sessions` n'est pas supprimée
-mais **remplacée** par `seances` ci-dessus : la première rédaction de la révision 3 la faisait
-disparaître avec le reste, alors qu'un accompagnement est par définition un suivi — un produit
-vendu jusqu'à plus de 5 000 € sans que rien ne permette de poser une date.
+`coaching_sessions` mérite un mot, parce que sa suppression a été rouverte puis refermée le
+8 septembre 2026. L'objection était juste sur le principe — un accompagnement est un suivi, et
+la révision 3 le vendait sans que rien ne permette de poser une date. Les formateurs ont
+tranché autrement : **les séances s'organisent hors plateforme**, individuellement entre le
+formateur et son client, et le planning de groupe s'annonce sur Discord
+(`01-CAHIER-DES-CHARGES.md` §3, étape 4 bis). Aucune table de séances, donc, et pas de
+statistique de présence côté formateur — c'est un choix, pas un oubli.
 
 ## Paiement
 
@@ -258,11 +253,13 @@ using (formateur_id = auth.uid() or has_role('admin') or has_role('owner'));
 Notez l'absence de `client` : un client ne lit pas les inscriptions des autres, il passe par
 la politique 1.
 
-`seances` se cloisonne de la même façon, en passant par son `inscription_id` — et c'est là que
-la modalité `groupe` demande de l'attention : plusieurs clients partagent un créneau, donc la
-politique doit rendre à chacun **sa** ligne, jamais celles de ses camarades de séance. Un
-`using` écrit sur le créneau au lieu de l'inscription ouvrirait la liste des participants à
-tout le monde.
+**Un point à ne pas perdre de vue quand l'équipe grandira.** Les formateurs sont deux
+aujourd'hui, et un même client passe par les deux — psychologie d'abord, technique ensuite.
+`inscriptions.formateur_id` est **au singulier** : il ne peut désigner qu'un seul d'entre eux,
+donc l'autre ne voit pas un client dont il assure pourtant une partie du suivi. À deux, où
+tout le monde voit tout le monde, ça ne gêne personne. Au troisième formateur, il faudra
+choisir : plusieurs affectations par inscription, ou une affectation par type de séance. À
+décider avant d'écrire la politique, pas après.
 
 **Politique 3 — les données financières sont fermées aux formateurs.**
 Sur `orders`, `payments`, `subscriptions`, `refunds`, `disputes`, `propositions.montant_cents` :
