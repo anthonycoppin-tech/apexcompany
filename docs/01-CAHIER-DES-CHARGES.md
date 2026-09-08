@@ -619,62 +619,77 @@ partir de l'étape 2.
 
 ## 8. Points ouverts
 
-1. **Les règles d'éligibilité.** Le formulaire affiche « ton profil est éligible », donc une
-   règle existe déjà côté Tally. Laquelle ? Et qu'affiche-t-on à quelqu'un qui n'est pas
-   éligible ? Sans la réponse, le tunnel ne peut pas être reconstruit à l'identique.
-2. **L'abonnement communauté passe-t-il par l'audit ?** Toujours ouvert, mais la direction
-   s'est précisée le 8 septembre 2026 : il y aura **deux abonnements**, un accès communautaire
-   premium sur Discord et un accès à des **vidéos exclusives**. C'est neuf pour l'équipe, qui
-   n'a pas encore de visibilité sur le contenu exact. Deux conséquences pour nous.
+Cinq des sept points listés en révision 3 ont été tranchés le 8 septembre 2026 (voir
+« Décisions prises et déléguées » ci-dessous). N'en restent réellement ouverts que deux :
 
-   La première est sans effet : le schéma porte déjà les deux sans rien ajouter — deux lignes
-   `formations` en `type_produit = 'abonnement'`, chacune avec son `discord_role_id`, et un
-   client peut détenir les deux puisque la révocation se raisonne par inscription, jamais par
-   personne.
-
-   La seconde ne l'est pas : **où vivent les vidéos exclusives ?** Sur Discord, il n'y a rien
-   à construire. Sur le site, la règle « jamais d'URL de vidéo en base » se réveille, et avec
-   elle le lecteur à accès restreint et les URL signées que §6 avait justement retirés du
-   périmètre — ce qui était « le plus gros retrait de la révision 3 » reviendrait par la
-   fenêtre. À poser avant la phase 5.
-
-   La recommandation sur le tunnel, elle, ne change pas : achat direct depuis
-   `/formations/[slug]`, l'audit restant réservé aux accompagnements et aux formations.
-   Entorse assumée au « un seul tunnel » de `02-SITEMAP.md`, et elle mérite d'être décidée
-   plutôt que subie.
-
-3. **Paiement en plusieurs fois — tranché le 8 septembre 2026 : non.** Tout se paie en une
-   fois. `payment_schedules`, `orders.echelonne` et les colonnes d'échelonnement du catalogue
-   ont été supprimées (`20260908095000_a_paiement_une_fois.sql`). La remarque de fond reste
-   vraie — sur des paniers à plus de 5 000 €, le 3× est courant dans ce marché — mais c'est
-   désormais une décision, pas un oubli, et elle se rouvre par une migration.
-4. **TVA et facturation hors Europe.** Le formulaire demande la zone géographique et accepte
+1. **TVA et facturation hors Europe.** Le formulaire demande la zone géographique et accepte
    Amérique, Asie, Océanie, Afrique. Vendre de la formation en ligne hors UE ne se facture
    pas comme en France. Question pour le comptable, pas pour les développeurs — mais elle
    doit être posée avant la première facture, pas après.
-5. **Vérification de l'email** — proposition : non bloquante pour la prise de RDV, bloquante
-   avant le paiement. Une facture part vers une adresse non vérifiée sinon.
-6. **Remise accordée par le formateur** — autorisée ? Si oui, plafond, et journalisation dans
-   `audit_logs`.
-7. **Délai de grâce** en fin d'accès avant coupure du rôle Discord, et comportement en cas
-   d'échec de prélèvement d'un abonnement.
-
-Un huitième point figurait ici — les conférences et lives, planifiés depuis le site ou annoncés
-sur Discord ? Il a été tranché le 8 septembre 2026, donc retiré de cette liste : Discord, et
-rien côté site. Voir §6.
+2. **Où vivent les vidéos exclusives ?** Un des deux abonnements donne accès à des vidéos
+   exclusives (voir ci-dessous), et leur hébergement n'est toujours pas tranché. Sur Discord,
+   il n'y a rien à construire. Sur le site, la règle « jamais d'URL de vidéo en base » se
+   réveille, et avec elle le lecteur à accès restreint et les URL signées que §6 avait
+   justement retirés du périmètre — ce qui était « le plus gros retrait de la révision 3 »
+   reviendrait par la fenêtre. Reconfirmé toujours ouvert le 8 septembre 2026 ; à poser avant
+   la phase 5.
 
 ### Décisions prises et déléguées
 
-Consignées ici pour qu'on ne les rouvre pas sans raison. Le 8 septembre 2026, sur délégation
-explicite du chef de projet : **Cal.com** plutôt que Calendly (§3, étape 2), **refus dur des
-moins de 18 ans**, **consentement RGPD explicite**, **nom de famille collecté au paiement**
-(§3, étape 1). Le même jour, tranché par le chef de projet lui-même : **les calls de groupe
-sur Discord**, sans salle d'attente manuelle (§6), et **la distinction individuel / groupe
-portée par `formations.modalite`**, les séances elles-mêmes restant hors plateforme — les
-formateurs les organisent entre eux et avec le client (§1 et §3, étape 4 bis). Le reste des
-recommandations de ce document — la proposition émise
-depuis `/formateur`, l'absence de choix de produit avant l'audit, l'affectation explicite
-comme périmètre du formateur — reste soumis à arbitrage.
+Consignées ici pour qu'on ne les rouvre pas sans raison.
+
+Le 8 septembre 2026, sur délégation explicite du chef de projet : **Cal.com** plutôt que
+Calendly (§3, étape 2), **refus dur des moins de 18 ans**, **consentement RGPD explicite**,
+**nom de famille collecté au paiement** (§3, étape 1).
+
+Le même jour, tranché par le chef de projet lui-même : **les calls de groupe sur Discord**,
+sans salle d'attente manuelle (§6), et **la distinction individuel / groupe portée par
+`formations.modalite`**, les séances elles-mêmes restant hors plateforme — les formateurs les
+organisent entre eux et avec le client (§1 et §3, étape 4 bis). **Paiement en plusieurs fois :
+non**, tout se paie en une fois — `payment_schedules`, `orders.echelonne` et les colonnes
+d'échelonnement du catalogue ont été supprimées (`20260908095000_a_paiement_une_fois.sql`).
+Sur des paniers à plus de 5 000 €, le 3× reste courant dans ce marché, mais c'est désormais
+une décision, pas un oubli, et elle se rouvre par une migration.
+
+**Vérification de l'email** — confirmée plus tard dans le développement, non retenue dans la
+liste ci-dessus le 8 septembre : non bloquante pour la prise de rendez-vous, bloquante avant
+le paiement. Partiellement implémenté — la création de compte pose `email_confirm: false` et
+ne bloque donc rien à la prise de RDV (`apps/web/src/app/(public)/qualification/actions.ts`) ;
+**reste à écrire** : le contrôle bloquant avant paiement, absent de
+`apps/web/src/app/(espace)/espace/propositions/[id]/actions.ts`. Sans lui, une facture peut
+partir vers une adresse non vérifiée.
+
+Nouvelles précisions du même jour, arrivées après la première rédaction de ce document :
+
+- **Pas de règle d'éligibilité côté Tally.** Ce que le formulaire actuel affiche — « ton
+  profil est éligible » — n'est adossé à aucune logique de filtrage réelle : tout prospect qui
+  soumet le formulaire est éligible, à l'exception du refus dur des mineurs, qui reste seul à
+  arrêter le parcours. Le tunnel reconstruit n'a donc **aucune branche « non éligible » à
+  construire**, et `leads.eligible` peut être posée à `true` par défaut à la soumission plutôt
+  que laissée à `null` en attente d'une règle qui n'existe pas. **Code à mettre à jour** :
+  `evaluerEligibilite()` dans `apps/web/src/lib/qualification/eligibilite.ts` renvoie encore
+  `null` en commentant l'attente de cette réponse — le commentaire et le renvoi sont
+  maintenant faux et doivent être corrigés.
+- **L'abonnement communauté se vend sans passer par l'audit.** Achat direct depuis
+  `/formations/[slug]`, confirmé — ce n'était qu'une recommandation, c'est désormais une
+  décision. L'audit reste réservé aux accompagnements et aux formations. C'est une entorse
+  assumée au « un seul tunnel » de `02-SITEMAP.md`. **Code à écrire** : aucun parcours d'achat
+  direct n'existe encore — `/formations/[slug]` ne propose aujourd'hui qu'un bouton vers
+  `/qualification`, y compris pour les produits de type `abonnement`.
+- **La remise accordée par le formateur est autorisée, sans plafond.** Franck dirige
+  l'accompagnement commercial et décide seul du prix qu'il propose. **Code à mettre à jour** :
+  `emettreProposition()` dans `apps/web/src/app/(formateur)/formateur/clients/[id]/actions.ts`
+  reprend aujourd'hui le prix catalogue tel quel et ne permet aucune saisie — un champ montant
+  éditable est à ajouter, avec le prix catalogue en valeur par défaut plutôt qu'en valeur
+  imposée.
+- **Pas de délai de grâce : la révocation a lieu le lendemain de la fin d'accès.** Ceci
+  confirme le comportement déjà écrit et déjà en production : `revoquer_acces_expires()`
+  sélectionne les inscriptions dont `date_fin_acces < current_date`, ce qui révoque
+  précisément le jour suivant l'échéance. **Rien à changer côté code.**
+
+Le reste des recommandations de ce document — la proposition émise depuis `/formateur`,
+l'affectation explicite comme périmètre du formateur — reste soumis à arbitrage, mais est déjà
+construit en l'état faute d'objection.
 
 ---
 

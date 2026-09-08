@@ -11,32 +11,70 @@ La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
-**Le schéma est passé à la révision 3** (phase 1 bis, sept migrations `20260908*_a_*`) :
-`formations`, `formateur`, trois types de produit, propositions, abonnements, colonnes du
-formulaire, et l'ancrage RLS du formateur déplacé sur `inscriptions.formateur_id`. Vérifié
-par `npm run db:check` et par la suite pgTAP.
+## Point d'étape — 8 septembre 2026
 
-**Le scaffold web suit la même arborescence** depuis le 8 septembre 2026 : une page par ligne
-de `02-SITEMAP.md`, le groupe `(formateur)` créé avec sa garde, `/qualification` ouverte,
-`/offres` devenue `/formations`.
+Écrit pour que quiconque ouvre une session Claude sur ce dépôt reparte du même état, sans
+qu'il faille se le faire raconter. Si tu lis ceci après cette date, vérifie d'abord que c'est
+toujours vrai — l'`État d'avancement` plus bas est réputé plus à jour case par case, mais peut
+diverger si quelqu'un a codé sans mettre à jour ce fichier.
 
-**Le design system vit dans `apps/web/src/app/globals.css`**, en tokens Tailwind v4. Aucune page
-ne pose de couleur littérale : tout passe par `bg-surface`, `text-encre-doux`, `border-filet`.
-Une charte est en cours chez un designer — elle se branchera dans ce fichier, pas dans les
-pages. Direction retenue en attendant : clair, aéré, contrasté ; le noir et doré du site actuel
-est explicitement écarté.
+**Le schéma est à la révision 3, poussé et vérifié sur le projet Supabase hébergé**
+(`ovlafpgmrwttxstodqxi`), types régénérés. `npm run db:check` et la suite pgTAP passent : 68
+vérifications, 0 échec. Cette base est **partagée entre les deux développeurs** — toujours
+prévenir avant `npm run db:push` (`docs/07-REPARTITION.md`).
 
-**Le chemin de l'argent est écrit de bout en bout** — formulaire, compte, rendez-vous, fiche
-client, proposition, paiement, ouverture de l'accès. Le site public, le back-office et le
-reste de l'espace client sont encore des placeholders.
+**Le chemin de l'argent est écrit de bout en bout** : formulaire de qualification → création
+de compte et session → liaison Discord → prise de rendez-vous (webhook Cal.com) → fiche
+client et émission de proposition côté formateur → paiement Stripe → ouverture de l'accès en
+une transaction (`traiter_paiement()`) → renouvellement d'abonnement → révocation automatique
+le lendemain de la fin d'accès. Le site public (accueil, catalogue, fiches produit, FAQ,
+équipe, contact) est construit et branché sur le vrai catalogue. Le back-office est
+**commencé** : garde, navigation, tableau de bord — ses autres écrans (CRM, propositions,
+abonnements, transactions, factures, litiges, comptes, logs, audit, paramètres) restent des
+placeholders. Détail phase par phase dans `État d'avancement` ci-dessous.
 
-**Rien de tout ça n'a jamais tourné en réel** : ni serveur Discord, ni compte Cal.com, ni clés
-Stripe, ni clé serveur Supabase. Typecheck, lint et invariants de base au vert, c'est tout ce
-qu'on peut affirmer.
+**Rien de tout ça n'a jamais tourné contre les vrais services** : ni serveur Discord, ni
+compte Cal.com, ni clés Stripe, ni clé serveur Supabase (`SUPABASE_SERVICE_ROLE_KEY` est vide
+dans `.env.local`). Typecheck, lint, `next build` et les invariants de base sont au vert —
+c'est tout ce qu'on peut affirmer tant que ces accès manquent. Le client a indiqué les fournir
+dans la semaine du 8 septembre.
 
-Ce lot appartient normalement au développeur B (`07-REPARTITION.md`) et a été repris pendant
-son absence. À signaler avant qu'il ne reprenne son travail : le renommage de routes touche
-des fichiers qu'il possède.
+**Quatre décisions ont été tranchées le 8 septembre et ne sont pas encore toutes codées** —
+détail et TODO précis dans `01-CAHIER-DES-CHARGES.md` §8 :
+
+- pas de règle d'éligibilité côté Tally : tout prospect qui soumet le formulaire est éligible
+  (hors mineurs) — `evaluerEligibilite()` renvoie encore `null` en attendant une règle qui
+  n'existe pas, **à corriger** ;
+- l'abonnement communauté se vend en self-service, sans passer par l'audit — **aucun parcours
+  d'achat direct n'existe encore** sur `/formations/[slug]` ;
+- la remise formateur est autorisée sans plafond, Franck décide seul — **le formulaire de
+  proposition ne permet aujourd'hui aucune saisie de montant**, il reprend le prix catalogue ;
+- pas de délai de grâce, révocation le lendemain de la fin d'accès — **déjà le comportement
+  réel de `revoquer_acces_expires()`, rien à changer**.
+
+Restent ouverts : l'hébergement des vidéos exclusives d'un des deux abonnements, et la TVA
+hors Europe (question pour le comptable).
+
+**Git est propre** : tout est mergé sur `main`, aucune branche locale ni distante en attente.
+Si tu vois des branches `a/*` ou `b/*` qui traînent en local, elles datent d'avant un nettoyage
+et peuvent être supprimées sans regret après vérification qu'elles sont bien mergées.
+
+**Un renommage de routes touche le périmètre du développeur B** (`07-REPARTITION.md`) et a été
+fait pendant son absence, avec son accord obtenu après coup : `/offres` → `/formations`,
+`/coachs` → `/formateurs`, plusieurs routes de la révision 2 supprimées. À avoir en tête avant
+de merger du travail commencé sur l'ancienne arborescence.
+
+**Le catalogue de la base hébergée contient encore des données façon révision 2**, migrées
+telles quelles : par exemple « Accélérateur » y est un `type_produit = 'formation'` en groupe,
+alors que c'est en réalité un accompagnement individuel. Le site affiche donc des données
+fausses tant que le catalogue n'a pas été rechargé avec les vrais produits — ce n'est pas un
+bug du code, c'est un problème de données à corriger dès qu'elles sont connues.
+
+**Le design system vit dans `apps/web/src/app/globals.css`**, en tokens Tailwind v4. Aucune
+page ne pose de couleur littérale : tout passe par `bg-surface`, `text-encre-doux`,
+`border-filet`. Une charte est en cours chez un designer — elle se branchera dans ce fichier,
+pas dans les pages. Direction retenue en attendant : clair, aéré, contrasté, à l'image de
+Mindeo citée en référence ; le noir et doré du site actuel est explicitement écarté.
 
 ## Structure
 
@@ -178,9 +216,8 @@ réel (`.github/workflows/ci.yml`, job _database_) en plus des tests RLS.
 Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de l'argent.
 
 - [x] **1 — Fondations** : schéma, RLS, seed multi-rôles, tests pgTAP, poussé et
-      vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`). Le projet hébergé
-      porte encore le schéma de la révision 2 : les migrations de la 1 bis restent à y
-      appliquer, et cette base est partagée avec l'autre développeur.
+      vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`). Cette base est
+      **partagée avec l'autre développeur** — toujours prévenir avant `npm run db:push`.
 - [~] Scaffold transverse : Next.js, route groups, clients Supabase, gardes de rôle —
   vérifié avec de vraies sessions, et remis à l'arborescence de la révision 3. Chaque page
   reste un placeholder. Les gardes de layout n'ont **pas** été revérifiées avec de vraies
@@ -190,9 +227,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
       présences / replays / `coaching_sessions` / `payment_schedules`, `type_produit`,
       `modalite`, `duree_acces_jours`, colonnes du formulaire, `propositions`,
       `subscriptions`, et la RLS du formateur réancrée sur l'affectation. Seed, tests pgTAP
-      et `scripts/verifier-schema.mjs` refaits avec. **Pas encore poussé sur le projet
-      hébergé** — donc `packages/db/src/database.types.ts` est toujours celui de la
-      révision 2, et sa régénération demande Docker ou la base hébergée.
+      et `scripts/verifier-schema.mjs` refaits avec. **Poussé sur le projet hébergé et
+      `packages/db/src/database.types.ts` régénéré depuis lui** — comme toutes les migrations
+      qui ont suivi (paiement, révocation, RLS espace client). Un `npm run db:types:linked`
+      après un pull suffit à revérifier que rien n'a divergé.
 - [~] **2 — Tunnel d'entrée** : formulaire natif en cinq écrans, création de compte et session,
   liaison Discord par `linkIdentity` puis `grant` du rôle `invité`, webhook Cal.com. **Écrit,
   jamais exécuté** : ni serveur Discord, ni compte Cal.com, ni clé serveur Supabase.
@@ -252,9 +290,26 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   « jamais d'URL de vidéo en base » se réveille, et avec elle le lecteur à accès restreint que
   la révision 3 avait justement retiré du périmètre — à poser au chef de projet avant la
   phase 5.
-- **Vocabulaire** — **tranché** : `formations` et `formateur`. Le schéma dit encore `offres`
-  et `coach` ; le renommage est une migration à écrire, et il emporte l'énumération, les
-  politiques RLS, les tests pgTAP, le seed et `packages/db`.
+- **Vocabulaire** — **tranché, et fait** : `formations` et `formateur`. Le renommage a
+  emporté l'énumération, les politiques RLS, les tests pgTAP, le seed et `packages/db`
+  (`20260908090000_a_renommage_formations_formateur.sql`).
+- **Éligibilité du formulaire** — **tranché le 8 septembre 2026 : il n'y a pas de règle côté
+  Tally.** Tout prospect qui soumet le formulaire est éligible, à l'exception du refus dur des
+  mineurs. Aucune branche « non éligible » à construire dans le tunnel.
+  `evaluerEligibilite()` renvoie encore `null` en attendant une réponse qui n'a plus lieu
+  d'être attendue : **à corriger**.
+- **Vente en self-service de l'abonnement communauté** — **tranché le 8 septembre 2026 : oui.**
+  Achat direct depuis `/formations/[slug]`, sans passer par l'audit. Entorse assumée au « un
+  seul tunnel » de `02-SITEMAP.md`. **Aucun parcours d'achat direct n'existe encore côté
+  code.**
+- **Remise accordée par le formateur** — **tranché le 8 septembre 2026 : oui, sans plafond.**
+  Franck dirige l'accompagnement commercial et décide seul du prix qu'il propose. **Le
+  formulaire de proposition ne permet aujourd'hui aucune saisie de montant** — à ajouter dans
+  `apps/web/src/app/(formateur)/formateur/clients/[id]/actions.ts`, avec le prix catalogue en
+  valeur par défaut plutôt qu'imposée.
+- **Délai de grâce en fin d'accès** — **tranché le 8 septembre 2026 : aucun.** La révocation a
+  lieu le lendemain de la date de fin d'accès. C'est déjà le comportement de
+  `revoquer_acces_expires()`, qui sélectionne `date_fin_acces < current_date` : rien à changer.
 - **Calendrier** — **tranché, décision déléguée aux développeurs** : `Cal.com`. Moins cher que
   Calendly à besoin égal, plan gratuit bien plus généreux, `appointments.cal_booking_id` et la
   route `api/cal` restent valables, et l'auto-hébergement reste une porte de sortie.

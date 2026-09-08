@@ -187,16 +187,21 @@ le rôle `invité` est attribué pour la première fois.
 
 La question des replays, qui occupait cette place en révision 2, est close : Discord. Celle du
 paiement en plusieurs fois l'est aussi depuis le 8 septembre 2026 — **non, tout se paie en une
-fois**, et `payment_schedules` a été supprimée. Restent, détaillées dans
-`01-CAHIER-DES-CHARGES.md` §8 :
+fois**, et `payment_schedules` a été supprimée.
 
-- **Les règles d'éligibilité du formulaire** — la plus urgente, elle bloque la
-  reconstruction du tunnel à l'identique.
-- **L'hébergement des vidéos exclusives.** Le 8 septembre 2026, le chef de projet a annoncé
-  **deux abonnements** : un accès communautaire premium sur Discord, et un accès à des vidéos
-  exclusives. Si ces vidéos vivent sur Discord, ce document reste vrai tel quel. Si elles sont
-  sur le site, le premier retrait de cette liste — le lecteur à accès restreint et les URL
-  signées — revient dans le périmètre, et il coûte. À trancher avant la phase 5.
-- **La vente en self-service des abonnements**, qui ferait une entorse assumée au principe du
-  tunnel unique.
+Trois autres points de cette liste ont été tranchés le même jour et sont sortis d'ici :
+**il n'y a pas de règle d'éligibilité côté Tally** — tout prospect qui soumet le formulaire est
+éligible, hors refus des mineurs, et le tunnel n'a donc aucun écran « non éligible » à
+construire ; **la vente en self-service de l'abonnement communauté est confirmée**, achat
+direct depuis `/formations/[slug]`, entorse assumée au principe du tunnel unique ; et **la
+remise formateur est autorisée, sans plafond** — Franck décide seul du prix qu'il propose. Le
+détail et l'état d'implémentation de chacun sont dans `01-CAHIER-DES-CHARGES.md` §8.
+
+Ne reste réellement à trancher que :
+
+- **L'hébergement des vidéos exclusives.** Un des deux abonnements donne accès à des vidéos
+  exclusives, et leur hébergement n'est toujours pas tranché — reconfirmé le 8 septembre 2026.
+  Si ces vidéos vivent sur Discord, ce document reste vrai tel quel. Si elles sont sur le site,
+  le premier retrait de cette liste — le lecteur à accès restreint et les URL signées — revient
+  dans le périmètre, et il coûte. À trancher avant la phase 5.
 - **La TVA hors Europe** — question pour le comptable, à poser avant la première facture.
