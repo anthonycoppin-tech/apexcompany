@@ -197,3 +197,23 @@ export const ECRANS: ReadonlyArray<Ecran> = [
 
 /** Tous les champs attendus, écran d'âge compris. Sert la validation serveur. */
 export const CHAMPS_ATTENDUS = ECRANS.flatMap((e) => e.questions.map((q) => q.champ));
+
+const OPTIONS_PAR_CHAMP: Record<string, ReadonlyArray<Choix<string>>> = Object.fromEntries(
+  ECRANS.flatMap((e) => e.questions)
+    .filter((q): q is ChampChoix => q.type === 'choix')
+    .map((q) => [q.champ, q.options]),
+);
+
+/**
+ * La valeur stockée en base rendue lisible — `gestion_risque` devient
+ * « Gestion du risque ».
+ *
+ * La fiche client de `/formateur` affiche exactement ce que le prospect a
+ * répondu ; elle lit donc les mêmes libellés que le formulaire. Retaper ces
+ * chaînes dans l'écran garantirait qu'un jour la fiche annonce autre chose que
+ * ce que la personne a lu au moment de répondre.
+ */
+export function libelle(champ: string, valeur: string | null | undefined): string {
+  if (!valeur) return '—';
+  return OPTIONS_PAR_CHAMP[champ]?.find((o) => o.valeur === valeur)?.libelle ?? valeur;
+}
