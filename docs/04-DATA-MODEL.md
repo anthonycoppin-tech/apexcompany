@@ -47,6 +47,11 @@ s'appuient dessus pour déterminer ce qu'un coach a le droit de voir.
 **`sessions`** — `id`, `cohorte_id`, `titre`, `type` (`live`, `call_groupe`), `debut`, `fin`,
 `coach_id`, `lien_discord`, `statut`
 
+`lien_discord` pointe vers le salon vocal privé de la cohorte, pas vers un lien généré à la
+volée : le salon est permanent, son accès est déjà cloisonné par `discord_role_id`
+(`cohortes`). Ce champ remplace Circle (planning) et Zoom (lien de call) — voir
+`06-PERIMETRE.md`, « Calls de groupe ».
+
 **`presences`** — `id`, `session_id`, `inscription_id`, `present`, `duree_minutes`, `saisi_par`
 
 **`replays`** — `id`, `session_id`, `provider`, `provider_asset_id`, `duree_secondes`,

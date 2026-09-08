@@ -55,6 +55,30 @@ objectifs, historique) vit dans le back-office côté coach ; l'échange convers
 sur Discord. Si après six mois d'usage le besoin d'une messagerie intégrée est confirmé, elle
 se construira sur une base saine.
 
+## Calls de groupe : remplacement de Circle & Zoom
+
+Décidé. Aujourd'hui, chaque call groupé passe par trois outils non synchronisés : un lien Zoom
+généré à la main, copié-collé dans les groupes WhatsApp concernés, et un événement mis à jour
+sur Circle qui sert de planning de référence. Le point de friction n'est pas Zoom comme outil
+de visio, c'est la chaîne manuelle qui doit être refaite à l'identique à chaque occurrence.
+
+**Circle et Zoom disparaissent, remplacés par un salon vocal Discord privé par cohorte.** Ça ne
+demande pas de nouveau chantier : `cohortes.discord_role_id` attribue déjà un rôle par cohorte,
+automatiquement synchronisé sur les paiements (`discord_sync_queue`, `apps/bot`). Un salon vocal
+visible uniquement par ce rôle remplace le lien Zoom généré à la main et sa diffusion sur
+WhatsApp — les bonnes personnes voient le salon, point, sans rien à créer ni à coller nulle
+part. Le planning devient `/espace/planning`, lu depuis `sessions`, à la place de l'événement
+Circle.
+
+**Pas de salle d'attente manuelle.** L'idée d'un tri humain en direct pour faire entrer les gens
+un par un a été évoquée puis écartée : le rôle Discord fait déjà ce filtrage automatiquement,
+accès coupé dès qu'un paiement est en défaut. Ajouter un tri manuel ne ferait que réintroduire
+la dépendance à une personne présente en direct que ce changement cherche justement à supprimer.
+
+Reste à faire avant de couper Circle & Zoom : le bot Discord n'a encore jamais été testé contre
+un vrai serveur (aucune application Discord n'existe pour le projet à ce jour — voir
+`apps/bot/README.md`), et la phase 5 (planning, présences) n'est pas commencée.
+
 ## La question à trancher avant la phase 2 : les replays
 
 Les cours étant en live, les enregistrements sont ce que le client consulte entre deux
