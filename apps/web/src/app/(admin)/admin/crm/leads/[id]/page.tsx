@@ -95,7 +95,21 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         description={`${lead.email}${lead.telephone ? ` · ${lead.telephone}` : ''} — arrivé via ${
           SOURCES[lead.source] ?? lead.source
         } le ${dateCourte(lead.created_at)}`}
-        action={<Pastille ton={tonStatut(lead.statut)}>{libelleStatut(lead.statut)}</Pastille>}
+        action={
+          <div className="flex items-center gap-4">
+            {/* Le lien n'apparaît que si la personne a un compte : sans lui, il
+                n'y a pas de fiche client à ouvrir. */}
+            {lead.user_id && (
+              <Link
+                href={`/admin/clients/${lead.user_id}`}
+                className="text-sm text-accent hover:underline"
+              >
+                Voir sa fiche client →
+              </Link>
+            )}
+            <Pastille ton={tonStatut(lead.statut)}>{libelleStatut(lead.statut)}</Pastille>
+          </div>
+        }
       />
 
       <section className="space-y-3 rounded-carte border border-filet bg-fond p-5">

@@ -32,6 +32,7 @@ const SECTIONS: Array<{ titre: string; liens: Array<{ href: string; libelle: str
     titre: 'Commercial',
     liens: [
       { href: '/admin/crm/leads', libelle: 'Prospects' },
+      { href: '/admin/clients', libelle: 'Clients' },
       { href: '/admin/propositions', libelle: 'Propositions' },
       { href: '/admin/formations', libelle: 'Catalogue' },
     ],
