@@ -4,6 +4,8 @@ import { EnTete, Pastille, Tableau, Tuile, Vide, type Ton } from '@/components/a
 import { dateHeure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
+import { BoutonTraiter } from './bouton-traiter';
+
 const ETATS: Record<string, { libelle: string; ton: Ton }> = {
   demande: { libelle: 'Demandé', ton: 'attente' },
   approuve: { libelle: 'Approuvé', ton: 'attente' },
@@ -14,16 +16,18 @@ const ETATS: Record<string, { libelle: string; ton: Ton }> = {
 /**
  * `/admin/paiements/remboursements` — les demandes et leur suite.
  *
- * **En lecture pour l'instant, et c'est délibéré.** Déclencher un remboursement
- * est une sortie d'argent irréversible : elle demande un appel à Stripe, une
- * garantie d'idempotence pour qu'un double clic ne rembourse pas deux fois, et
- * une colonne pour stocker l'identifiant du remboursement côté prestataire —
- * colonne qui n'existe pas encore dans `refunds`. C'est une migration et un
- * écran à part, pas un bouton ajouté au bas d'un tableau.
+ * **Le remboursement s'exécute depuis ici**, et l'opération ne se défait pas.
+ * Elle appelle Stripe puis enregistre — jamais l'inverse : enregistrer d'abord
+ * laisserait, en cas d'échec, une ligne « remboursée » sans argent rendu.
  *
- * En attendant, les lignes se créent en base et cet écran les suit. Un
- * remboursement n'efface jamais la facture d'origine : la numérotation est
- * continue et une facture émise ne se supprime pas.
+ * Rembourser deux fois est le seul risque qui compte, et il se pare à deux
+ * endroits : une clé d'idempotence chez Stripe, construite sur l'identifiant de
+ * la ligne, et `provider_refund_id` ici, dont la présence prouve que
+ * l'opération a abouti.
+ *
+ * Un remboursement **ferme l'accès** correspondant. Rembourser sans fermer,
+ * c'est offrir le produit. En revanche il n'efface jamais la facture d'origine :
+ * la numérotation est continue et une facture émise ne se supprime pas.
  */
 export default async function Page() {
   const supabase = await createClient();
@@ -31,7 +35,7 @@ export default async function Page() {
   const { data: remboursements } = await supabase
     .from('refunds')
     .select(
-      'id, montant_cents, motif, statut, traite_at, created_at, payments(montant_cents, devise, provider, provider_payment_id, orders(profiles(prenom, nom)))',
+      'id, montant_cents, motif, statut, traite_at, created_at, provider_refund_id, erreur, payments(montant_cents, devise, provider, provider_payment_id, orders(profiles(prenom, nom)))',
     )
     .order('created_at', { ascending: false })
     .limit(200);
@@ -58,7 +62,7 @@ export default async function Page() {
       {liste.length ? (
         <div className="rounded-carte border border-filet bg-fond p-5">
           <Tableau
-            colonnes={['Demandé le', 'Client', 'Montant', 'Motif', 'Statut', 'Référence paiement']}
+            colonnes={['Demandé le', 'Client', 'Montant', 'Motif', 'Statut', 'Action']}
             largeurMin="62rem"
           >
             {liste.map((r) => {
@@ -86,8 +90,25 @@ export default async function Page() {
                   <td className="py-2.5 pr-4">
                     <Pastille ton={etat?.ton ?? 'neutre'}>{etat?.libelle ?? r.statut}</Pastille>
                   </td>
-                  <td className="py-2.5 font-mono text-xs text-encre-faible">
-                    {r.payments?.provider_payment_id ?? '—'}
+                  <td className="py-2.5">
+                    {r.provider_refund_id ? (
+                      <span className="font-mono text-xs text-encre-faible">
+                        {r.provider_refund_id}
+                      </span>
+                    ) : r.statut === 'refuse' ? (
+                      <span className="text-xs text-encre-faible">—</span>
+                    ) : (
+                      <BoutonTraiter
+                        refundId={r.id}
+                        montant={formaterMontant(r.montant_cents, r.payments?.devise ?? 'EUR')}
+                      />
+                    )}
+                    {r.erreur && (
+                      // Un remboursement qui a échoué ressemble à un
+                      // remboursement qu'on a oublié de lancer. Le dire évite
+                      // de le chercher.
+                      <p className="mt-1 text-xs text-alerte">{r.erreur}</p>
+                    )}
                   </td>
                 </tr>
               );
@@ -99,9 +120,8 @@ export default async function Page() {
       )}
 
       <p className="text-sm text-encre-doux">
-        Le déclenchement du remboursement chez le prestataire reste à écrire : il demande une
-        garantie d’idempotence et une colonne pour l’identifiant côté Stripe. En attendant, il se
-        fait depuis le tableau de bord du prestataire, et la ligne est mise à jour ici.
+        Un remboursement exécuté ferme l’accès correspondant et retire le rôle Discord — sauf si le
+        client détient ce rôle par un autre produit encore actif.
       </p>
     </>
   );

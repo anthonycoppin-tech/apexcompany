@@ -271,6 +271,11 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   **La fiche client** (`/admin/clients` et `/admin/clients/[id]`) rassemble accès, commandes,
   encaissements, factures, abonnements et liaison Discord — cette dernière en tête, parce que
   c'est la première chose à vérifier quand un accès n'arrive pas.
+  **Les remboursements s'exécutent** depuis le back-office : demande depuis la fiche client,
+  exécution depuis `/admin/paiements/remboursements`. L'appel Stripe passe une clé
+  d'idempotence bâtie sur l'identifiant de la ligne — rembourser deux fois est le seul risque
+  qui compte ici — et `enregistrer_remboursement()` referme la commande, l'inscription et le
+  rôle Discord en une transaction.
   **Reste un placeholder** : `/admin/emails`, qui attend qu'un envoi d'emails existe.
   **L'édition du catalogue est écrite** (`/admin/formations/[id]` et `/nouveau`), avec deux
   garde-fous : la cohérence type de produit / durée d'accès est vérifiée avant la base pour
