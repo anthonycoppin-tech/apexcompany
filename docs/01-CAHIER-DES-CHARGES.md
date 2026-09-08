@@ -15,17 +15,18 @@ retouches.
 
 ## Ce que ce document remplace
 
-| Point                         | Ancienne spec                                                    | Désormais                                                                              |
-| ----------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Ordre du tunnel               | Fiche offre → RDV → qualification → paiement, compte au paiement | Qualification → **compte** → RDV → proposition → paiement                              |
-| Catalogue                     | Une seule forme d'offre                                          | **Trois types de produit** aux mécaniques d'accès différentes (§1)                     |
-| Replays                       | Espace client, lecteur sécurisé, URL signées                     | **Sur Discord.** Rien côté site sauf vidéo marketing                                   |
-| Hébergeur vidéo               | Décision en attente (Cloudflare / Bunny)                         | **Décision close** : Discord héberge, Vimeo pour le marketing                          |
-| Cohortes, sessions, présences | Cœur du modèle, ancrage de la RLS coach                          | **Supprimés.** Parcours individuel                                                     |
-| Espace coach                  | Accès dégradé au back-office                                     | **Zone dédiée `/formateur`** avec son propre tableau de bord                           |
-| Calendrier                    | Cal.com (`appointments.cal_booking_id`, `api/cal`)               | **Cal.com confirmé** — le Tally actuel renvoie vers Calendly, non reconduit (§3 ét. 2) |
-| Vocabulaire                   | `offres`, `coach`                                                | **`formations`, `formateur`** — arbitré, migration à écrire                            |
-| Événements                    | Page du site public v1                                           | **Reporté** après la première livraison, billetterie externe                           |
+| Point                         | Ancienne spec                                                    | Désormais                                                                                 |
+| ----------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Ordre du tunnel               | Fiche offre → RDV → qualification → paiement, compte au paiement | Qualification → **compte** → RDV → proposition → paiement                                 |
+| Catalogue                     | Une seule forme d'offre                                          | **Trois types de produit** aux mécaniques d'accès différentes (§1)                        |
+| Replays                       | Espace client, lecteur sécurisé, URL signées                     | **Sur Discord.** Rien côté site sauf vidéo marketing                                      |
+| Hébergeur vidéo               | Décision en attente (Cloudflare / Bunny)                         | **Décision close** : Discord héberge, Vimeo pour le marketing                             |
+| Cohortes, sessions, présences | Cœur du modèle, ancrage de la RLS coach                          | **Supprimés.** Parcours individuel                                                        |
+| Espace coach                  | Accès dégradé au back-office                                     | **Zone dédiée `/formateur`** avec son propre tableau de bord                              |
+| Calendrier                    | Cal.com (`appointments.cal_booking_id`, `api/cal`)               | **Cal.com confirmé** — le Tally actuel renvoie vers Calendly, non reconduit (§3 ét. 2)    |
+| Vocabulaire                   | `offres`, `coach`                                                | **`formations`, `formateur`** — arbitré, migration à écrire                               |
+| Événements                    | Page du site public v1                                           | **Reporté** après la première livraison, billetterie externe                              |
+| Individuel ou groupe          | Implicite : cohorte = groupe, `coaching_sessions` = individuel   | **`formations.modalite`**, explicite, et des séances réservées sur Cal.com (§3 ét. 4 bis) |
 
 Tout le reste de `02-SITEMAP.md`, `04-DATA-MODEL.md` et `06-PERIMETRE.md` reste valable — en
 particulier les règles de sécurité, qui ne bougent pas.
@@ -41,7 +42,7 @@ accès de la même façon.
 | Type             | Paiement              | Durée d'accès       | Exemple                              |
 | ---------------- | --------------------- | ------------------- | ------------------------------------ |
 | `abonnement`     | **Récurrent mensuel** | Tant qu'il est payé | Accès à la communauté                |
-| `accompagnement` | Une fois              | 1, 3 ou 6 mois      | Suivi individuel sur une période     |
+| `accompagnement` | Une fois              | 1, 3 ou 6 mois      | Suivi sur une période                |
 | `formation`      | Une fois              | Illimité            | Une formation achetée définitivement |
 
 **Une seule mécanique d'accès couvre les trois** : `inscriptions.date_fin_acces`.
@@ -62,6 +63,27 @@ En revanche la **couche paiement porte bien deux mécaniques distinctes** : un a
 Stripe (avec ses renouvellements, ses échecs de prélèvement, ses relances et sa résiliation)
 n'a presque rien de commun avec un paiement unique. C'est le vrai surcoût de la révision 3
 côté serveur, et il faut le budgéter comme tel.
+
+### Le type de produit ne dit pas comment le cours se donne
+
+Deuxième axe, indépendant du premier et ajouté le 8 septembre 2026 : **une formation se donne
+en individuel ou en groupe**, et ça ne se déduit pas de `type_produit`. Un accompagnement peut
+être un suivi en tête-à-tête comme une promotion qui avance ensemble ; deux produits du même
+type peuvent se donner différemment. D'où une colonne à part, `formations.modalite`
+(`individuel` / `groupe`).
+
+Les deux axes ne se recouvrent pas et il ne faut pas les fusionner :
+
+| Ce que ça décide | Porté par                    |
+| ---------------- | ---------------------------- |
+| Comment on paie  | `type_produit`               |
+| Combien de temps | `duree_acces_jours`          |
+| Comment on suit  | `modalite`                   |
+| Ce qu'on voit    | `discord_role_id` (le salon) |
+
+**L'accès ne change pas d'un iota.** Individuel ou groupe, c'est un rôle Discord, une
+`date_fin_acces` et une révocation ; le worker continue de ne lire qu'une date. `modalite`
+décide de ce qui s'affiche à la réservation (§3, étape 4 bis), pas de qui entre où.
 
 ---
 
@@ -121,6 +143,12 @@ Réseaux sociaux
                                               │
                                               ├─► rôle Discord du produit
                                               └─► facture
+      │
+      ▼
+ /espace/seances   réservation des séances (Cal.com)
+                   modalite = individuel ─► un créneau en tête-à-tête
+                   modalite = groupe     ─► une place sur une séance planifiée
+                   la séance se tient dans le salon Discord du produit
       │
       ▼  date_fin_acces dépassée (ou jamais, si null)
  Révocation automatique du rôle Discord
@@ -316,6 +344,39 @@ Ce qui s'y ajoute avec l'abonnement : les événements de **renouvellement** (re
 `date_fin_acces` d'un mois), d'**échec de prélèvement** et de **résiliation**. Ils passent
 par le même chemin d'idempotence — un renouvellement rejoué ne doit pas offrir deux mois.
 
+### Étape 4 bis — La réservation des séances
+
+Arbitré le 8 septembre 2026, et ça comble un trou de la première rédaction de la révision 3 :
+elle supprimait `coaching_sessions` en même temps que les sessions et l'émargement, alors
+qu'un accompagnement est par définition un **suivi**. Résultat, on vendait jusqu'à plus de
+5 000 € de suivi sans que le client puisse réserver quoi que ce soit ni le formateur en garder
+la trace. C'est réparé ici.
+
+**Le client réserve sur Cal.com, dans son espace, une fois l'accès ouvert.** Cal.com sert donc
+deux fois dans le parcours : l'audit de vente avant l'achat (étape 2), les séances après. Ce
+qui s'affiche dépend de `formations.modalite` :
+
+| `modalite`   | Ce que le client choisit                     | Chez Cal.com                          |
+| ------------ | -------------------------------------------- | ------------------------------------- |
+| `individuel` | Un créneau en tête-à-tête avec son formateur | Type d'événement classique, 1 place   |
+| `groupe`     | Une place sur une séance déjà planifiée      | Type d'événement **à places** (seats) |
+
+**La séance de groupe se tient toujours dans le salon Discord du produit** (§6) : Cal.com
+porte le créneau et le décompte des places, pas la visioconférence. On ne réintroduit ni lien
+Zoom, ni salle d'attente.
+
+Le retour se fait par le même webhook qu'à l'étape 2, et alimente une table de séances
+accrochée à **`inscriptions`** — pas à `leads`, contrairement à `appointments`, qui reste
+l'objet de l'audit de vente. Sans cette table, pas de compte rendu de séance, pas de suivi de
+ce qui a réellement été consommé sur un accompagnement de trois mois, et pas de statistique de
+présence côté formateur.
+
+**À vérifier en même temps que les webhooks** (§3, étape 2) : les **places par créneau** de
+Cal.com — leur disponibilité en plan gratuit, et surtout ce que le webhook envoie quand un
+deuxième participant réserve sur un créneau déjà entamé. Si le webhook ne distingue pas les
+participants, la table de séances ne peut pas être tenue à jour et il faut le savoir avant la
+phase 3, pas pendant.
+
 ### Étape 5 — La fin d'accès
 
 Mécanisme nouveau, à construire : une tâche planifiée quotidienne cherche les inscriptions
@@ -350,13 +411,20 @@ personne.
 ### Espace client
 
 ```
-/espace                   Ses accès en cours, Discord, prochain RDV
+/espace                   Ses accès en cours, Discord, prochaine séance
+/espace/seances           Réserver une séance, et celles à venir
 /espace/rendez-vous       RDV passés et à venir
 /espace/propositions/[id] Proposition reçue → paiement
 /espace/factures          Factures, échéances, et gestion de l'abonnement
 /espace/compte            Informations personnelles
 /espace/communaute        État de la liaison Discord, lien d'accès
 ```
+
+**`/espace/seances` s'adapte à la modalité du produit** (§3, étape 4 bis) : un choix de
+créneau en tête-à-tête si `modalite = individuel`, la liste des séances planifiées avec leurs
+places restantes si `modalite = groupe`. Un client qui cumule deux inscriptions y voit les
+deux. C'est l'écran qui manquait : sans lui, un accompagnement de trois mois se vend sans que
+personne ne puisse poser une date.
 
 Le chef de projet hésitait sur les RDV passés et à venir (« peut-être ? »). **À garder** : la
 donnée existe déjà pour le tableau de bord formateur, l'écran coûte presque rien, et il
@@ -372,11 +440,12 @@ Disparaissent : `/espace/planning` (plus de sessions de cohorte), `/espace/repla
 ### Espace formateur
 
 ```
-/formateur               Tableau de bord : RDV du jour, à venir, propositions en attente
-/formateur/rendez-vous   Passés et à venir, issue et compte rendu
+/formateur               Tableau de bord : RDV et séances du jour, propositions en attente
+/formateur/rendez-vous   Audits passés et à venir, issue et compte rendu
+/formateur/seances       Séances à venir et passées, présence et compte rendu
 /formateur/clients       Ses clients et ses prospects
-/formateur/clients/[id]  Réponses au formulaire, historique, RDV, notes, statut d'accès,
-                         coordonnées — et **jamais un montant**
+/formateur/clients/[id]  Réponses au formulaire, historique, RDV, séances, notes, statut
+                         d'accès, coordonnées — et **jamais un montant**
 /formateur/statistiques  RDV honorés, no-show, propositions émises, taux de conversion
 ```
 
@@ -429,6 +498,8 @@ une des deux relectures qui comptent).
 | `formations`   | `type_produit`                     | `abonnement` / `accompagnement` / `formation`   |
 | `formations`   | `duree_acces_jours`                | 30/90/180, ou `null` = illimité (§1)            |
 | `formations`   | `discord_role_id`                  | Déplacé depuis `cohortes`                       |
+| `formations`   | `modalite`                         | `individuel` / `groupe` (§1)                    |
+| `formations`   | `cal_event_type_id`                | Le type d'événement Cal.com des séances         |
 | `leads`        | `user_id`                          | Le lead a désormais toujours un compte          |
 | `leads`        | `zone_geo`, `tranche_age`          | Créneaux, TVA, filtre légal des mineurs         |
 | `leads`        | `niveau_trading`, `blocage`        | Segmentation et argument de vente               |
@@ -445,6 +516,13 @@ conventions : `zone_geo`, `tranche_age`, `niveau_trading`, `blocage_trading`,
 **Table à créer** — `propositions` : `id`, `lead_id`, `user_id`, `formation_id`,
 `formateur_id`, `montant_cents`, `statut`, `expire_le`, `order_id`, `created_at`. Montant en
 centimes, en entier, comme partout ailleurs.
+
+**Table à créer** — `seances` : `id`, `inscription_id`, `formateur_id`, `cal_booking_id`,
+`debut`, `fin`, `statut`, `issue` (`honore`, `absent`, `annule`), `compte_rendu`,
+`created_at`. Les séances réservées après l'achat (§3, étape 4 bis). Elle reprend le rôle de
+l'ex-`coaching_sessions`, mais s'ancre sur `inscriptions` — donc sur `formateur_id`, comme le
+reste de la RLS formateur — et sert les deux modalités : une ligne par client sur une séance
+de groupe, ce qui donne la présence sans table d'émargement séparée.
 
 **Table à prévoir pour l'abonnement** — `subscriptions` : identifiant côté fournisseur,
 statut, période courante, date de résiliation demandée. Un abonnement n'est pas une commande
@@ -468,18 +546,23 @@ S'y ajoutent :
   marketing, sans contrôle d'accès puisqu'elle est publique par nature.
 - **Les événements**, reportés après la première livraison : une liste, et « prendre son
   ticket » appelle une billetterie externe. Aucune gestion de réservation dans la plateforme.
-- **Le calendrier des calls de groupe.** Tranché par le chef de projet le 8 septembre 2026,
-  et ça ferme le point 8 des points ouverts : les calls et les lives sont **annoncés et tenus
-  sur Discord**, dans le salon vocal du produit. Le site n'en tient pas le planning — aucune
-  page, et **aucun objet « événement récurrent » à ajouter au modèle**.
+- **La visioconférence.** Tranché par le chef de projet le 8 septembre 2026, et ça ferme le
+  point 8 des points ouverts : les calls de groupe et les lives se **tiennent sur Discord**,
+  dans le salon vocal du produit. Le site n'héberge aucune visio et n'émet aucun lien de
+  réunion.
 
   Le processus actuel enchaîne trois outils non synchronisés : un lien Zoom généré à la main,
   copié-collé dans les groupes WhatsApp concernés, et un événement mis à jour sur Circle, qui
-  sert de planning de référence. Le salon Discord privé les remplace tous les trois sans une
-  ligne de code de plus : `formations.discord_role_id` attribue déjà le rôle à l'inscription,
-  la file le retire en fin d'accès (§3, étape 5). Pas de salle d'attente manuelle : le rôle
-  fait ce filtrage sans personne derrière l'écran, et un tri humain en direct rendrait chaque
-  call dépendant de la présence de celui qui trie. Détail dans `06-PERIMETRE.md`.
+  sert de planning de référence. Le salon Discord privé remplace les deux premiers sans une
+  ligne de code : `formations.discord_role_id` attribue déjà le rôle à l'inscription, la file
+  le retire en fin d'accès (§3, étape 5). Pas de salle d'attente manuelle : le rôle fait ce
+  filtrage sans personne derrière l'écran, et un tri humain en direct rendrait chaque call
+  dépendant de la présence de celui qui trie. Détail dans `06-PERIMETRE.md`.
+
+  **Ce qui n'est pas hors périmètre, en revanche, c'est la réservation** — c'est le rôle de
+  Circle que Discord ne reprend pas. Elle passe par Cal.com et revient en base (§3, étape
+  4 bis). La règle tient en une phrase : **Cal.com porte le créneau et les places, Discord
+  porte la séance.**
 
 ---
 
@@ -496,7 +579,7 @@ d'utilisable.
 | 3     | Espace formateur : fiches, RDV, propositions                                    |
 | 4     | Paiement une fois : proposition, Stripe, facture, inscription, rôle Discord     |
 | 5     | Abonnement : renouvellement, échec, résiliation, révocation automatique         |
-| 6     | Espace client                                                                   |
+| 6     | Espace client, dont la réservation des séances (§3, étape 4 bis)                |
 | 7     | Site public — contenu marketing, SEO, pages légales                             |
 | 8     | Événements, migration des données, recette                                      |
 
@@ -544,9 +627,11 @@ Consignées ici pour qu'on ne les rouvre pas sans raison. Le 8 septembre 2026, s
 explicite du chef de projet : **Cal.com** plutôt que Calendly (§3, étape 2), **refus dur des
 moins de 18 ans**, **consentement RGPD explicite**, **nom de famille collecté au paiement**
 (§3, étape 1). Le même jour, tranché par le chef de projet lui-même : **les calls de groupe
-sur Discord**, sans salle d'attente manuelle (§6). Le reste des recommandations de ce
-document — la proposition émise depuis `/formateur`, l'absence de choix de produit avant
-l'audit, l'affectation explicite comme périmètre du formateur — reste soumis à arbitrage.
+sur Discord**, sans salle d'attente manuelle (§6), et **la distinction individuel / groupe
+portée par `formations.modalite`**, avec réservation des séances sur Cal.com dans les deux cas
+(§1 et §3, étape 4 bis). Le reste des recommandations de ce document — la proposition émise
+depuis `/formateur`, l'absence de choix de produit avant l'audit, l'affectation explicite
+comme périmètre du formateur — reste soumis à arbitrage.
 
 ---
 

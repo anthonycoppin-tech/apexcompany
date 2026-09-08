@@ -20,6 +20,7 @@ les outils de travail interne de l'équipe.**
 | Suivi RDV, catalogue, paiements                | Back-office                                        |
 | Droits d'accès par rôle                        | RLS Supabase, 5 rôles                              |
 | Abonnement mensuel et achats uniques           | Deux mécaniques de paiement, une mécanique d'accès |
+| Réservation des séances après l'achat          | Cal.com, selon `modalite` — individuel ou groupe   |
 | Attribution automatique des accès Discord      | Bot, synchronisé sur les inscriptions              |
 | Révocation automatique en fin d'accès          | Tâche planifiée + file Discord                     |
 | Migration des données existantes               | Phase dédiée                                       |
@@ -73,10 +74,10 @@ objectifs, historique) vit dans `/formateur` ; l'échange conversationnel reste 
 après six mois d'usage le besoin d'une messagerie intégrée est confirmé, elle se construira
 sur une base saine.
 
-**Les calls de groupe et leur planning.** Validé par le chef de projet le 8 septembre 2026,
-et ça ferme le point ouvert §8.8 du cahier des charges : les lives et les calls de groupe sont
-**annoncés et tenus sur Discord**, dans le salon vocal du produit. Le site n'en tient pas le
-calendrier, et le modèle n'a donc pas besoin d'un objet « événement récurrent ».
+**La visioconférence.** Validé par le chef de projet le 8 septembre 2026, et ça ferme le point
+ouvert §8.8 du cahier des charges : les lives et les calls de groupe se **tiennent sur
+Discord**, dans le salon vocal du produit. Le site n'héberge aucune visio et n'émet aucun lien
+de réunion.
 
 Le processus actuel enchaîne trois outils non synchronisés : un lien Zoom généré à la main,
 copié-collé dans les groupes WhatsApp concernés, et un événement mis à jour sur Circle qui sert
@@ -94,9 +95,18 @@ révocation automatique en fin d'accès (§3, étape 5 du cahier des charges) le
 derrière l'écran. Un tri manuel réintroduirait exactement la dépendance qu'on supprime — le
 call ne peut plus commencer si celui qui trie est en retard.
 
+**La réservation, en revanche, reste au périmètre** — c'est le rôle de Circle que Discord ne
+reprend pas. Arbitré le même jour : le client réserve sur Cal.com depuis `/espace/seances`, un
+créneau en tête-à-tête ou une place sur une séance de groupe selon `formations.modalite`, et le
+webhook alimente la table `seances`. La règle tient en une phrase : **Cal.com porte le créneau
+et les places, Discord porte la séance.** Détail dans `01-CAHIER-DES-CHARGES.md` §3, étape
+4 bis.
+
 Ce que ça ne dispense pas de faire : **aucune application Discord n'existe encore** (voir
 `apps/bot/README.md`). Le worker est écrit mais n'a jamais tourné en réel, et il est bloquant
-dès l'étape 2 du plan de construction.
+dès l'étape 2 du plan de construction. Et côté Cal.com, les **places par créneau** restent à
+vérifier — disponibilité en plan gratuit, et ce que le webhook envoie au deuxième participant
+d'une même séance.
 
 ## Rôles révisés
 

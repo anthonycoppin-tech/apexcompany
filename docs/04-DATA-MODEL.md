@@ -90,6 +90,14 @@ est-ce que ça a été payé.
 | `type_produit`      | `abonnement`, `accompagnement`, `formation`                 |
 | `duree_acces_jours` | 30 / 90 / 180 pour un accompagnement, **`null` = illimité** |
 | `discord_role_id`   | Le rôle Discord à attribuer — déplacé depuis `cohortes`     |
+| `modalite`          | `individuel` ou `groupe` — comment le cours se donne        |
+| `cal_event_type_id` | Le type d'événement Cal.com des séances                     |
+
+**`modalite` est un axe distinct de `type_produit`**, et les fusionner serait une erreur : le
+premier dit comment le cours se donne, le second comment il se paie. Un accompagnement peut
+être un tête-à-tête comme un groupe qui avance ensemble. Cette colonne ne touche pas à
+l'accès — un rôle Discord et une `date_fin_acces` par inscription, quelle que soit la
+modalité — elle décide de ce que `/espace/seances` affiche à la réservation.
 
 **Trois types de produit, une seule mécanique d'accès.** C'est l'invariant central de la
 révision 3 :
@@ -123,8 +131,23 @@ interne mal cloisonnée qui remonte dans l'espace client est le genre d'incident
 En v1 les notes restent internes à `/formateur` : aucun écran client ne les lit encore, mais
 la colonne reste, parce que la RLS qui la protège doit exister avant l'écran qui l'utilisera.
 
-**Tables supprimées** : `sessions`, `presences`, `replays`, `coaching_sessions`. Les lives et
-les replays sont sur Discord ; l'émargement n'a plus d'objet sans promotions.
+⚠️ **à écrire** — **`seances`** : `id`, `inscription_id`, `formateur_id`, `cal_booking_id`,
+`debut`, `fin`, `statut`, `issue` (`honore`, `absent`, `annule`), `compte_rendu`, `created_at`
+
+Les séances réservées **après** l'achat, sur Cal.com (`01-CAHIER-DES-CHARGES.md` §3, étape
+4 bis). À ne pas confondre avec `appointments`, qui porte l'audit de vente et s'accroche à
+`leads` : `seances` s'accroche à `inscriptions`, donc à `formateur_id`, comme le reste de la
+RLS formateur.
+
+Une ligne par client, y compris sur une séance de groupe où plusieurs lignes partagent le même
+créneau. C'est ce qui donne la présence sans ressusciter une table d'émargement : `issue` dit
+qui est venu.
+
+**Tables supprimées** : `sessions`, `presences`, `replays`. Les lives et les replays sont sur
+Discord ; l'émargement par promotion n'a plus d'objet. `coaching_sessions` n'est pas supprimée
+mais **remplacée** par `seances` ci-dessus : la première rédaction de la révision 3 la faisait
+disparaître avec le reste, alors qu'un accompagnement est par définition un suivi — un produit
+vendu jusqu'à plus de 5 000 € sans que rien ne permette de poser une date.
 
 ## Paiement
 
@@ -234,6 +257,12 @@ using (formateur_id = auth.uid() or has_role('admin') or has_role('owner'));
 
 Notez l'absence de `client` : un client ne lit pas les inscriptions des autres, il passe par
 la politique 1.
+
+`seances` se cloisonne de la même façon, en passant par son `inscription_id` — et c'est là que
+la modalité `groupe` demande de l'attention : plusieurs clients partagent un créneau, donc la
+politique doit rendre à chacun **sa** ligne, jamais celles de ses camarades de séance. Un
+`using` écrit sur le créneau au lieu de l'inscription ouvrirait la liste des participants à
+tout le monde.
 
 **Politique 3 — les données financières sont fermées aux formateurs.**
 Sur `orders`, `payments`, `subscriptions`, `refunds`, `disputes`, `propositions.montant_cents` :
