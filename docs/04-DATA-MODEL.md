@@ -253,13 +253,19 @@ using (formateur_id = auth.uid() or has_role('admin') or has_role('owner'));
 Notez l'absence de `client` : un client ne lit pas les inscriptions des autres, il passe par
 la politique 1.
 
-**Un point à ne pas perdre de vue quand l'équipe grandira.** Les formateurs sont deux
-aujourd'hui, et un même client passe par les deux — psychologie d'abord, technique ensuite.
-`inscriptions.formateur_id` est **au singulier** : il ne peut désigner qu'un seul d'entre eux,
-donc l'autre ne voit pas un client dont il assure pourtant une partie du suivi. À deux, où
-tout le monde voit tout le monde, ça ne gêne personne. Au troisième formateur, il faudra
-choisir : plusieurs affectations par inscription, ou une affectation par type de séance. À
-décider avant d'écrire la politique, pas après.
+**Une affectation, un formateur — et c'est volontaire.** Un même client peut voir deux
+formateurs, psychologie puis technique. Ça n'appelle pas pour autant une affectation multiple :
+**tout client passe d'abord par Franck**, qui dirige, et c'est lui qui confie ensuite le client
+à un autre formateur — **oralement**. Le passage de relais est une conversation entre eux, pas
+une donnée. `inscriptions.formateur_id` désigne donc le formateur affecté, au singulier, et
+c'est fidèle au fonctionnement réel.
+
+Conséquence à connaître avant de s'en étonner : un formateur qui reçoit un client de cette
+façon **ne le voit pas dans `/formateur`**, puisque l'affectation n'a pas bougé en base. C'est
+sans effet tant que les séances s'organisent hors plateforme (`01-CAHIER-DES-CHARGES.md` §3,
+étape 4 bis) et que la fiche client sert à préparer l'audit de vente, que Franck assure. Si un
+jour un second formateur a besoin de lire les fiches, la réponse sera de déplacer
+l'affectation, pas d'en empiler plusieurs.
 
 **Politique 3 — les données financières sont fermées aux formateurs.**
 Sur `orders`, `payments`, `subscriptions`, `refunds`, `disputes`, `propositions.montant_cents` :
