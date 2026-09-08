@@ -252,6 +252,16 @@ async function main() {
   verifier('aucun journal daudit', await compter('public.audit_logs'), 0);
   verifier('payment_events inaccessible', await compter('public.payment_events'), 0);
 
+  // Ces deux-là manquaient : la matrice daccès donne au client la lecture de
+  // ses rendez-vous, aucune politique ne la permettait, et lécran aurait
+  // affiché une liste vide sans erreur.
+  verifier('voit son audit', await compter('public.appointments'), 1);
+  verifier(
+    'ne voit pas laudit dun autre',
+    await compter(`public.appointments where cal_booking_id = 'cal_seed_b'`),
+    0,
+  );
+
   console.log('\nClient B — abonnement\n');
   await devenir('77777777-7777-7777-7777-777777777777');
   verifier('voit son abonnement', await compter('public.subscriptions'), 1);

@@ -11,7 +11,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(20);
+select plan(22);
 
 -- ── Client A — un accompagnement payé en une fois ──────────────────────────
 
@@ -76,6 +76,20 @@ select is(
 select is(
   (select count(*) from public.formations)::int, 3,
   'client A voit les trois formations actives, jamais celle en brouillon'
+);
+
+-- La matrice daccès lui donne ses rendez-vous. La politique passe par une
+-- fonction SECURITY DEFINER : une sous-requête sur `leads` écrite directement
+-- dans le `using` serait soumise à la RLS de `leads`, à laquelle le client na
+-- aucun accès — elle ne verrait rien et refuserait tout en silence.
+select is(
+  (select count(*) from public.appointments)::int, 1,
+  'client A voit son audit'
+);
+
+select is(
+  (select count(*) from public.appointments where cal_booking_id = 'cal_seed_b')::int, 0,
+  'client A ne voit pas laudit dun autre'
 );
 
 select is(

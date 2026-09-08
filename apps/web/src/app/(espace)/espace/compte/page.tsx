@@ -1,11 +1,35 @@
-export default function Page() {
+import { createClient } from '@/lib/supabase/server';
+
+import { FormulaireCompte } from './formulaire';
+
+/**
+ * `/espace/compte` — ses informations personnelles.
+ *
+ * Le profil se lit et s'écrit sous RLS (`profiles_lit_le_sien`,
+ * `profiles_modifie_le_sien`), donc sans filtre à écrire ici.
+ */
+export default async function Page() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: profil } = await supabase
+    .from('profiles')
+    .select('prenom, nom, telephone, email')
+    .maybeSingle();
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Mon compte</h1>
-      <p className="text-sm text-neutral-500">
-        Placeholder — écran à construire. Voir docs/02-SITEMAP.md. Profil, factures, échéances de
-        paiement.
-      </p>
+
+      <FormulaireCompte
+        prenom={profil?.prenom ?? null}
+        nom={profil?.nom ?? null}
+        telephone={profil?.telephone ?? null}
+        email={profil?.email ?? user?.email ?? ''}
+      />
     </div>
   );
 }

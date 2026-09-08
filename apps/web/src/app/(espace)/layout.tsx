@@ -1,6 +1,15 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { requireRole } from '@/lib/auth/roles';
+
+const LIENS = [
+  { href: '/espace', libelle: 'Mes accès' },
+  { href: '/espace/rendez-vous', libelle: 'Rendez-vous' },
+  { href: '/espace/factures', libelle: 'Factures' },
+  { href: '/espace/communaute', libelle: 'Discord' },
+  { href: '/espace/compte', libelle: 'Mon compte' },
+];
 
 /**
  * Garde d'accès : seul le rôle `client` entre dans l'espace client (matrice
@@ -16,8 +25,15 @@ export default async function EspaceLayout({ children }: { children: ReactNode }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b p-4">
+      <header className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b p-4">
         <span className="font-semibold">Mon espace</span>
+        <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          {LIENS.map((l) => (
+            <Link key={l.href} href={l.href} className="text-neutral-600 hover:underline">
+              {l.libelle}
+            </Link>
+          ))}
+        </nav>
       </header>
       <main className="flex-1 p-6">{children}</main>
     </div>
