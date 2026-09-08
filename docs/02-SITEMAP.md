@@ -112,7 +112,6 @@ si l'accès est actif, pas ce qu'il a coûté.
 
 /admin/paiements
   /transactions             Stripe + PayPal unifiés
-  /echeances                Paiements échelonnés en cours
   /remboursements
   /litiges
 
@@ -125,7 +124,9 @@ si l'accès est actif, pas ce qu'il a coûté.
 ```
 
 Disparaissent de la révision 2 : `/admin/cohortes`, `/admin/sessions` et `/admin/coaching`.
-Le parcours est individuel, il n'y a plus de promotions ni d'émargement.
+Le parcours est individuel, il n'y a plus de promotions ni d'émargement. S'y ajoute
+`/admin/paiements/echeances`, retirée le 8 septembre 2026 avec l'arbitrage sur le paiement en
+plusieurs fois : tout se paie en une fois, et `payment_schedules` n'existe plus.
 
 ## Matrice d'accès
 

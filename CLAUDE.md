@@ -16,11 +16,14 @@ types de produit, disparition des cohortes et des replays, espace formateur déd
 formulaire, et l'ancrage RLS du formateur déplacé sur `inscriptions.formateur_id`. Vérifié
 par `npm run db:check` et par la suite pgTAP.
 
-**Le scaffold web, lui, est resté à la révision 2.** Les 40 pages suivent l'ancienne
-arborescence : `/espace/replays`, `/espace/planning`, `/admin/cohortes`, `/admin/sessions`,
-`/admin/coaching` et `/admin/paiements/echeances` n'ont plus d'objet, `/offres` doit devenir
-`/formations`, et `/formateur` comme `/qualification` manquent. C'est le périmètre du
-développeur B (`07-REPARTITION.md`).
+**Le scaffold web suit la même arborescence** depuis le 8 septembre 2026 : une page par ligne
+de `02-SITEMAP.md`, le groupe `(formateur)` créé avec sa garde, `/qualification` ouverte,
+`/offres` devenue `/formations`. **Chaque page reste un placeholder** : l'arborescence et les
+gardes de rôle sont vraies, le contenu ne l'est pas encore.
+
+Ce lot appartient normalement au développeur B (`07-REPARTITION.md`) et a été repris pendant
+son absence. À signaler avant qu'il ne reprenne son travail : le renommage de routes touche
+des fichiers qu'il possède.
 
 ## Structure
 
@@ -28,7 +31,7 @@ développeur B (`07-REPARTITION.md`).
 apps/web/src/app/
   (public)/      Site public et tunnel — une page par ligne de 02-SITEMAP.md
   (espace)/      Espace client — garde de layout : rôle client
-  (formateur)/   Espace formateur — garde de layout : formateur    ⚠️ à créer (rév. 3)
+  (formateur)/   Espace formateur — garde de layout : formateur
   (admin)/       Back-office — garde de layout : admin, owner
   api/           Webhooks (stripe, paypal, cal, discord)
 apps/web/src/lib/
@@ -44,13 +47,20 @@ docs/            Spécification
 ## Commandes
 
 ```bash
-npm run dev            # Next.js sur :3000
-npm run db:check       # Applique migrations + seed sur PGlite et rejoue les invariants RLS
-npm run db:types       # Régénère packages/db/src/database.types.ts
+npm run dev              # Next.js sur :3000
+npm run db:check         # Applique migrations + seed sur PGlite et rejoue les invariants RLS
+npm run db:push          # Applique les migrations en attente sur le projet hébergé
+npm run db:types:linked  # Régénère packages/db/src/database.types.ts depuis le projet hébergé
+npm run db:types         # Idem depuis une instance locale — exige Docker, donc CI seulement
 npm run typecheck
 ```
 
 Après **toute** modification du schéma : `npm run db:check`.
+
+`db:types` est la commande de référence mais elle passe par `--local`, donc par Docker :
+sur le poste de développement, c'est `db:types:linked` qu'il faut lancer, et seulement
+**après** `db:push`, puisqu'elle lit le schéma réellement appliqué sur la base hébergée.
+`db:push` écrit sur la **base partagée** : prévenir l'autre développeur avant de la lancer.
 
 ## Docker n'est pas disponible en local
 
@@ -151,9 +161,9 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
       porte encore le schéma de la révision 2 : les migrations de la 1 bis restent à y
       appliquer, et cette base est partagée avec l'autre développeur.
 - [~] Scaffold transverse : Next.js, route groups, clients Supabase, gardes de rôle —
-  vérifié avec de vraies sessions. Chaque page reste un placeholder, et l'arborescence
-  est celle de la révision 2 : `/espace/replays`, `/espace/planning` et `/admin/cohortes`
-  n'ont plus lieu d'être, `/formateur` et `/qualification` manquent.
+  vérifié avec de vraies sessions, et remis à l'arborescence de la révision 3. Chaque page
+  reste un placeholder. Les gardes de layout n'ont **pas** été revérifiées avec de vraies
+  sessions depuis le resserrage de `/admin` et la création de `(formateur)` : à faire.
 - [x] **1 bis — Migrations de la révision 3** : sept migrations `20260908*_a_*` — renommages
       `offres` → `formations` et `coach` → `formateur`, suppression des cohortes / sessions /
       présences / replays / `coaching_sessions` / `payment_schedules`, `type_produit`,
