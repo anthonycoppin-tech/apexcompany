@@ -259,12 +259,16 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   pages légales, qui attendent les informations de la société ; les témoignages et les
   biographies des formateurs, qui attendent du contenu client ; le SEO fin (Open Graph, données
   structurées, plan de site).
-- [~] **Back-office** : garde admin/owner resserrée, navigation par sections, et tableau de bord
-  branché sur les vraies données — encaissé du mois, accès ouverts, RDV du jour, propositions en
-  attente, prélèvements en échec, incidents techniques. **Les autres écrans restent des
-  placeholders** : CRM prospects, catalogue, propositions, abonnements, transactions, factures,
-  remboursements, litiges, comptes, logs, audit, paramètres. `/audit` et `/parametres` doivent
-  poser leur propre garde `owner` au moment où ils seront écrits.
+- [~] **Back-office** : garde admin/owner resserrée, navigation par sections, tableau de bord,
+  **CRM prospects** (liste filtrable par étape du pipeline, fiche complète avec affectation et
+  statut), **propositions** (avec l'écart au prix catalogue, puisque la remise est libre),
+  **abonnements** (triés par urgence : impayés d'abord), **transactions**, **catalogue** et
+  **automatisations**. `/admin/audit` est écrit et **pose sa propre garde `owner`** — le layout
+  laisse entrer `admin`, la page refuse, et la RLS refuse derrière elle.
+  **Restent des placeholders** : factures, remboursements, litiges, comptes et rôles,
+  paramètres. `/admin/parametres` devra poser sa garde `owner` comme `/admin/audit`.
+  L'édition du catalogue reste à écrire : elle touche au prix, au type et au rôle Discord,
+  donc à l'argent et aux accès — elle mérite son écran et sa relecture.
 - [ ] 8 — Événements, migration des données, recette, mise en production
 - [~] **Transverse — Discord** : worker écrit (apps/bot), suit `discord_sync_queue` au plus
   près du schéma — **jamais testé en réel**, aucune application Discord n'existe encore.
