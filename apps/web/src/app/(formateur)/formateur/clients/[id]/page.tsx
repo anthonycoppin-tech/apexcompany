@@ -40,7 +40,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   // confirmerait l'existence d'un client à un formateur qui n'a pas à le savoir.
   if (!lead) notFound();
 
-  const [rdv, inscriptions, notes] = await Promise.all([
+  const [rdv, inscriptions] = await Promise.all([
     supabase
       .from('appointments')
       .select('id, debut, statut, issue, compte_rendu')
@@ -52,13 +52,22 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           .select('id, statut, date_debut, date_fin_acces, formations(titre, modalite)')
           .eq('user_id', lead.user_id)
       : Promise.resolve({ data: [] as never[] }),
-    lead.user_id
-      ? supabase
-          .from('suivi_notes')
-          .select('id, type, contenu, visible_client, created_at')
-          .order('created_at', { ascending: false })
-      : Promise.resolve({ data: [] as never[] }),
   ]);
+
+  // Les notes se lisent APRÈS les inscriptions, et restreintes aux siennes.
+  // La RLS ne suffit pas ici : elle limite la lecture aux notes que ce
+  // formateur a le droit de voir, c'est-à-dire celles de TOUS ses clients. Sans
+  // ce filtre, chaque fiche afficherait les notes de tout le monde — pas une
+  // fuite, mais une fiche qui ment.
+  const inscriptionIds = (inscriptions.data ?? []).map((i) => i.id);
+
+  const notes = inscriptionIds.length
+    ? await supabase
+        .from('suivi_notes')
+        .select('id, type, contenu, visible_client, created_at')
+        .in('inscription_id', inscriptionIds)
+        .order('created_at', { ascending: false })
+    : { data: [] as never[] };
 
   const reponses: Array<[string, string, string | null]> = [
     ['Budget déclaré', 'tranche_budget', lead.tranche_budget],
