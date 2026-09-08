@@ -39,18 +39,23 @@ dans `.env.local`). Typecheck, lint, `next build` et les invariants de base sont
 c'est tout ce qu'on peut affirmer tant que ces accès manquent. Le client a indiqué les fournir
 dans la semaine du 8 septembre.
 
-**Quatre décisions ont été tranchées le 8 septembre et ne sont pas encore toutes codées** —
-détail et TODO précis dans `01-CAHIER-DES-CHARGES.md` §8 :
+**Quatre décisions ont été tranchées le 8 septembre, et les quatre sont codées** — détail dans
+`01-CAHIER-DES-CHARGES.md` §8 :
 
 - pas de règle d'éligibilité côté Tally : tout prospect qui soumet le formulaire est éligible
-  (hors mineurs) — `evaluerEligibilite()` renvoie encore `null` en attendant une règle qui
-  n'existe pas, **à corriger** ;
-- l'abonnement communauté se vend en self-service, sans passer par l'audit — **aucun parcours
-  d'achat direct n'existe encore** sur `/formations/[slug]` ;
-- la remise formateur est autorisée sans plafond, Franck décide seul — **le formulaire de
-  proposition ne permet aujourd'hui aucune saisie de montant**, il reprend le prix catalogue ;
+  (hors mineurs) — **fait**, `evaluerEligibilite()` renvoie `true` ;
+- l'abonnement communauté se vend en self-service, sans passer par l'audit — **fait**,
+  `/formations/[slug]/souscrire` ;
+- la remise formateur est autorisée sans plafond, Franck décide seul — **fait**, montant
+  saisissable et écart avec le catalogue tracé dans `lead_events` ;
 - pas de délai de grâce, révocation le lendemain de la fin d'accès — **déjà le comportement
   réel de `revoquer_acces_expires()`, rien à changer**.
+
+**La vérification de l'email bloque désormais le paiement**, comme décidé : non bloquante à
+l'inscription et à la prise de rendez-vous, bloquante avant de payer — les deux parcours
+d'achat la vérifient. À surveiller de près à la mise en service : **si l'envoi d'emails n'est
+pas configuré côté Supabase, plus aucun paiement ne peut aboutir.** C'est le comportement
+voulu, mais il faut avoir essayé un vrai parcours d'achat avant d'ouvrir les ventes.
 
 Restent ouverts : l'hébergement des vidéos exclusives d'un des deux abonnements, et la TVA
 hors Europe (question pour le comptable).
@@ -296,17 +301,15 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
 - **Éligibilité du formulaire** — **tranché le 8 septembre 2026 : il n'y a pas de règle côté
   Tally.** Tout prospect qui soumet le formulaire est éligible, à l'exception du refus dur des
   mineurs. Aucune branche « non éligible » à construire dans le tunnel.
-  `evaluerEligibilite()` renvoie encore `null` en attendant une réponse qui n'a plus lieu
-  d'être attendue : **à corriger**.
+  `evaluerEligibilite()` renvoie désormais `true` plutôt que `null` : l'évaluation a eu lieu
+  et elle est positive, là où `null` aurait laissé un pipeline entier en attente d'arbitrage.
 - **Vente en self-service de l'abonnement communauté** — **tranché le 8 septembre 2026 : oui.**
   Achat direct depuis `/formations/[slug]`, sans passer par l'audit. Entorse assumée au « un
-  seul tunnel » de `02-SITEMAP.md`. **Aucun parcours d'achat direct n'existe encore côté
-  code.**
+  seul tunnel » de `02-SITEMAP.md`. **Écrit** : `/formations/[slug]/souscrire`.
 - **Remise accordée par le formateur** — **tranché le 8 septembre 2026 : oui, sans plafond.**
-  Franck dirige l'accompagnement commercial et décide seul du prix qu'il propose. **Le
-  formulaire de proposition ne permet aujourd'hui aucune saisie de montant** — à ajouter dans
-  `apps/web/src/app/(formateur)/formateur/clients/[id]/actions.ts`, avec le prix catalogue en
-  valeur par défaut plutôt qu'imposée.
+  Franck dirige l'accompagnement commercial et décide seul du prix qu'il propose. **Écrit** :
+  montant saisissable, prix catalogue en valeur par défaut, et écart consigné dans
+  `lead_events` — c'est la trace qui remplace le plafond.
 - **Délai de grâce en fin d'accès** — **tranché le 8 septembre 2026 : aucun.** La révocation a
   lieu le lendemain de la date de fin d'accès. C'est déjà le comportement de
   `revoquer_acces_expires()`, qui sélectionne `date_fin_acces < current_date` : rien à changer.

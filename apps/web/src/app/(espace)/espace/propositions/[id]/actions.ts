@@ -3,8 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
-import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { stripe } from '@/lib/stripe';
+import { ouvrirCheckout } from '@/lib/paiement/checkout';
 
 export type EtatPaiement = { readonly erreur: string | null };
 
@@ -61,64 +60,40 @@ export async function ouvrirPaiement(
     return { erreur: 'Cette proposition a expiré. Ton formateur peut en émettre une nouvelle.' };
   }
 
-  const abonnement = proposition.formations.type_produit === 'abonnement';
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-
-  let url: string | null = null;
-
-  try {
-    const session = await stripe().checkout.sessions.create({
-      mode: abonnement ? 'subscription' : 'payment',
-      customer_email: user.email ?? undefined,
-      client_reference_id: user.id,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: (proposition.devise ?? 'EUR').toLowerCase(),
-            unit_amount: proposition.montant_cents,
-            product_data: { name: proposition.formations.titre },
-            // Le prix récurrent est déclaré à la volée : un abonnement mensuel
-            // n'a pas besoin d'un catalogue tenu en double chez Stripe, et un
-            // catalogue en double est un catalogue qui diverge.
-            ...(abonnement ? { recurring: { interval: 'month' as const } } : {}),
-          },
-        },
-      ],
-      // Ces métadonnées sont le seul lien entre la session Stripe et notre
-      // base. Le webhook n'a rien d'autre pour savoir qui a payé quoi.
-      metadata: {
-        proposition_id: proposition.id,
-        user_id: user.id,
-        formation_id: proposition.formation_id,
-      },
-      success_url: `${site}/espace?paiement=ok`,
-      cancel_url: `${site}/espace/propositions/${proposition.id}?paiement=annule`,
-    });
-
-    url = session.url;
-
-    // Écrit avec la clé de service : la RLS ferme `orders` en écriture à tout
-    // le monde sauf au staff, et c'est très bien ainsi — un client qui pourrait
-    // insérer ses propres commandes pourrait s'en écrire une payée.
-    await createServiceRoleClient()
-      .from('orders')
-      .insert({
-        user_id: user.id,
-        formation_id: proposition.formation_id,
-        montant_cents: proposition.montant_cents,
-        devise: proposition.devise ?? 'EUR',
-        statut: 'en_attente',
-        provider: 'stripe',
-        provider_order_id: session.id,
-      });
-  } catch {
-    return { erreur: 'Le paiement n’a pas pu être ouvert. Réessaie dans un instant.' };
+  // ── L'email doit être vérifié avant de payer ─────────────────────────────
+  // Décision consignée en §8 : non bloquante pour prendre rendez-vous,
+  // bloquante avant le paiement. Une facture qui part vers une adresse non
+  // vérifiée est une facture qu'on ne peut pas prouver avoir envoyée.
+  if (!user.email_confirmed_at) {
+    return {
+      erreur:
+        'Vérifie d’abord ton adresse email : nous t’avons envoyé un lien à la création de ton compte. C’est ce qui garantit que ta facture arrive bien chez toi.',
+    };
   }
 
-  if (!url) return { erreur: 'Le paiement n’a pas pu être ouvert. Réessaie dans un instant.' };
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
-  // Hors du try : `redirect` lève une exception pour interrompre le rendu, et
-  // un catch la prendrait pour un échec.
-  redirect(url);
+  // Mutualisé avec la souscription directe à un abonnement : les deux parcours
+  // doivent produire exactement la même chose en base, métadonnées comprises —
+  // sans elles, le webhook ne sait pas qui a payé quoi.
+  const resultat = await ouvrirCheckout({
+    userId: user.id,
+    email: user.email ?? undefined,
+    formation: {
+      id: proposition.formation_id,
+      titre: proposition.formations.titre,
+      type_produit: proposition.formations.type_produit,
+      devise: proposition.devise,
+    },
+    montantCents: proposition.montant_cents,
+    propositionId: proposition.id,
+    urlSucces: `${site}/espace?paiement=ok`,
+    urlAnnulation: `${site}/espace/propositions/${proposition.id}?paiement=annule`,
+  });
+
+  if ('erreur' in resultat) return { erreur: resultat.erreur };
+
+  // Hors de tout try/catch : `redirect` lève une exception pour interrompre le
+  // rendu, et un catch la prendrait pour un échec.
+  redirect(resultat.url);
 }

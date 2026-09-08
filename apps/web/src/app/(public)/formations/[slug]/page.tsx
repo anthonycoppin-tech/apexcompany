@@ -112,14 +112,30 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
               ))}
             </dl>
 
-            <div className="space-y-3 border-t border-filet pt-5">
-              <Bouton href="/qualification" className="w-full">
-                Faire le point sur ma situation
-              </Bouton>
-              <p className="text-center text-xs text-encre-doux">
-                On vérifie ensemble que ce programme correspond avant toute inscription.
-              </p>
-            </div>
+            {/* L'abonnement se souscrit directement, tranché le 8 septembre 2026 :
+                imposer un rendez-vous de vente pour un abonnement mensuel
+                coûterait la majorité des inscriptions. Les accompagnements et
+                les formations continuent de passer par l'échange d'orientation,
+                où le panier justifie qu'on vérifie que le produit correspond. */}
+            {formation.type_produit === 'abonnement' ? (
+              <div className="space-y-3 border-t border-filet pt-5">
+                <Bouton href={`/formations/${formation.slug}/souscrire`} className="w-full">
+                  Souscrire maintenant
+                </Bouton>
+                <p className="text-center text-xs text-encre-doux">
+                  Sans rendez-vous. Résiliable à tout moment depuis ton espace.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 border-t border-filet pt-5">
+                <Bouton href="/qualification" className="w-full">
+                  Faire le point sur ma situation
+                </Bouton>
+                <p className="text-center text-xs text-encre-doux">
+                  On vérifie ensemble que ce programme correspond avant toute inscription.
+                </p>
+              </div>
+            )}
           </Carte>
         </Conteneur>
       </section>

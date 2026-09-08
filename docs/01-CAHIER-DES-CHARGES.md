@@ -666,22 +666,20 @@ Nouvelles précisions du même jour, arrivées après la première rédaction de
   soumet le formulaire est éligible, à l'exception du refus dur des mineurs, qui reste seul à
   arrêter le parcours. Le tunnel reconstruit n'a donc **aucune branche « non éligible » à
   construire**, et `leads.eligible` peut être posée à `true` par défaut à la soumission plutôt
-  que laissée à `null` en attente d'une règle qui n'existe pas. **Code à mettre à jour** :
-  `evaluerEligibilite()` dans `apps/web/src/lib/qualification/eligibilite.ts` renvoie encore
-  `null` en commentant l'attente de cette réponse — le commentaire et le renvoi sont
-  maintenant faux et doivent être corrigés.
+  que laissée à `null` en attente d'une règle qui n'existe pas. **Fait** : `evaluerEligibilite()` renvoie désormais `true`. La nuance compte — `null`
+  voulait dire « pas encore évalué », donc une case à traiter plus tard dans le CRM ; `true`
+  dit que l'évaluation a eu lieu et qu'elle est positive.
 - **L'abonnement communauté se vend sans passer par l'audit.** Achat direct depuis
   `/formations/[slug]`, confirmé — ce n'était qu'une recommandation, c'est désormais une
   décision. L'audit reste réservé aux accompagnements et aux formations. C'est une entorse
-  assumée au « un seul tunnel » de `02-SITEMAP.md`. **Code à écrire** : aucun parcours d'achat
-  direct n'existe encore — `/formations/[slug]` ne propose aujourd'hui qu'un bouton vers
-  `/qualification`, y compris pour les produits de type `abonnement`.
+  assumée au « un seul tunnel » de `02-SITEMAP.md`. **Fait** : `/formations/[slug]/souscrire` porte le parcours complet — formulaire court
+  (prénom, email, consentement), création du compte, paiement Stripe. La fiche produit bascule
+  son appel à l'action selon `type_produit`, et la route redirige vers la fiche si le produit
+  n'est pas un abonnement, vérifié côté serveur et pas seulement à l'affichage.
 - **La remise accordée par le formateur est autorisée, sans plafond.** Franck dirige
-  l'accompagnement commercial et décide seul du prix qu'il propose. **Code à mettre à jour** :
-  `emettreProposition()` dans `apps/web/src/app/(formateur)/formateur/clients/[id]/actions.ts`
-  reprend aujourd'hui le prix catalogue tel quel et ne permet aucune saisie — un champ montant
-  éditable est à ajouter, avec le prix catalogue en valeur par défaut plutôt qu'en valeur
-  imposée.
+  l'accompagnement commercial et décide seul du prix qu'il propose. **Fait** : le montant est saisissable, le prix catalogue servant de valeur
+  par défaut. Ce qui remplace le plafond, c'est la trace : l'écart avec le catalogue part dans
+  `lead_events` à chaque émission, sans que le formateur ait à le déclarer.
 - **Pas de délai de grâce : la révocation a lieu le lendemain de la fin d'accès.** Ceci
   confirme le comportement déjà écrit et déjà en production : `revoquer_acces_expires()`
   sélectionne les inscriptions dont `date_fin_acces < current_date`, ce qui révoque
