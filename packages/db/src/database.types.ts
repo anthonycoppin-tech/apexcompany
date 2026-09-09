@@ -349,6 +349,56 @@ export type Database = {
           },
         ]
       }
+      formateurs_fiches: {
+        Row: {
+          biographie: string | null
+          created_at: string
+          fonction: string | null
+          id: string
+          nom: string
+          ordre: number
+          photo_url: string | null
+          publie: boolean
+          specialites: string[]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          biographie?: string | null
+          created_at?: string
+          fonction?: string | null
+          id?: string
+          nom: string
+          ordre?: number
+          photo_url?: string | null
+          publie?: boolean
+          specialites?: string[]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          biographie?: string | null
+          created_at?: string
+          fonction?: string | null
+          id?: string
+          nom?: string
+          ordre?: number
+          photo_url?: string | null
+          publie?: boolean
+          specialites?: string[]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formateurs_fiches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       formations: {
         Row: {
           actif: boolean
@@ -1113,6 +1163,56 @@ export type Database = {
             columns: ["inscription_id"]
             isOneToOne: false
             referencedRelation: "inscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      temoignages: {
+        Row: {
+          auteur: string
+          consentement: boolean
+          contenu: string
+          contexte: string | null
+          created_at: string
+          formation_id: string | null
+          id: string
+          note: number | null
+          ordre: number
+          publie: boolean
+          updated_at: string
+        }
+        Insert: {
+          auteur: string
+          consentement?: boolean
+          contenu: string
+          contexte?: string | null
+          created_at?: string
+          formation_id?: string | null
+          id?: string
+          note?: number | null
+          ordre?: number
+          publie?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auteur?: string
+          consentement?: boolean
+          contenu?: string
+          contexte?: string | null
+          created_at?: string
+          formation_id?: string | null
+          id?: string
+          note?: number | null
+          ordre?: number
+          publie?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "temoignages_formation_id_fkey"
+            columns: ["formation_id"]
+            isOneToOne: false
+            referencedRelation: "formations"
             referencedColumns: ["id"]
           },
         ]
