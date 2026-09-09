@@ -1,5 +1,6 @@
 import { formaterMontant } from '@apex/db';
 
+import { Carte } from '@/components/ui';
 import { dateCourte } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
@@ -35,77 +36,94 @@ export default async function Page() {
 
   return (
     <div className="space-y-10">
-      <h1 className="text-2xl font-semibold">Factures et abonnement</h1>
+      <h1 className="text-3xl font-extrabold">Factures et abonnement</h1>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Mon abonnement</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">Mon abonnement</h2>
         {abonnements.data?.length ? (
-          <ul className="space-y-3">
+          <ul className="space-y-4">
             {abonnements.data.map((a) => (
-              <li key={a.id} className="space-y-2 rounded border p-4 text-sm">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="font-medium">{a.formations?.titre ?? 'Abonnement'}</span>
-                  <span className="text-neutral-500">{ETATS_ABO[a.statut] ?? a.statut}</span>
-                </div>
+              <li key={a.id}>
+                <Carte className={`space-y-3 ${a.statut === 'impayee' ? 'border-alerte' : ''}`}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-3">
+                    <span className="font-semibold">{a.formations?.titre ?? 'Abonnement'}</span>
+                    {/* Un prélèvement en échec est la seule ligne de cette page qui
+                      demande une action : elle se distingue au lieu de se fondre. */}
+                    <span
+                      className={
+                        a.statut === 'impayee'
+                          ? 'text-sm font-semibold text-alerte'
+                          : 'text-sm text-encre-doux'
+                      }
+                    >
+                      {ETATS_ABO[a.statut] ?? a.statut}
+                    </span>
+                  </div>
 
-                {a.periode_fin && (
-                  <p className="text-neutral-600">
-                    {a.statut === 'active'
-                      ? `Prochain prélèvement le ${dateCourte(a.periode_fin)}.`
-                      : `Accès ouvert jusqu’au ${dateCourte(a.periode_fin)}.`}
-                  </p>
-                )}
+                  {a.periode_fin && (
+                    <p className="text-sm text-encre-doux">
+                      {a.statut === 'active'
+                        ? `Prochain prélèvement le ${dateCourte(a.periode_fin)}.`
+                        : `Accès ouvert jusqu’au ${dateCourte(a.periode_fin)}.`}
+                    </p>
+                  )}
 
-                {a.statut === 'impayee' && (
-                  <p className="text-neutral-600">
-                    Le dernier prélèvement n’est pas passé. Ton accès reste ouvert — vérifie ton
-                    moyen de paiement.
-                  </p>
-                )}
+                  {a.statut === 'impayee' && (
+                    <p className="text-sm leading-relaxed text-encre-doux">
+                      Le dernier prélèvement n’est pas passé. Ton accès reste ouvert — vérifie ton
+                      moyen de paiement.
+                    </p>
+                  )}
 
-                {a.statut === 'active' && a.periode_fin && (
-                  <BoutonResilier subscriptionId={a.id} finDePeriode={dateCourte(a.periode_fin)} />
-                )}
+                  {a.statut === 'active' && a.periode_fin && (
+                    <BoutonResilier
+                      subscriptionId={a.id}
+                      finDePeriode={dateCourte(a.periode_fin)}
+                    />
+                  )}
+                </Carte>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun abonnement en cours.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun abonnement en cours.</p>
+          </Carte>
         )}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Mes factures</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">Mes factures</h2>
         {factures.data?.length ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-carte border border-filet bg-fond">
             <table className="w-full min-w-[34rem] border-collapse text-sm">
               <thead>
-                <tr className="border-b text-left text-neutral-500">
-                  <th className="py-2 pr-4 font-medium">Numéro</th>
-                  <th className="py-2 pr-4 font-medium">Date</th>
-                  <th className="py-2 pr-4 font-medium">Objet</th>
-                  <th className="py-2 pr-4 font-medium">Montant</th>
-                  <th className="py-2 font-medium"></th>
+                <tr className="border-b border-filet text-left text-encre-doux">
+                  <th className="px-4 py-3 font-medium">Numéro</th>
+                  <th className="px-4 py-3 font-medium">Date</th>
+                  <th className="px-4 py-3 font-medium">Objet</th>
+                  <th className="px-4 py-3 font-medium">Montant</th>
+                  <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-filet">
                 {factures.data.map((f) => (
-                  <tr key={f.id} className="border-b">
-                    <td className="py-2 pr-4 tabular-nums">{f.numero}</td>
-                    <td className="py-2 pr-4">{dateCourte(f.emise_at)}</td>
-                    <td className="py-2 pr-4">{f.orders?.formations?.titre ?? '—'}</td>
-                    <td className="py-2 pr-4 tabular-nums">
+                  <tr key={f.id}>
+                    <td className="px-4 py-3 tabular-nums">{f.numero}</td>
+                    <td className="px-4 py-3">{dateCourte(f.emise_at)}</td>
+                    <td className="px-4 py-3">{f.orders?.formations?.titre ?? '—'}</td>
+                    <td className="px-4 py-3 tabular-nums">
                       {f.orders ? formaterMontant(f.orders.montant_cents, f.orders.devise) : '—'}
                     </td>
-                    <td className="py-2">
+                    <td className="px-4 py-3">
                       {/* Le PDF n'est généré qu'à l'émission ; tant qu'il manque,
                           la ligne reste lisible plutôt que d'offrir un lien mort. */}
                       {f.pdf_url ? (
-                        <a href={f.pdf_url} className="underline">
+                        <a href={f.pdf_url} className="font-semibold text-accent hover:underline">
                           Télécharger
                         </a>
                       ) : (
-                        <span className="text-neutral-400">en préparation</span>
+                        <span className="text-encre-faible">en préparation</span>
                       )}
                     </td>
                   </tr>
@@ -114,7 +132,9 @@ export default async function Page() {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-neutral-500">Aucune facture pour l’instant.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucune facture pour l’instant.</p>
+          </Carte>
         )}
       </section>
     </div>

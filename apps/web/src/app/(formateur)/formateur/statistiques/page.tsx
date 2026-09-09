@@ -56,10 +56,12 @@ export default async function Page() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">Mes statistiques</h1>
+      <h1 className="text-3xl font-extrabold">Mes statistiques</h1>
 
+      {/* L'avertissement précède les chiffres, sinon il ne sert à rien : on ne
+          revient pas sur un nombre qu'on a déjà lu comme vrai. */}
       {aConsigner > 0 && (
-        <p className="rounded border border-dashed p-3 text-sm text-neutral-600">
+        <p className="rounded-douce border border-dashed border-filet-fort bg-surface p-4 text-sm leading-relaxed text-encre-doux">
           {aConsigner} rendez-vous passé{aConsigner > 1 ? 's' : ''} sans issue consignée. Tant
           qu’ils ne le sont pas, ces chiffres sous-estiment autant les audits honorés que les
           absences.
@@ -68,10 +70,14 @@ export default async function Page() {
 
       <dl className="grid gap-4 sm:grid-cols-2">
         {chiffres.map((c) => (
-          <div key={c.titre} className="space-y-1 rounded border p-4">
-            <dt className="text-xs uppercase tracking-wide text-neutral-500">{c.titre}</dt>
-            <dd className="text-3xl font-semibold tabular-nums">{c.valeur}</dd>
-            <p className="text-sm text-neutral-500">{c.detail}</p>
+          <div key={c.titre} className="space-y-1 rounded-carte border border-filet bg-fond p-5">
+            <dt className="text-xs font-semibold tracking-wide text-encre-faible uppercase">
+              {c.titre}
+            </dt>
+            <dd className="font-titre text-4xl font-extrabold text-accent tabular-nums">
+              {c.valeur}
+            </dd>
+            <p className="text-sm text-encre-doux">{c.detail}</p>
           </div>
         ))}
       </dl>

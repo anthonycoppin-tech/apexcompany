@@ -133,6 +133,16 @@ export function BoutonAction({
 export const CHAMP =
   'w-full rounded-douce border border-filet-fort bg-fond px-3 py-2 text-sm text-encre transition-colors placeholder:text-encre-faible focus:border-accent';
 
+/**
+ * L'habillage d'une liste de lignes — accès, rendez-vous, propositions.
+ *
+ * Constante et non composant, pour la même raison que `CHAMP` : les listes
+ * diffèrent trop par leur contenu. `overflow-hidden` n'est pas décoratif — sans
+ * lui, la première et la dernière ligne débordent du rayon de la bordure.
+ */
+export const LISTE =
+  'divide-y divide-filet overflow-hidden rounded-carte border border-filet bg-fond';
+
 export function Carte({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <div className={`rounded-carte border border-filet bg-fond p-6 ${className}`}>{children}</div>

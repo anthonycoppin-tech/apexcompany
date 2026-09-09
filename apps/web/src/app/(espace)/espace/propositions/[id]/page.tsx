@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
 
+import { Carte } from '@/components/ui';
 import { dateHeure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
@@ -54,35 +55,40 @@ export default async function Page({
   return (
     <div className="max-w-2xl space-y-8">
       {paiement === 'annule' && (
-        <p className="rounded border p-3 text-sm">
+        <p
+          role="status"
+          className="rounded-douce border border-filet-fort bg-surface p-4 text-sm leading-relaxed"
+        >
           Paiement interrompu — rien n’a été débité. Ta proposition reste valable.
         </p>
       )}
 
-      <header className="space-y-2">
-        <p className="text-sm text-neutral-500">
+      <header className="space-y-3">
+        <p className="text-sm text-encre-faible">
           Proposition du {dateHeure(proposition.created_at)}
         </p>
-        <h1 className="text-2xl font-semibold">{formation.titre}</h1>
-        <p className="text-sm text-neutral-600">
+        <h1 className="text-3xl font-extrabold">{formation.titre}</h1>
+        <p className="text-encre-doux">
           {TYPES[formation.type_produit] ?? formation.type_produit} ·{' '}
           {formation.modalite === 'individuel' ? 'suivi individuel' : 'en groupe'}
         </p>
       </header>
 
-      {formation.description && <p className="text-neutral-700">{formation.description}</p>}
+      {formation.description && (
+        <p className="leading-relaxed text-encre-doux">{formation.description}</p>
+      )}
 
-      <div className="space-y-3 rounded border p-5">
+      <Carte className="space-y-4">
         <div className="flex items-baseline justify-between gap-4">
-          <span className="text-sm text-neutral-500">
+          <span className="text-sm text-encre-doux">
             {formation.type_produit === 'abonnement' ? 'Par mois' : 'Montant'}
           </span>
-          <span className="text-3xl font-semibold tabular-nums">
+          <span className="font-titre text-3xl font-extrabold tabular-nums">
             {formaterMontant(proposition.montant_cents, proposition.devise)}
           </span>
         </div>
 
-        <p className="text-sm text-neutral-600">
+        <p className="border-t border-filet pt-4 text-sm leading-relaxed text-encre-doux">
           {/* Une durée nulle veut dire illimité, jamais « non renseigné ». */}
           {formation.type_produit === 'accompagnement' && formation.duree_acces_jours
             ? `Accès pendant ${formation.duree_acces_jours} jours.`
@@ -92,20 +98,20 @@ export default async function Page({
         </p>
 
         {proposition.expire_le && payable && (
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-encre-doux">
             Cette proposition est valable jusqu’au {dateHeure(proposition.expire_le)}.
           </p>
         )}
-      </div>
+      </Carte>
 
       {payable ? (
         <BoutonPayer propositionId={proposition.id} />
       ) : proposition.statut === 'acceptee' ? (
-        <p className="rounded border p-3 text-sm">
+        <p className="rounded-douce border border-succes bg-surface p-4 text-sm leading-relaxed text-succes">
           Proposition acceptée — ton accès est ouvert. Retrouve-le dans ton espace.
         </p>
       ) : (
-        <p className="rounded border p-3 text-sm">
+        <p className="rounded-douce border border-filet-fort bg-surface p-4 text-sm leading-relaxed text-encre-doux">
           Cette proposition n’est plus valable. Ton formateur peut t’en émettre une nouvelle.
         </p>
       )}

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { Carte } from '@/components/ui';
 import { dateCourte } from '@/lib/format';
 import { libelle } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
@@ -31,44 +32,47 @@ export default async function Page() {
 
   if (!prospects?.length) {
     return (
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Mes clients</h1>
-        <p className="text-sm text-neutral-500">
-          Aucune personne ne vous est affectée pour l’instant.
-        </p>
+      <div className="space-y-4">
+        <h1 className="text-3xl font-extrabold">Mes clients</h1>
+        <Carte>
+          <p className="text-encre-doux">Aucune personne ne vous est affectée pour l’instant.</p>
+        </Carte>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Mes clients</h1>
+      <h1 className="text-3xl font-extrabold">Mes clients</h1>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-carte border border-filet bg-fond">
         <table className="w-full min-w-[46rem] border-collapse text-sm">
           <thead>
-            <tr className="border-b text-left text-neutral-500">
-              <th className="py-2 pr-4 font-medium">Personne</th>
-              <th className="py-2 pr-4 font-medium">Statut</th>
-              <th className="py-2 pr-4 font-medium">Budget déclaré</th>
-              <th className="py-2 pr-4 font-medium">Blocage</th>
-              <th className="py-2 pr-4 font-medium">Niveau</th>
-              <th className="py-2 font-medium">Arrivé le</th>
+            <tr className="border-b border-filet text-left text-encre-doux">
+              <th className="px-4 py-3 font-medium">Personne</th>
+              <th className="px-4 py-3 font-medium">Statut</th>
+              <th className="px-4 py-3 font-medium">Budget déclaré</th>
+              <th className="px-4 py-3 font-medium">Blocage</th>
+              <th className="px-4 py-3 font-medium">Niveau</th>
+              <th className="px-4 py-3 font-medium">Arrivé le</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-filet">
             {prospects.map((p) => (
-              <tr key={p.id} className="border-b">
-                <td className="py-2 pr-4">
-                  <Link href={`/formateur/clients/${p.id}`} className="underline">
+              <tr key={p.id}>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/formateur/clients/${p.id}`}
+                    className="font-medium text-accent hover:underline"
+                  >
                     {[p.prenom, p.nom].filter(Boolean).join(' ') || 'Sans nom'}
                   </Link>
                 </td>
-                <td className="py-2 pr-4">{ETIQUETTES[p.statut] ?? p.statut}</td>
-                <td className="py-2 pr-4">{libelle('tranche_budget', p.tranche_budget)}</td>
-                <td className="py-2 pr-4">{libelle('blocage', p.blocage)}</td>
-                <td className="py-2 pr-4">{libelle('niveau_trading', p.niveau_trading)}</td>
-                <td className="py-2 text-neutral-500">{dateCourte(p.created_at)}</td>
+                <td className="px-4 py-3">{ETIQUETTES[p.statut] ?? p.statut}</td>
+                <td className="px-4 py-3">{libelle('tranche_budget', p.tranche_budget)}</td>
+                <td className="px-4 py-3">{libelle('blocage', p.blocage)}</td>
+                <td className="px-4 py-3">{libelle('niveau_trading', p.niveau_trading)}</td>
+                <td className="px-4 py-3 text-encre-doux">{dateCourte(p.created_at)}</td>
               </tr>
             ))}
           </tbody>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { Carte, LISTE } from '@/components/ui';
 import { dateHeure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
@@ -39,62 +40,74 @@ export default async function Page() {
   return (
     <div className="space-y-10">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Mes rendez-vous</h1>
+        <h1 className="text-3xl font-extrabold">Mes rendez-vous</h1>
         {sansCompteRendu > 0 && (
-          <p className="text-sm text-neutral-600">
+          <p className="text-encre-doux">
             {sansCompteRendu} audit{sansCompteRendu > 1 ? 's' : ''} sans issue consignée.
           </p>
         )}
       </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Passés</h2>
+        <h2 className="text-xl font-bold">Passés</h2>
         {passes.data?.length ? (
           <ul className="space-y-4">
             {passes.data.map((rdv) => (
-              <li key={rdv.id} className="space-y-3 rounded border p-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="font-medium">
-                    {rdv.leads ? (
-                      <Link href={`/formateur/clients/${rdv.leads.id}`} className="underline">
-                        {nom(rdv.leads)}
-                      </Link>
-                    ) : (
-                      'Réservation sans fiche prospect'
-                    )}
-                  </span>
-                  <span className="text-sm text-neutral-500">{dateHeure(rdv.debut)}</span>
-                </div>
-                <FormulaireIssue id={rdv.id} issue={rdv.issue} compteRendu={rdv.compte_rendu} />
+              <li key={rdv.id}>
+                <Carte className="space-y-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-3">
+                    <span className="font-semibold">
+                      {rdv.leads ? (
+                        <Link
+                          href={`/formateur/clients/${rdv.leads.id}`}
+                          className="text-accent hover:underline"
+                        >
+                          {nom(rdv.leads)}
+                        </Link>
+                      ) : (
+                        'Réservation sans fiche prospect'
+                      )}
+                    </span>
+                    <span className="text-sm text-encre-doux">{dateHeure(rdv.debut)}</span>
+                  </div>
+                  <FormulaireIssue id={rdv.id} issue={rdv.issue} compteRendu={rdv.compte_rendu} />
+                </Carte>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun audit passé.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun audit passé.</p>
+          </Carte>
         )}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">À venir</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">À venir</h2>
         {aVenir.data?.length ? (
-          <ul className="divide-y rounded border">
+          <ul className={LISTE}>
             {aVenir.data.map((rdv) => (
-              <li key={rdv.id} className="flex items-center justify-between gap-4 p-3 text-sm">
+              <li key={rdv.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 text-sm">
                 <span className="flex-1">
                   {rdv.leads ? (
-                    <Link href={`/formateur/clients/${rdv.leads.id}`} className="underline">
+                    <Link
+                      href={`/formateur/clients/${rdv.leads.id}`}
+                      className="font-medium text-accent hover:underline"
+                    >
                       {nom(rdv.leads)}
                     </Link>
                   ) : (
                     'Réservation sans fiche prospect'
                   )}
                 </span>
-                <span className="text-neutral-500">{dateHeure(rdv.debut)}</span>
+                <span className="text-encre-doux">{dateHeure(rdv.debut)}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun audit à venir.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun audit à venir.</p>
+          </Carte>
         )}
       </section>
     </div>

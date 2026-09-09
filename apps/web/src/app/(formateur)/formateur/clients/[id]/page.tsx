@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
 
+import { Carte, LISTE } from '@/components/ui';
 import { dateCourte, dateHeure } from '@/lib/format';
 import { libelle } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
@@ -99,24 +100,26 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return (
     <div className="space-y-10">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-3xl font-extrabold">
           {[lead.prenom, lead.nom].filter(Boolean).join(' ') || 'Sans nom'}
         </h1>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-encre-doux">
           {lead.email}
           {lead.telephone ? ` · ${lead.telephone}` : ''}
         </p>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-encre-doux">
           Arrivé via {lead.source} le {dateCourte(lead.created_at)}
         </p>
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Ce qu’il a répondu</h2>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-3 rounded border p-4 text-sm sm:grid-cols-4">
+        <h2 className="text-xl font-bold">Ce qu’il a répondu</h2>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-carte border border-filet bg-fond p-5 text-sm sm:grid-cols-4">
           {reponses.map(([titre, champ, valeur]) => (
             <div key={champ} className="space-y-0.5">
-              <dt className="text-xs uppercase tracking-wide text-neutral-500">{titre}</dt>
+              <dt className="text-xs font-semibold tracking-wide text-encre-faible uppercase">
+                {titre}
+              </dt>
               <dd>{libelle(champ, valeur)}</dd>
             </div>
           ))}
@@ -124,13 +127,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Accès en cours</h2>
+        <h2 className="text-xl font-bold">Accès en cours</h2>
         {inscriptions.data?.length ? (
-          <ul className="divide-y rounded border text-sm">
+          <ul className={`${LISTE} text-sm`}>
             {inscriptions.data.map((i) => (
               <li key={i.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3">
                 <span className="font-medium">{i.formations?.titre ?? 'Formation'}</span>
-                <span className="text-neutral-500">
+                <span className="text-encre-doux">
                   {i.formations?.modalite === 'individuel' ? 'Individuel' : 'Groupe'} · {i.statut} ·{' '}
                   {/* `null` veut dire illimité, jamais « pas de date » : c'est ce
                       qui donne aux formations leur accès à vie. */}
@@ -140,43 +143,47 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun accès ouvert — prospect avant achat.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun accès ouvert — prospect avant achat.</p>
+          </Carte>
         )}
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Rendez-vous</h2>
+        <h2 className="text-xl font-bold">Rendez-vous</h2>
         {rdv.data?.length ? (
           <ul className="space-y-2 text-sm">
             {rdv.data.map((r) => (
-              <li key={r.id} className="rounded border p-3">
+              <li key={r.id} className="rounded-carte border border-filet bg-fond p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span>{dateHeure(r.debut)}</span>
-                  <span className="text-neutral-500">{r.issue ?? r.statut}</span>
+                  <span className="text-encre-doux">{r.issue ?? r.statut}</span>
                 </div>
                 {r.compte_rendu && (
-                  <p className="mt-2 whitespace-pre-wrap text-neutral-700">{r.compte_rendu}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-encre-doux">{r.compte_rendu}</p>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun rendez-vous.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun rendez-vous.</p>
+          </Carte>
         )}
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Propositions</h2>
+        <h2 className="text-xl font-bold">Propositions</h2>
 
         {propositions.data?.length ? (
-          <ul className="divide-y rounded border text-sm">
+          <ul className={`${LISTE} text-sm`}>
             {propositions.data.map((p) => (
               <li key={p.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3">
                 <span className="flex-1">{p.formations?.titre ?? 'Formation'}</span>
-                <span className="tabular-nums text-neutral-600">
+                <span className="tabular-nums text-encre-doux">
                   {formaterMontant(p.montant_cents, p.devise)}
                 </span>
-                <span className="text-neutral-500">
+                <span className="text-encre-doux">
                   {p.statut}
                   {p.expire_le && p.statut === 'envoyee'
                     ? ` · expire le ${dateCourte(p.expire_le)}`
@@ -186,7 +193,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucune proposition émise.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucune proposition émise.</p>
+          </Carte>
         )}
 
         <FormulaireProposition
@@ -197,14 +206,16 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Notes de suivi</h2>
+        <h2 className="text-xl font-bold">Notes de suivi</h2>
         {notes.data?.length ? (
           <ul className="space-y-2 text-sm">
             {notes.data.map((n) => (
-              <li key={n.id} className="rounded border p-3">
+              <li key={n.id} className="rounded-carte border border-filet bg-fond p-4">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-xs uppercase tracking-wide text-neutral-500">{n.type}</span>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs font-semibold tracking-wide text-encre-faible uppercase">
+                    {n.type}
+                  </span>
+                  <span className="text-xs text-encre-doux">
                     {n.visible_client ? 'Visible par le client' : 'Interne'} ·{' '}
                     {dateCourte(n.created_at)}
                   </span>
@@ -214,7 +225,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucune note.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucune note.</p>
+          </Carte>
         )}
       </section>
     </div>

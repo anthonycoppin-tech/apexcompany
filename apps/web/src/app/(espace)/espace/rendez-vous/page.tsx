@@ -1,3 +1,4 @@
+import { Carte, LISTE } from '@/components/ui';
 import { dateHeure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
@@ -38,43 +39,49 @@ export default async function Page() {
   ]);
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">Mes rendez-vous</h1>
+    <div className="max-w-3xl space-y-8">
+      <h1 className="text-3xl font-extrabold">Mes rendez-vous</h1>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">À venir</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">À venir</h2>
         {aVenir.data?.length ? (
-          <ul className="divide-y rounded border text-sm">
+          <ul className={LISTE}>
             {aVenir.data.map((r) => (
-              <li key={r.id} className="flex items-baseline justify-between gap-3 p-3">
-                <span>{dateHeure(r.debut)}</span>
-                <span className="text-neutral-500">{ETATS[r.statut] ?? r.statut}</span>
+              <li key={r.id} className="flex flex-wrap items-baseline justify-between gap-3 p-4">
+                <span className="font-medium">{dateHeure(r.debut)}</span>
+                <span className="text-sm text-encre-doux">{ETATS[r.statut] ?? r.statut}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">
-            Aucun rendez-vous à venir. Après ton achat, les séances s’organisent directement avec
-            ton formateur.
-          </p>
+          <Carte>
+            <p className="leading-relaxed text-encre-doux">
+              Aucun rendez-vous à venir. Après ton achat, les séances s’organisent directement avec
+              ton formateur.
+            </p>
+          </Carte>
         )}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Passés</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">Passés</h2>
         {passes.data?.length ? (
-          <ul className="divide-y rounded border text-sm">
+          <ul className={LISTE}>
             {passes.data.map((r) => (
-              <li key={r.id} className="flex items-baseline justify-between gap-3 p-3">
-                <span>{dateHeure(r.debut)}</span>
+              <li key={r.id} className="flex flex-wrap items-baseline justify-between gap-3 p-4">
+                <span className="text-encre-doux">{dateHeure(r.debut)}</span>
                 {/* Le compte rendu du formateur n'apparaît pas ici : c'est une
                     note de travail interne, pas un retour rédigé pour le client. */}
-                <span className="text-neutral-500">{ETATS[r.issue ?? r.statut] ?? r.statut}</span>
+                <span className="text-sm text-encre-doux">
+                  {ETATS[r.issue ?? r.statut] ?? r.statut}
+                </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun rendez-vous passé.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun rendez-vous passé.</p>
+          </Carte>
         )}
       </section>
     </div>

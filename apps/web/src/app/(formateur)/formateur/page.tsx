@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { Carte, LISTE } from '@/components/ui';
 import { bornesDuJour, dateHeure, heure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
@@ -48,19 +49,22 @@ export default async function Page() {
 
   return (
     <div className="space-y-10">
-      <h1 className="text-2xl font-semibold">Tableau de bord</h1>
+      <h1 className="text-3xl font-extrabold">Tableau de bord</h1>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Aujourd’hui</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">Aujourd’hui</h2>
         {aujourdhui.data?.length ? (
-          <ul className="divide-y rounded border">
+          <ul className={LISTE}>
             {aujourdhui.data.map((rdv) => (
-              <li key={rdv.id} className="flex items-center justify-between gap-4 p-3 text-sm">
-                <span className="tabular-nums text-neutral-500">{heure(rdv.debut)}</span>
+              <li key={rdv.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 text-sm">
+                <span className="font-medium tabular-nums">{heure(rdv.debut)}</span>
                 <span className="flex-1">{nom(rdv.leads)}</span>
-                <span className="text-neutral-500">{rdv.issue ?? rdv.statut}</span>
+                <span className="text-encre-doux">{rdv.issue ?? rdv.statut}</span>
                 {rdv.leads && (
-                  <Link href={`/formateur/clients/${rdv.leads.id}`} className="underline">
+                  <Link
+                    href={`/formateur/clients/${rdv.leads.id}`}
+                    className="font-semibold text-accent hover:underline"
+                  >
                     Préparer
                   </Link>
                 )}
@@ -68,64 +72,77 @@ export default async function Page() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun rendez-vous aujourd’hui.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun rendez-vous aujourd’hui.</p>
+          </Carte>
         )}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Prochains audits</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">Prochains audits</h2>
         {aVenir.data?.length ? (
-          <ul className="divide-y rounded border">
+          <ul className={LISTE}>
             {aVenir.data.map((rdv) => (
-              <li key={rdv.id} className="flex items-center justify-between gap-4 p-3 text-sm">
-                <span className="text-neutral-500">{dateHeure(rdv.debut)}</span>
+              <li key={rdv.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 text-sm">
+                <span className="text-encre-doux">{dateHeure(rdv.debut)}</span>
                 <span className="flex-1">{nom(rdv.leads)}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun audit à venir.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun audit à venir.</p>
+          </Carte>
         )}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Propositions en attente</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">Propositions en attente</h2>
         {propositions.data?.length ? (
-          <ul className="divide-y rounded border">
+          <ul className={LISTE}>
             {propositions.data.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-4 p-3 text-sm">
+              <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 text-sm">
                 <span className="flex-1">{p.formations?.titre ?? 'Formation'}</span>
                 {/* Une proposition expire : c'est un levier de vente, et la date
                     est le premier chiffre à voir de cet écran. */}
-                <span className="text-neutral-500">
+                <span className="text-encre-doux">
                   {p.expire_le ? `expire le ${dateHeure(p.expire_le)}` : 'sans échéance'}
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucune proposition en attente de réponse.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucune proposition en attente de réponse.</p>
+          </Carte>
         )}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Prospects à rappeler</h2>
-        <p className="text-sm text-neutral-500">
-          Ils ont rempli le formulaire sans réserver de créneau.
-        </p>
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold">Prospects à rappeler</h2>
+          <p className="text-sm text-encre-doux">
+            Ils ont rempli le formulaire sans réserver de créneau.
+          </p>
+        </div>
         {prospects.data?.length ? (
-          <ul className="divide-y rounded border">
+          <ul className={LISTE}>
             {prospects.data.map((l) => (
-              <li key={l.id} className="flex items-center justify-between gap-4 p-3 text-sm">
-                <Link href={`/formateur/clients/${l.id}`} className="flex-1 underline">
+              <li key={l.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 text-sm">
+                <Link
+                  href={`/formateur/clients/${l.id}`}
+                  className="flex-1 font-medium text-accent hover:underline"
+                >
                   {nom(l)}
                 </Link>
-                <span className="text-neutral-500">{dateHeure(l.created_at)}</span>
+                <span className="text-encre-doux">{dateHeure(l.created_at)}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun prospect en attente.</p>
+          <Carte>
+            <p className="text-encre-doux">Aucun prospect en attente.</p>
+          </Carte>
         )}
       </section>
     </div>

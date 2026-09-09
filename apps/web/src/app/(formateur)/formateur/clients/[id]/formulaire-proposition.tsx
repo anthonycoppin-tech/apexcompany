@@ -4,6 +4,8 @@ import { useActionState, useState } from 'react';
 
 import { formaterMontant } from '@apex/db';
 
+import { BoutonAction, CHAMP } from '@/components/ui';
+
 import { emettreProposition, type EtatProposition } from './actions';
 
 const ETAT_INITIAL: EtatProposition = { erreur: null, ok: false };
@@ -52,7 +54,7 @@ export function FormulaireProposition({
 
   if (sansCompte) {
     return (
-      <p className="rounded border border-dashed p-3 text-sm text-neutral-600">
+      <p className="rounded-douce border border-dashed border-filet-fort bg-surface p-4 text-sm leading-relaxed text-encre-doux">
         Cette personne n’a pas de compte : une proposition ne pourrait pas lui être présentée. Elle
         en obtient un en passant par le formulaire de qualification.
       </p>
@@ -60,29 +62,33 @@ export function FormulaireProposition({
   }
 
   return (
-    <form action={action} className="space-y-4 rounded border p-4">
+    <form action={action} className="space-y-5 rounded-carte border border-filet bg-fond p-5">
       <input type="hidden" name="lead_id" value={leadId} />
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Produit proposé</legend>
+        <legend className="mb-2 font-medium">Produit proposé</legend>
         {formations.map((f) => (
-          <label key={f.id} className="flex items-baseline gap-2 text-sm">
+          <label
+            key={f.id}
+            className="flex cursor-pointer items-baseline gap-3 rounded-douce border border-filet px-4 py-3 text-sm transition-colors hover:bg-surface has-checked:border-accent has-checked:bg-accent-doux"
+          >
             <input
               type="radio"
               name="formation_id"
               value={f.id}
               required
               onChange={() => setChoisieId(f.id)}
+              className="accent-accent"
             />
             <span className="flex-1">
               {f.titre}
-              <span className="text-neutral-500">
+              <span className="text-encre-doux">
                 {' '}
                 · {TYPES[f.type_produit] ?? f.type_produit} ·{' '}
                 {f.modalite === 'individuel' ? 'individuel' : 'groupe'}
               </span>
             </span>
-            <span className="tabular-nums text-neutral-600">
+            <span className="font-medium tabular-nums">
               {formaterMontant(f.prix_cents, f.devise)}
             </span>
           </label>
@@ -90,8 +96,8 @@ export function FormulaireProposition({
       </fieldset>
 
       <div className="flex flex-wrap items-end gap-6">
-        <label className="space-y-1 text-sm">
-          <span className="block font-medium">Montant proposé</span>
+        <label className="space-y-1.5">
+          <span className="block text-sm font-medium">Montant proposé</span>
           <span className="flex items-center gap-2">
             <input
               type="text"
@@ -100,14 +106,14 @@ export function FormulaireProposition({
               value={montant}
               onChange={(e) => setMontant(e.target.value)}
               placeholder={choisie ? (choisie.prix_cents / 100).toString() : 'tarif catalogue'}
-              className="w-28 rounded border p-1.5 text-sm tabular-nums"
+              className={`${CHAMP} w-32 tabular-nums`}
             />
             €
           </span>
           {/* Le prix catalogue est un défaut, pas une limite : Franck décide
               seul du prix qu'il propose. Ce qui remplace le plafond, c'est la
               trace — l'écart part dans l'historique du prospect. */}
-          <span className="block text-xs text-neutral-500">
+          <span className="block text-xs text-encre-faible">
             {choisie
               ? `Tarif catalogue : ${formaterMontant(choisie.prix_cents, choisie.devise)}. Laisser vide pour l’appliquer.`
               : 'Choisis d’abord un produit.'}
@@ -122,29 +128,29 @@ export function FormulaireProposition({
             defaultValue={7}
             min={1}
             max={90}
-            className="w-16 rounded border p-1 text-sm tabular-nums"
+            className={`${CHAMP} w-20 tabular-nums`}
           />
           jours
         </label>
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={enCours}
-          className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-        >
+      <div className="flex flex-wrap items-center gap-4">
+        <BoutonAction type="submit" disabled={enCours}>
           {enCours ? 'Envoi…' : 'Émettre la proposition'}
-        </button>
+        </BoutonAction>
         {etat.ok && (
-          <span className="text-sm text-green-700">
+          <span role="status" className="text-sm font-medium text-succes">
             Proposition envoyée. Elle apparaît dans son espace.
           </span>
         )}
-        {etat.erreur && <span className="text-sm text-red-600">{etat.erreur}</span>}
+        {etat.erreur && (
+          <span role="alert" className="text-sm text-alerte">
+            {etat.erreur}
+          </span>
+        )}
       </div>
 
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-encre-faible">
         La nouvelle proposition périme celle qui était en cours : une seule est valable à la fois.
       </p>
     </form>

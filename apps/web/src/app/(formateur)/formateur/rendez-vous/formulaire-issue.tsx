@@ -2,6 +2,8 @@
 
 import { useActionState } from 'react';
 
+import { BoutonAction, CHAMP } from '@/components/ui';
+
 import { consignerIssue, type EtatCompteRendu } from './actions';
 
 const ETAT_INITIAL: EtatCompteRendu = { erreur: null, ok: false };
@@ -32,13 +34,22 @@ export function FormulaireIssue({
   const [etat, action, enCours] = useActionState(consignerIssue, ETAT_INITIAL);
 
   return (
-    <form action={action} className="space-y-3 border-t pt-3">
+    <form action={action} className="space-y-4 border-t border-filet pt-4">
       <input type="hidden" name="id" value={id} />
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-2">
         {ISSUES.map((o) => (
-          <label key={o.valeur} className="flex items-center gap-2 text-sm">
-            <input type="radio" name="issue" value={o.valeur} defaultChecked={issue === o.valeur} />
+          <label
+            key={o.valeur}
+            className="flex cursor-pointer items-center gap-2 rounded-douce border border-filet px-3 py-2 text-sm transition-colors hover:bg-surface has-checked:border-accent has-checked:bg-accent-doux"
+          >
+            <input
+              type="radio"
+              name="issue"
+              value={o.valeur}
+              defaultChecked={issue === o.valeur}
+              className="accent-accent"
+            />
             {o.libelle}
           </label>
         ))}
@@ -49,19 +60,23 @@ export function FormulaireIssue({
         rows={3}
         defaultValue={compteRendu ?? ''}
         placeholder="Ce qui s’est dit, ce qui a été proposé, ce qui reste à faire."
-        className="w-full rounded border p-2 text-sm"
+        className={CHAMP}
       />
 
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={enCours}
-          className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-        >
+      <div className="flex flex-wrap items-center gap-4">
+        <BoutonAction type="submit" disabled={enCours}>
           {enCours ? 'Enregistrement…' : 'Enregistrer'}
-        </button>
-        {etat.ok && <span className="text-sm text-green-700">Enregistré.</span>}
-        {etat.erreur && <span className="text-sm text-red-600">{etat.erreur}</span>}
+        </BoutonAction>
+        {etat.ok && (
+          <span role="status" className="text-sm font-medium text-succes">
+            Enregistré.
+          </span>
+        )}
+        {etat.erreur && (
+          <span role="alert" className="text-sm text-alerte">
+            {etat.erreur}
+          </span>
+        )}
       </div>
     </form>
   );

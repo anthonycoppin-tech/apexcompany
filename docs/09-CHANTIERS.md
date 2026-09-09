@@ -22,18 +22,18 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                                       | État  | Qui              | Depuis  |
-| ----------------------------------------------------------- | ----- | ---------------- | ------- |
-| `(espace)` et `(formateur)` au design system                | pris  | Anthony + Claude | 9 sept. |
-| Écrans du contenu éditorial (back-office + pages publiques) | libre | —                | —       |
+| Sujet                                                       | État  | Qui | Depuis |
+| ----------------------------------------------------------- | ----- | --- | ------ |
+| Écrans du contenu éditorial (back-office + pages publiques) | libre | —   | —      |
 
 ## Fait
 
-| Sujet                            | Quand   | Notes                                                                                                                                        |
-| -------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Référencement du site public     | 9 sept. | `sitemap.xml`, `robots.txt`, Open Graph, données structurées. `robots.txt` interdit tout tant que `NEXT_PUBLIC_SITE_URL` n'est pas en HTTPS. |
-| Tunnel d'entrée au design system | 9 sept. | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.         |
-| Contenu éditorial — schéma       | 9 sept. | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. **Migration pas encore poussée.**                          |
+| Sujet                                        | Quand   | Notes                                                                                                                                                                                                                                                      |
+| -------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Référencement du site public                 | 9 sept. | `sitemap.xml`, `robots.txt`, Open Graph, données structurées. `robots.txt` interdit tout tant que `NEXT_PUBLIC_SITE_URL` n'est pas en HTTPS.                                                                                                               |
+| Tunnel d'entrée au design system             | 9 sept. | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.                                                                                                                       |
+| Contenu éditorial — schéma                   | 9 sept. | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. **Migration pas encore poussée.**                                                                                                                                        |
+| `(espace)` et `(formateur)` au design system | 9 sept. | Dix-huit fichiers sortis de Tailwind brut. Navigation avec état actif, couleur Discord passée en token. **Non vérifié à l'écran** : ces pages sont derrière une garde de rôle, et la base est injoignable depuis l'environnement où le travail a été fait. |
 
 ## Libre, et rien ne l'empêche
 

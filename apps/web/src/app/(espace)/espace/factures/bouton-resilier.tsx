@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from 'react';
 
+import { BoutonAction } from '@/components/ui';
+
 import { resilierAbonnement, type EtatResiliation } from './actions';
 
 const ETAT_INITIAL: EtatResiliation = { erreur: null, ok: false };
@@ -26,7 +28,7 @@ export function BoutonResilier({
 
   if (etat.ok) {
     return (
-      <p className="text-sm text-neutral-600">
+      <p role="status" className="text-sm text-encre-doux">
         Résiliation enregistrée. Ton accès reste ouvert jusqu’au {finDePeriode}.
       </p>
     );
@@ -37,7 +39,7 @@ export function BoutonResilier({
       <button
         type="button"
         onClick={() => setConfirme(true)}
-        className="text-sm text-neutral-600 underline"
+        className="text-sm text-encre-doux underline hover:text-encre"
       >
         Résilier mon abonnement
       </button>
@@ -45,25 +47,31 @@ export function BoutonResilier({
   }
 
   return (
-    <form action={action} className="space-y-2">
+    <form action={action} className="space-y-3 border-t border-filet pt-4">
       <input type="hidden" name="subscription_id" value={subscriptionId} />
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm leading-relaxed text-encre-doux">
         Ton accès reste ouvert jusqu’au {finDePeriode}, puis il se ferme. Aucun prélèvement ne sera
         fait ensuite.
       </p>
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={enCours}
-          className="rounded border px-3 py-1.5 text-sm disabled:opacity-50"
-        >
+      <div className="flex flex-wrap items-center gap-4">
+        {/* La confirmation reste en bouton secondaire : on n'encourage pas la
+            résiliation, mais on ne la déguise pas non plus en lien discret. */}
+        <BoutonAction type="submit" variante="secondaire" disabled={enCours}>
           {enCours ? 'Enregistrement…' : 'Confirmer la résiliation'}
-        </button>
-        <button type="button" onClick={() => setConfirme(false)} className="text-sm underline">
+        </BoutonAction>
+        <button
+          type="button"
+          onClick={() => setConfirme(false)}
+          className="text-sm text-encre-doux underline hover:text-encre"
+        >
           Annuler
         </button>
       </div>
-      {etat.erreur && <p className="text-sm text-red-600">{etat.erreur}</p>}
+      {etat.erreur && (
+        <p role="alert" className="text-sm text-alerte">
+          {etat.erreur}
+        </p>
+      )}
     </form>
   );
 }

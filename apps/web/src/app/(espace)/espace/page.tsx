@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { Carte, LISTE } from '@/components/ui';
 import { dateCourte, dateHeure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
@@ -48,36 +49,41 @@ export default async function Page({
   return (
     <div className="space-y-8">
       {paiement === 'ok' && (
-        <p className="rounded border p-3 text-sm">
+        <p className="rounded-douce border border-accent bg-accent-doux p-4 text-sm font-medium text-accent">
           Paiement reçu. Ton accès s’ouvre sur Discord dans la minute qui suit.
         </p>
       )}
 
-      <h1 className="text-2xl font-semibold">Mon espace</h1>
+      <h1 className="text-3xl font-extrabold">Mon espace</h1>
 
+      {/* La proposition passe avant tout le reste : c'est la seule chose de
+          cette page qui attende une décision, et elle expire. */}
       {proposition.data && (
-        <section className="space-y-2 rounded border p-4">
-          <h2 className="font-semibold">Une proposition t’attend</h2>
-          <p className="text-sm text-neutral-600">
+        <Carte className="space-y-3 border-accent bg-accent-doux">
+          <h2 className="text-lg font-bold">Une proposition t’attend</h2>
+          <p className="text-encre-doux">
             {proposition.data.formations?.titre}
             {proposition.data.expire_le
               ? ` — valable jusqu’au ${dateCourte(proposition.data.expire_le)}`
               : ''}
           </p>
-          <Link href={`/espace/propositions/${proposition.data.id}`} className="text-sm underline">
-            Voir la proposition
+          <Link
+            href={`/espace/propositions/${proposition.data.id}`}
+            className="inline-block text-sm font-semibold text-accent hover:underline"
+          >
+            Voir la proposition →
           </Link>
-        </section>
+        </Carte>
       )}
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Mes accès</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">Mes accès</h2>
         {inscriptions.data?.length ? (
-          <ul className="divide-y rounded border text-sm">
+          <ul className={LISTE}>
             {inscriptions.data.map((i) => (
-              <li key={i.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3">
+              <li key={i.id} className="flex flex-wrap items-baseline justify-between gap-3 p-4">
                 <span className="font-medium">{i.formations?.titre ?? 'Formation'}</span>
-                <span className="text-neutral-500">
+                <span className="text-sm text-encre-doux">
                   {/* Une date nulle veut dire illimité, jamais « inconnue ». */}
                   {i.date_fin_acces ? `jusqu’au ${dateCourte(i.date_fin_acces)}` : 'accès illimité'}
                 </span>
@@ -85,41 +91,49 @@ export default async function Page({
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">
-            Aucun accès ouvert pour l’instant. Il s’ouvre au paiement.
-          </p>
+          <Carte>
+            <p className="text-encre-doux">
+              Aucun accès ouvert pour l’instant. Il s’ouvre au paiement.
+            </p>
+          </Carte>
         )}
       </section>
 
-      <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Mon prochain rendez-vous</h2>
-        {rdv.data ? (
-          <p className="text-sm">{dateHeure(rdv.data.debut)}</p>
-        ) : (
-          <p className="text-sm text-neutral-500">
-            Aucun rendez-vous à venir. Les séances qui suivent ton achat s’organisent directement
-            avec ton formateur, sur Discord.
-          </p>
-        )}
-      </section>
+      <div className="grid gap-6 md:grid-cols-2">
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold">Mon prochain rendez-vous</h2>
+          <Carte>
+            {rdv.data ? (
+              <p className="font-medium">{dateHeure(rdv.data.debut)}</p>
+            ) : (
+              <p className="leading-relaxed text-encre-doux">
+                Aucun rendez-vous à venir. Les séances qui suivent ton achat s’organisent
+                directement avec ton formateur, sur Discord.
+              </p>
+            )}
+          </Carte>
+        </section>
 
-      <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Discord</h2>
-        {lien.data ? (
-          <p className="text-sm text-neutral-600">
-            Compte connecté
-            {lien.data.discord_username ? ` : ${lien.data.discord_username}` : ''}. Tout le contenu
-            s’y trouve.
-          </p>
-        ) : (
-          <p className="text-sm">
-            <Link href="/espace/communaute" className="underline">
-              Connecte ton compte Discord
-            </Link>{' '}
-            — sans lui, ton accès ne peut pas être attribué.
-          </p>
-        )}
-      </section>
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold">Discord</h2>
+          <Carte>
+            {lien.data ? (
+              <p className="leading-relaxed text-encre-doux">
+                Compte connecté
+                {lien.data.discord_username ? ` : ${lien.data.discord_username}` : ''}. Tout le
+                contenu s’y trouve.
+              </p>
+            ) : (
+              <p className="leading-relaxed">
+                <Link href="/espace/communaute" className="font-semibold text-accent underline">
+                  Connecte ton compte Discord
+                </Link>{' '}
+                — sans lui, ton accès ne peut pas être attribué.
+              </p>
+            )}
+          </Carte>
+        </section>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { NavigationEspace } from '@/components/navigation-espace';
+import { Conteneur } from '@/components/ui';
 import { requireRole } from '@/lib/auth/roles';
 
 const LIENS = [
@@ -34,18 +36,25 @@ export default async function FormateurLayout({ children }: { children: ReactNod
   await requireRole(['formateur']);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b p-4">
-        <span className="font-semibold">Espace formateur</span>
-        <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          {LIENS.map((l) => (
-            <Link key={l.href} href={l.href} className="text-neutral-600 hover:underline">
-              {l.libelle}
-            </Link>
-          ))}
-        </nav>
+    <div className="flex min-h-screen flex-col bg-surface">
+      <header className="border-b border-filet bg-fond">
+        <Conteneur className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-4">
+          <Link href="/formateur" className="flex items-baseline gap-2">
+            <span className="font-titre text-lg font-extrabold tracking-tight">
+              Apex<span className="text-accent">Company</span>
+            </span>
+            {/* La zone est nommée : un formateur qui a aussi un compte client
+                doit savoir d'un coup d'œil où il se trouve. */}
+            <span className="text-sm text-encre-doux">formateur</span>
+          </Link>
+
+          <NavigationEspace liens={LIENS} />
+        </Conteneur>
       </header>
-      <main className="flex-1 p-6">{children}</main>
+
+      <main className="flex-1">
+        <Conteneur className="py-10">{children}</Conteneur>
+      </main>
     </div>
   );
 }

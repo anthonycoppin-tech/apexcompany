@@ -45,6 +45,18 @@
   --color-succes: #1f6f4a;
   --color-alerte: #a84420;
 
+  /* ── Marque tierce ─────────────────────────────────────────────────────
+   * La couleur officielle de Discord. Elle est ici, et pas en dur dans le
+   * bouton, pour que la règle « aucune couleur littérale dans une page »
+   * reste vraie sans exception à retenir.
+   *
+   * En revanche, elle ne bouge pas avec la charte : un bouton « Connecter mon
+   * Discord » se reconnaît à sa couleur, et la repeindre aux couleurs du site
+   * lui ferait perdre ce que sa présence a d'évident.
+   */
+  --color-discord: #5865f2;
+  --color-discord-fort: #4752c4;
+
   /* ── Typographie ───────────────────────────────────────────────────────
    * Deux familles : une pour les titres, une pour le texte courant. Les
    * variables sont posées par next/font dans le layout racine, ce qui évite

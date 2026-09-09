@@ -41,15 +41,21 @@ export function BoutonLierDiscord({ libelle = 'Connecter mon compte Discord' }) 
 
   return (
     <div className="space-y-2">
+      {/* Aux couleurs de Discord, et pas à celles du site : c'est ce qui rend le
+          bouton immédiatement identifiable. Le token vit dans `globals.css`. */}
       <button
         type="button"
         onClick={lier}
         disabled={enCours}
-        className="rounded bg-[#5865F2] px-4 py-2 text-sm text-white disabled:opacity-50"
+        className="inline-flex items-center justify-center rounded-douce bg-discord px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-discord-fort disabled:cursor-not-allowed disabled:opacity-50"
       >
         {enCours ? 'Redirection…' : libelle}
       </button>
-      {erreur && <p className="text-sm text-red-600">{erreur}</p>}
+      {erreur && (
+        <p role="alert" className="text-sm text-alerte">
+          {erreur}
+        </p>
+      )}
     </div>
   );
 }

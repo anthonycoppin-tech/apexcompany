@@ -2,6 +2,8 @@
 
 import { useActionState } from 'react';
 
+import { BoutonAction, CHAMP } from '@/components/ui';
+
 import { mettreAJourCompte, type EtatCompte } from './actions';
 
 const ETAT_INITIAL: EtatCompte = { erreur: null, ok: false };
@@ -20,54 +22,53 @@ export function FormulaireCompte({
   const [etat, action, enCours] = useActionState(mettreAJourCompte, ETAT_INITIAL);
 
   return (
-    <form action={action} className="max-w-sm space-y-4">
-      <label className="block space-y-1 text-sm">
-        <span className="font-medium">Prénom</span>
-        <input
-          name="prenom"
-          defaultValue={prenom ?? ''}
-          required
-          className="w-full rounded border p-2"
-        />
+    <form action={action} className="max-w-md space-y-5">
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium">Prénom</span>
+        <input name="prenom" defaultValue={prenom ?? ''} required className={CHAMP} />
       </label>
 
-      <label className="block space-y-1 text-sm">
-        <span className="font-medium">Nom</span>
-        <input name="nom" defaultValue={nom ?? ''} className="w-full rounded border p-2" />
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium">Nom</span>
+        <input name="nom" defaultValue={nom ?? ''} className={CHAMP} />
         {/* Le formulaire d'entrée ne le demande pas ; la facturation, si. */}
-        <span className="block text-xs text-neutral-500">
+        <span className="block text-xs text-encre-faible">
           Nécessaire pour établir tes factures.
         </span>
       </label>
 
-      <label className="block space-y-1 text-sm">
-        <span className="font-medium">Téléphone</span>
-        <input
-          name="telephone"
-          type="tel"
-          defaultValue={telephone ?? ''}
-          className="w-full rounded border p-2"
-        />
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium">Téléphone</span>
+        <input name="telephone" type="tel" defaultValue={telephone ?? ''} className={CHAMP} />
       </label>
 
-      <div className="space-y-1 text-sm">
-        <span className="font-medium">Email</span>
-        <p className="rounded border bg-neutral-50 p-2 text-neutral-600">{email}</p>
-        <span className="block text-xs text-neutral-500">
+      <div className="space-y-1.5">
+        <span className="text-sm font-medium">Email</span>
+        <p className="rounded-douce border border-filet bg-surface px-3 py-2 text-sm text-encre-doux">
+          {email}
+        </p>
+        <span className="block text-xs text-encre-faible">
           L’email porte l’identité de ton compte : écris-nous pour le changer.
         </span>
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={enCours}
-          className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-        >
+      <div className="flex flex-wrap items-center gap-4">
+        <BoutonAction type="submit" disabled={enCours}>
           {enCours ? 'Enregistrement…' : 'Enregistrer'}
-        </button>
-        {etat.ok && <span className="text-sm text-green-700">Enregistré.</span>}
-        {etat.erreur && <span className="text-sm text-red-600">{etat.erreur}</span>}
+        </BoutonAction>
+        {/* `role="status"` pour la confirmation, `role="alert"` pour l'échec :
+            sans eux, un lecteur d'écran ne signale ni l'un ni l'autre et on
+            reste devant un formulaire qui n'a l'air de rien avoir fait. */}
+        {etat.ok && (
+          <span role="status" className="text-sm font-medium text-succes">
+            Enregistré.
+          </span>
+        )}
+        {etat.erreur && (
+          <span role="alert" className="text-sm text-alerte">
+            {etat.erreur}
+          </span>
+        )}
       </div>
     </form>
   );
