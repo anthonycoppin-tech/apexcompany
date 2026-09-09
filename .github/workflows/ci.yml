@@ -13,7 +13,7 @@ jobs:
   # ───────────────────────────────────────────────────────────────────────────
   # Le job qui compte. Il rejoue les migrations sur une base vierge, charge le
   # seed, et exécute les tests de politiques RLS. Une fuite de cloisonnement
-  # entre coachs ou un accès financier ouvert casse la CI ici, avant la revue.
+  # entre formateurs ou un accès financier ouvert casse la CI ici, avant la revue.
   # ───────────────────────────────────────────────────────────────────────────
   database:
     name: Migrations et politiques RLS
@@ -57,7 +57,7 @@ jobs:
 
           REPONSE=$(curl -s -w "\n%{http_code}" -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
             -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" \
-            -d '{"email":"coach.a@apex.test","password":"password123"}')
+            -d '{"email":"formateur.a@apex.test","password":"password123"}')
 
           CODE=$(echo "$REPONSE" | tail -1)
           CORPS=$(echo "$REPONSE" | sed '$d')
