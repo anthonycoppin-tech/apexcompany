@@ -22,9 +22,10 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                                       | État  | Qui | Depuis |
-| ----------------------------------------------------------- | ----- | --- | ------ |
-| Écrans du contenu éditorial (back-office + pages publiques) | libre | —   | —      |
+| Sujet                                                       | État  | Qui              | Depuis  |
+| ----------------------------------------------------------- | ----- | ---------------- | ------- |
+| `(espace)` et `(formateur)` au design system                | pris  | Anthony + Claude | 9 sept. |
+| Écrans du contenu éditorial (back-office + pages publiques) | libre | —                | —       |
 
 ## Fait
 
@@ -39,11 +40,10 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                                        | Pourquoi ça vaut le coup                                                                                                                                                                                       |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `(espace)` et `(formateur)` au design system | Une vingtaine de fichiers encore en Tailwind brut (`text-neutral-600`, boutons noirs), alors que `CLAUDE.md` interdit les couleurs littérales. Ce sont les écrans que voient les clients qui ont payé.         |
-| Écrans du contenu éditorial                  | Dépend de `db:push` + `db:types:linked` — voir « Bloqué » ci-dessous. Le schéma, lui, est prêt.                                                                                                                |
-| Chiffres de l'accueil                        | Codés en dur avec un avertissement dans le code : « à faire valider et à dater avant la mise en ligne ». Soit ils passent en base comme le reste du contenu, soit ils sont datés et sourcés, soit ils sautent. |
+| Sujet                       | Pourquoi ça vaut le coup                                                                                                                                                                                       |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Écrans du contenu éditorial | Dépend de `db:push` + `db:types:linked` — voir « Bloqué » ci-dessous. Le schéma, lui, est prêt.                                                                                                                |
+| Chiffres de l'accueil       | Codés en dur avec un avertissement dans le code : « à faire valider et à dater avant la mise en ligne ». Soit ils passent en base comme le reste du contenu, soit ils sont datés et sourcés, soit ils sautent. |
 
 ## Bloqué, et par quoi
 
