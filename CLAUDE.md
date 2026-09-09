@@ -44,6 +44,31 @@ retirer ce bloc et passer la ligne correspondante de `09-CHANTIERS.md` en `fait`
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
+## Point d'étape — 9 septembre 2026
+
+Ce qui a changé depuis la veille. **Prime sur le point d'étape du 8 septembre ci-dessous**,
+qui reste vrai pour tout ce que celui-ci ne contredit pas.
+
+- **La CI de `main` était rouge depuis le renommage `coach` → `formateur`**, et ça n'avait
+  été vu par personne : l'étape de connexion réelle demandait `coach.a@apex.test`, absent du
+  seed depuis. Réparée. Elle est verte, et le compte du seed est `formateur.a@apex.test`.
+- **`npm run db:check` : 78 vérifications, 0 échec. pgTAP : 4 fichiers, 78 tests, 0 échec.**
+- **Le référencement du site public est fait** — et `robots.txt` **interdit toute
+  indexation** tant que `NEXT_PUBLIC_SITE_URL` n'est pas une adresse HTTPS. C'est voulu, et
+  c'est la première chose qui surprendra qui déploie sans l'avoir lu (`lib/site.ts`).
+- **Le tunnel, l'espace client et l'espace formateur sont passés au design system.** Plus
+  aucune couleur littérale dans `(public)`, `(espace)`, `(formateur)` ni `components`. Les
+  écrans connectés n'ont cependant **jamais été vus** : ils sont derrière une garde de rôle
+  et personne n'a encore ouvert de session dessus.
+- **Trois garde-fous nouveaux, tous de la même famille** — rendre l'état dangereux
+  impossible plutôt que de compter sur la vigilance : pas d'indexation sans vrai domaine, pas
+  de témoignage publié sans consentement enregistré, pas de chiffre affiché sans source ni
+  date. Les quatre chiffres de l'accueil ont donc disparu de la page en attendant le client.
+- **`docs/09-CHANTIERS.md` dit qui travaille sur quoi**, et remplace le découpage par couche.
+- **Git n'est plus « propre » au sens du 8 septembre** : la branche
+  `claude/mobile-project-work-c0k1hb` existe encore sur le distant. Elle est entièrement
+  fusionnée dans `main` et peut être supprimée sans regret.
+
 ## Point d'étape — 8 septembre 2026
 
 Écrit pour que quiconque ouvre une session Claude sur ce dépôt reparte du même état, sans
@@ -61,10 +86,10 @@ de compte et session → liaison Discord → prise de rendez-vous (webhook Cal.c
 client et émission de proposition côté formateur → paiement Stripe → ouverture de l'accès en
 une transaction (`traiter_paiement()`) → renouvellement d'abonnement → révocation automatique
 le lendemain de la fin d'accès. Le site public (accueil, catalogue, fiches produit, FAQ,
-équipe, contact) est construit et branché sur le vrai catalogue. Le back-office est
-**commencé** : garde, navigation, tableau de bord — ses autres écrans (CRM, propositions,
-abonnements, transactions, factures, litiges, comptes, logs, audit, paramètres) restent des
-placeholders. Détail phase par phase dans `État d'avancement` ci-dessous.
+équipe, contact) est construit et branché sur le vrai catalogue. Le back-office est écrit
+lui aussi — CRM, propositions, abonnements, transactions, factures, remboursements, litiges,
+comptes, audit, paramètres, catalogue —, `/admin/emails` restant le seul placeholder.
+Détail phase par phase dans `État d'avancement` ci-dessous, qui fait foi.
 
 **Rien de tout ça n'a jamais tourné contre les vrais services** : ni serveur Discord, ni
 compte Cal.com, ni clés Stripe, ni clé serveur Supabase (`SUPABASE_SERVICE_ROLE_KEY` est vide
@@ -94,9 +119,9 @@ Restent ouverts : l'hébergement des vidéos exclusives d'un des deux abonnement
 de vente — quelle société vend, et sous quel régime de TVA et de droit de la consommation,
 sachant que le vendeur est à Dubaï et les clients dans l'Union (conseil juridique).
 
-**Git est propre** : tout est mergé sur `main`, aucune branche locale ni distante en attente.
-Si tu vois des branches `a/*` ou `b/*` qui traînent en local, elles datent d'avant un nettoyage
-et peuvent être supprimées sans regret après vérification qu'elles sont bien mergées.
+**Git est propre** : tout est mergé sur `main`. Si tu vois des branches `a/*`, `b/*` ou
+`claude/*` qui traînent, elles sont fusionnées et peuvent être supprimées sans regret après
+vérification.
 
 **Un renommage de routes touche le périmètre du développeur B** (`07-REPARTITION.md`) et a été
 fait pendant son absence, avec son accord obtenu après coup : `/offres` → `/formations`,
@@ -258,9 +283,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
       vérifié sur le projet Supabase hébergé (`ovlafpgmrwttxstodqxi`). Cette base est
       **partagée avec l'autre développeur** — toujours prévenir avant `npm run db:push`.
 - [~] Scaffold transverse : Next.js, route groups, clients Supabase, gardes de rôle —
-  vérifié avec de vraies sessions, et remis à l'arborescence de la révision 3. Chaque page
-  reste un placeholder. Les gardes de layout n'ont **pas** été revérifiées avec de vraies
-  sessions depuis le resserrage de `/admin` et la création de `(formateur)` : à faire.
+  vérifié avec de vraies sessions, et remis à l'arborescence de la révision 3. **Les pages ne
+  sont plus des placeholders**, hormis celles listées comme telles ci-dessous. Les gardes de
+  layout n'ont **pas** été revérifiées avec de vraies sessions depuis le resserrage de
+  `/admin` et la création de `(formateur)` : à faire.
 - [x] **1 bis — Migrations de la révision 3** : sept migrations `20260908*_a_*` — renommages
       `offres` → `formations` et `coach` → `formateur`, suppression des cohortes / sessions /
       présences / replays / `coaching_sessions` / `payment_schedules`, `type_produit`,
@@ -282,9 +308,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   idempotence est testée en PGlite et en pgTAP. Manquent les clés Stripe.
 - [~] **5 — Abonnement** : renouvellement et résiliation traités par le webhook
   (`renouveler_abonnement()`, résiliation à effet différé), et révocation en fin d'accès par
-  `revoquer_acces_expires()`, déclenchée par `api/cron/revocation`. **Reste à écrire** : l'écran
-  de résiliation côté client. **Reste à brancher** : un planificateur qui appelle réellement la
-  route chaque jour — sans lui, la fonction existe et ne tourne jamais.
+  `revoquer_acces_expires()`, déclenchée par `api/cron/revocation`. L'écran de résiliation
+  côté client **est écrit** (`/espace/factures`, en deux temps et sans écran de rétention).
+  **Reste à brancher** : un planificateur qui appelle réellement la route chaque jour — sans
+  lui, la fonction existe et ne tourne jamais.
 - [x] **6 — Espace client** : accès en cours, rendez-vous, factures et **résiliation de l'abonnement**,
       compte, liaison Discord. La proposition et son paiement y vivent aussi.
 - [~] **7 — Site public** : accueil, catalogue et fiches produit branchés sur le vrai catalogue,

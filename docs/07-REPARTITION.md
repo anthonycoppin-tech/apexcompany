@@ -1,5 +1,11 @@
 # Répartition du travail à deux
 
+> **Le découpage par couche décrit ici n'a plus cours** (9 septembre 2026). Il supposait deux
+> développeurs à charge égale et des périmètres étanches ; la répartition se fait désormais
+> **par sujet**, dans [`09-CHANTIERS.md`](09-CHANTIERS.md), et personne n'est limité à une
+> couche. Ce qui reste entièrement valable dans ce document : les **trois fichiers qui posent
+> réellement problème** et le **conflit sur la base de dev partagée**, plus bas.
+
 Deux développeurs travaillent en parallèle sur ce dépôt. Ce document existe pour une
 seule raison : **éviter que deux personnes modifient le même fichier le même jour.**
 Les conflits Git sur du code applicatif se résolvent ; les conflits sur une migration
