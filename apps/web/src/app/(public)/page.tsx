@@ -83,15 +83,39 @@ const ETAPES = [
   },
 ];
 
-// Chiffres repris du site actuel d'ApexCompany. À FAIRE VALIDER et à dater
-// avant la mise en ligne : un chiffre de réassurance invérifiable se retourne
-// contre celui qui l'affiche, et il vieillit sans prévenir.
-const CHIFFRES = [
-  { valeur: '80+', libelle: 'apprenants accompagnés' },
-  { valeur: '9/10', libelle: 'satisfaction déclarée' },
-  { valeur: '100 %', libelle: 'de membres qui recommandent' },
-  { valeur: '24 h', libelle: 'de délai de réponse' },
+/**
+ * Les chiffres de réassurance.
+ *
+ * Repris du site actuel, et **aucun n'est sourcé ni daté**. Sur un site de
+ * formation à l'investissement, « 100 % de membres qui recommandent » n'est pas
+ * une décoration : c'est une allégation commerciale, opposable, et invérifiable
+ * en l'état. Elle vieillit aussi sans prévenir — « 80+ apprenants » devient faux
+ * par le haut, ce qui est tout aussi gênant que l'inverse.
+ *
+ * D'où la règle portée par le type plutôt que par la vigilance : **un chiffre
+ * ne s'affiche que s'il porte une source et une date de vérification.** Aucun
+ * des quatre n'en a, la section ne s'affiche donc pas — au lieu de compter sur
+ * quelqu'un pour y penser avant la mise en ligne, comme le demandait le
+ * commentaire qui tenait ici.
+ *
+ * Les valeurs restent écrites : renseigner `source` et `verifieLe` suffit à les
+ * republier, une fois le client interrogé (`docs/08-CE-QUI-MANQUE.md`, §3).
+ */
+type Chiffre = {
+  valeur: string;
+  libelle: string;
+  source: string | null;
+  verifieLe: string | null;
+};
+
+const CHIFFRES: Chiffre[] = [
+  { valeur: '80+', libelle: 'apprenants accompagnés', source: null, verifieLe: null },
+  { valeur: '9/10', libelle: 'satisfaction déclarée', source: null, verifieLe: null },
+  { valeur: '100 %', libelle: 'de membres qui recommandent', source: null, verifieLe: null },
+  { valeur: '24 h', libelle: 'de délai de réponse', source: null, verifieLe: null },
 ];
+
+const chiffresPublies = CHIFFRES.filter((c) => c.source && c.verifieLe);
 
 const TYPES: Record<string, string> = {
   abonnement: 'Abonnement mensuel',
@@ -277,18 +301,27 @@ export default async function Page() {
       </Section>
 
       {/* ── Chiffres ─────────────────────────────────────────────────────── */}
-      <Section fond="surface">
-        <dl className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {CHIFFRES.map((c) => (
-            <div key={c.libelle} className="space-y-1">
-              <dt className="font-titre text-4xl font-extrabold text-accent tabular-nums">
-                {c.valeur}
-              </dt>
-              <dd className="text-sm text-encre-doux">{c.libelle}</dd>
-            </div>
-          ))}
-        </dl>
-      </Section>
+      {chiffresPublies.length > 0 && (
+        <Section fond="surface">
+          <dl className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {chiffresPublies.map((c) => (
+              <div key={c.libelle} className="space-y-1">
+                <dt className="font-titre text-4xl font-extrabold text-accent tabular-nums">
+                  {c.valeur}
+                </dt>
+                <dd className="text-sm text-encre-doux">{c.libelle}</dd>
+                {/* La source affichée n'est pas une précaution juridique de
+                    plus : c'est ce qui rend le chiffre croyable. Un nombre nu
+                    se lit comme une affirmation, un nombre daté comme une
+                    mesure. */}
+                <p className="text-xs text-encre-faible">
+                  {c.source} · vérifié en {c.verifieLe}
+                </p>
+              </div>
+            ))}
+          </dl>
+        </Section>
+      )}
 
       {/* ── Appel final ──────────────────────────────────────────────────── */}
       <Section>

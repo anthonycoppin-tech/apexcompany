@@ -22,10 +22,9 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                                       | État  | Qui              | Depuis  |
-| ----------------------------------------------------------- | ----- | ---------------- | ------- |
-| Chiffres de l'accueil                                       | pris  | Anthony + Claude | 9 sept. |
-| Écrans du contenu éditorial (back-office + pages publiques) | libre | —                | —       |
+| Sujet                                                       | État  | Qui | Depuis |
+| ----------------------------------------------------------- | ----- | --- | ------ |
+| Écrans du contenu éditorial (back-office + pages publiques) | libre | —   | —      |
 
 ## Fait
 
@@ -35,16 +34,17 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Tunnel d'entrée au design system             | 9 sept. | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.                                                                                                                       |
 | Contenu éditorial — schéma                   | 9 sept. | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. **Migration pas encore poussée.**                                                                                                                                        |
 | `(espace)` et `(formateur)` au design system | 9 sept. | Dix-huit fichiers sortis de Tailwind brut. Navigation avec état actif, couleur Discord passée en token. **Non vérifié à l'écran** : ces pages sont derrière une garde de rôle, et la base est injoignable depuis l'environnement où le travail a été fait. |
+| Chiffres de l'accueil                        | 9 sept. | Un chiffre ne s'affiche que s'il porte une source et une date. Aucun des quatre n'en a : la section a disparu de l'accueil, et y revient dès que le client répond.                                                                                         |
+| CI de `main` réparée                         | 9 sept. | Rouge depuis le renommage `coach` → `formateur` : le login réel visait `coach.a@apex.test`, absent du seed. Les tests pgTAP, eux, passaient.                                                                                                               |
 
 ## Libre, et rien ne l'empêche
 
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                       | Pourquoi ça vaut le coup                                                                                                                                                                                       |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Écrans du contenu éditorial | Dépend de `db:push` + `db:types:linked` — voir « Bloqué » ci-dessous. Le schéma, lui, est prêt.                                                                                                                |
-| Chiffres de l'accueil       | Codés en dur avec un avertissement dans le code : « à faire valider et à dater avant la mise en ligne ». Soit ils passent en base comme le reste du contenu, soit ils sont datés et sourcés, soit ils sautent. |
+| Sujet                       | Pourquoi ça vaut le coup                                                                        |
+| --------------------------- | ----------------------------------------------------------------------------------------------- |
+| Écrans du contenu éditorial | Dépend de `db:push` + `db:types:linked` — voir « Bloqué » ci-dessous. Le schéma, lui, est prêt. |
 
 ## Bloqué, et par quoi
 

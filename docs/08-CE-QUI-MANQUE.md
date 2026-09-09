@@ -189,13 +189,18 @@ d'accès.
 | --------------------------------------------------- | --------------------------------------------------------------------------- |
 | Biographies et photos des formateurs                | `/formateurs`, aujourd'hui sans aucune fiche                                |
 | Témoignages réels, avec accord écrit de publication | La section n'a pas été créée faute de matière                               |
-| Validation et datation des quatre chiffres affichés | 80+ apprenants, 9/10, 100 %, 24 h — repris du site actuel                   |
+| Source et date des quatre chiffres de l'accueil     | 80+ apprenants, 9/10, 100 %, 24 h — **retirés de l'affichage en attendant** |
 | Logo et visuels                                     | C'est le principal écart visuel avec la référence citée                     |
 | Une preuve sociale externe, si elle existe          | Type Trustpilot — c'est ce qui porte la crédibilité chez le concurrent cité |
 
 Un chiffre de réassurance invérifiable se retourne contre celui qui l'affiche, et il vieillit
-sans prévenir : c'est pourquoi les quatre chiffres actuels demandent une validation avant la
-mise en ligne.
+sans prévenir. Les quatre chiffres **ne s'affichent plus** : le code exige désormais une
+source et une date de vérification pour publier un chiffre, et aucun n'en a. Ce n'est donc
+plus une consigne à retenir avant la mise en ligne, c'est le comportement par défaut.
+
+Ce qu'il faut fournir pour chacun, dans ce cas : d'où il sort (registre interne, enquête,
+plateforme d'avis) et à quelle date il a été relevé. La date s'affiche à côté du chiffre —
+c'est ce qui le rend croyable, et ce qui permettra de voir qu'il a vieilli.
 
 ---
 
