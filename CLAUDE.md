@@ -258,10 +258,14 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
       compte, liaison Discord. La proposition et son paiement y vivent aussi.
 - [~] **7 — Site public** : accueil, catalogue et fiches produit branchés sur le vrai catalogue,
   équipe, questions fréquentes, contact. Design system en tokens dans `globals.css`, écrit pour
-  être remplacé par la charte du designer sans toucher aux pages. **Restent à faire** : les six
-  pages légales, qui attendent les informations de la société ; les témoignages et les
-  biographies des formateurs, qui attendent du contenu client ; le SEO fin (Open Graph, données
-  structurées, plan de site).
+  être remplacé par la charte du designer sans toucher aux pages. **Le référencement est fait** :
+  `sitemap.xml` tire les fiches du catalogue, `robots.txt` **interdit tout tant que le site n'est
+  pas servi en HTTPS depuis son vrai domaine** (`lib/site.ts`), `metadataBase` et les balises Open
+  Graph sont posées, et les données structurées couvrent l'organisme, les fiches produit et la FAQ
+  — sans note moyenne ni raison sociale, faute de témoignages et de société désignée.
+  **Restent à faire** : les six pages légales, qui attendent les informations de la société ; les
+  témoignages et les biographies des formateurs, qui attendent du contenu client ; l'image Open
+  Graph, qui attend la charte du designer.
 - [~] **Back-office** : garde admin/owner resserrée, navigation par sections, tableau de bord,
   **CRM prospects** (liste filtrable par étape du pipeline, fiche complète avec affectation et
   statut), **propositions** (avec l'écart au prix catalogue, puisque la remise est libre),
