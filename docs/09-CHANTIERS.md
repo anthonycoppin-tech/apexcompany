@@ -22,9 +22,10 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                                       | État  | Qui | Depuis |
-| ----------------------------------------------------------- | ----- | --- | ------ |
-| Écrans du contenu éditorial (back-office + pages publiques) | libre | —   | —      |
+| Sujet                                                       | État  | Qui              | Depuis  |
+| ----------------------------------------------------------- | ----- | ---------------- | ------- |
+| Chiffres de l'accueil                                       | pris  | Anthony + Claude | 9 sept. |
+| Écrans du contenu éditorial (back-office + pages publiques) | libre | —                | —       |
 
 ## Fait
 
