@@ -57,7 +57,7 @@ export default async function Page({
 
   return (
     <Section>
-      <Conteneur className="max-w-xl space-y-8 px-0">
+      <Conteneur largeur="etroite" className="space-y-8 px-0">
         <div className="space-y-3">
           <Link href={`/formations/${slug}`} className="text-sm text-encre-doux hover:underline">
             ← Retour à la fiche

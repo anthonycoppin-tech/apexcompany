@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 
+import { BoutonAction, CHAMP, Carte } from '@/components/ui';
 import { ECRANS, MOINS_18 } from '@/lib/qualification/questionnaire';
 
 import { soumettreQualification, type EtatFormulaire } from './actions';
@@ -53,42 +54,67 @@ export function FormulaireQualification({ src }: { src?: string }) {
 
   if (refuseMineur) {
     return (
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold">Rendez-vous dans quelques années</h1>
-        <p className="text-sm text-neutral-600">
+      <Carte className="space-y-3">
+        <h1 className="text-2xl font-extrabold">Rendez-vous dans quelques années</h1>
+        <p className="leading-relaxed text-encre-doux">
           Nos accompagnements ne sont pas ouverts aux moins de 18 ans. Rien n’a été enregistré.
         </p>
-      </div>
+      </Carte>
     );
   }
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-8">
       <input type="hidden" name="src" value={src ?? ''} />
 
-      <div className="space-y-1">
-        <p className="text-xs text-neutral-500">
+      <div className="space-y-3">
+        <p className="text-xs font-semibold tracking-wide text-encre-faible uppercase">
           Étape {index + 1} sur {ECRANS.length}
         </p>
-        <h1 className="text-2xl font-semibold">{ecran.titre}</h1>
+
+        {/* Cinq écrans sans jauge, c'est cinq occasions de se demander combien
+            il en reste. Le `div` extérieur porte les rôles ARIA : la barre
+            elle-même n'est qu'un remplissage décoratif. */}
+        <div
+          role="progressbar"
+          aria-valuenow={index + 1}
+          aria-valuemin={1}
+          aria-valuemax={ECRANS.length}
+          aria-label="Progression du questionnaire"
+          className="h-1 w-full overflow-hidden rounded-douce bg-surface-forte"
+        >
+          <div
+            className="h-full bg-accent transition-[width] duration-300"
+            style={{ width: `${((index + 1) / ECRANS.length) * 100}%` }}
+          />
+        </div>
+
+        <h1 className="text-3xl font-extrabold">{ecran.titre}</h1>
       </div>
 
       {ECRANS.map((e, i) => (
         <div key={e.id} className={i === index ? 'space-y-6' : 'hidden'}>
           {e.questions.map((question) => (
-            <fieldset key={question.champ} className="space-y-2">
-              <legend className="text-sm font-medium">{question.libelle}</legend>
+            <fieldset key={question.champ} className="space-y-3">
+              <legend className="font-medium">{question.libelle}</legend>
 
               {question.type === 'choix' ? (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {question.options.map((option) => (
-                    <label key={option.valeur} className="flex items-center gap-2 text-sm">
+                    // Toute la ligne est cliquable, pas seulement le rond : sur
+                    // mobile, viser un bouton radio de 16 pixels est le meilleur
+                    // moyen de perdre quelqu'un au troisième écran.
+                    <label
+                      key={option.valeur}
+                      className="flex cursor-pointer items-center gap-3 rounded-douce border border-filet px-4 py-3 text-sm transition-colors hover:border-filet-fort hover:bg-surface has-checked:border-accent has-checked:bg-accent-doux"
+                    >
                       <input
                         type="radio"
                         name={question.champ}
                         value={option.valeur}
                         checked={reponses[question.champ] === option.valeur}
                         onChange={() => repondre(question.champ, option.valeur)}
+                        className="accent-accent"
                       />
                       {option.libelle}
                     </label>
@@ -100,12 +126,15 @@ export function FormulaireQualification({ src }: { src?: string }) {
                   name={question.champ}
                   value={reponses[question.champ] ?? ''}
                   onChange={(ev) => repondre(question.champ, ev.target.value)}
-                  className="w-full max-w-sm rounded border p-2 text-sm"
+                  aria-invalid={manque === question.champ}
+                  className={CHAMP}
                 />
               )}
 
               {manque === question.champ && (
-                <p className="text-sm text-red-600">Cette réponse est nécessaire pour continuer.</p>
+                <p role="alert" className="text-sm text-alerte">
+                  Cette réponse est nécessaire pour continuer.
+                </p>
               )}
             </fieldset>
           ))}
@@ -113,13 +142,13 @@ export function FormulaireQualification({ src }: { src?: string }) {
       ))}
 
       {dernier && (
-        <label className="flex items-start gap-2 text-sm">
+        <label className="flex cursor-pointer items-start gap-3 rounded-douce border border-filet bg-surface p-4 text-sm leading-relaxed">
           {/* Jamais pré-cochée : une case déjà remplie n'est pas un consentement. */}
-          <input type="checkbox" name="consentement" className="mt-1" />
+          <input type="checkbox" name="consentement" className="mt-1 accent-accent" />
           <span>
             J’accepte que mes réponses soient utilisées pour préparer mon audit et créer mon compte,
             dans les conditions décrites par la{' '}
-            <a href="/confidentialite" className="underline">
+            <a href="/confidentialite" className="text-accent underline">
               politique de confidentialité
             </a>
             .
@@ -127,34 +156,32 @@ export function FormulaireQualification({ src }: { src?: string }) {
         </label>
       )}
 
-      {etat.erreur && <p className="text-sm text-red-600">{etat.erreur}</p>}
+      {etat.erreur && (
+        <p role="alert" className="text-sm text-alerte">
+          {etat.erreur}
+        </p>
+      )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4 border-t border-filet pt-6">
+        {dernier ? (
+          <BoutonAction type="submit" disabled={enCours}>
+            {enCours ? 'Envoi…' : 'Voir les créneaux d’audit'}
+          </BoutonAction>
+        ) : (
+          <BoutonAction type="button" onClick={suivant}>
+            Continuer
+          </BoutonAction>
+        )}
+
+        {/* Le retour est après l'action principale et sans habillage de bouton :
+            c'est une issue de secours, pas le chemin qu'on propose. */}
         {index > 0 && (
           <button
             type="button"
             onClick={() => setIndex((i) => i - 1)}
-            className="text-sm underline"
+            className="text-sm text-encre-doux underline hover:text-encre"
           >
             Retour
-          </button>
-        )}
-
-        {dernier ? (
-          <button
-            type="submit"
-            disabled={enCours}
-            className="rounded bg-neutral-900 px-4 py-2 text-sm text-white disabled:opacity-50"
-          >
-            {enCours ? 'Envoi…' : 'Voir les créneaux d’audit'}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={suivant}
-            className="rounded bg-neutral-900 px-4 py-2 text-sm text-white"
-          >
-            Continuer
           </button>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { BoutonLierDiscord } from '@/components/bouton-lier-discord';
+import { Carte, Conteneur } from '@/components/ui';
 import { createClient } from '@/lib/supabase/server';
 
 /**
@@ -26,10 +27,10 @@ export default async function Page() {
   const lienCal = process.env.NEXT_PUBLIC_CAL_LIEN;
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Réserve ton audit stratégique</h1>
-        <p className="text-sm text-neutral-600">
+    <Conteneur largeur="moyenne" className="space-y-10 py-16 sm:py-24">
+      <div className="space-y-3">
+        <h1 className="text-3xl font-extrabold sm:text-4xl">Réserve ton audit stratégique</h1>
+        <p className="text-lg leading-relaxed text-encre-doux">
           Un point sur ta situation, pas une présentation de produit. Choisis le créneau qui
           t’arrange.
         </p>
@@ -39,27 +40,29 @@ export default async function Page() {
         <iframe
           src={lienCal}
           title="Réservation de l’audit stratégique"
-          className="h-[640px] w-full rounded border"
+          className="h-[640px] w-full rounded-carte border border-filet"
         />
       ) : (
-        <p className="rounded border border-dashed p-4 text-sm text-neutral-500">
-          Placeholder — le calendrier s’affichera ici. Renseigner <code>NEXT_PUBLIC_CAL_LIEN</code>{' '}
-          avec la page Cal.com de Franck. La route <code>api/cal</code> reste à écrire : sans son
-          webhook, aucune ligne <code>appointments</code> n’est créée, donc pas de tableau de bord
-          formateur ni de statistique de no-show.
-        </p>
+        <Carte className="space-y-2 border-dashed">
+          <p className="font-semibold">Le calendrier s’affichera ici</p>
+          <p className="text-sm leading-relaxed text-encre-doux">
+            Renseigner <code className="text-encre">NEXT_PUBLIC_CAL_LIEN</code> avec la page Cal.com
+            de Franck. Sans elle, le tunnel s’arrête à cet écran : c’est la seule étape qui produit
+            du chiffre d’affaires.
+          </p>
+        </Carte>
       )}
 
       {user && (
-        <section className="space-y-2 border-t pt-6">
-          <h2 className="text-lg font-semibold">Rejoins la communauté</h2>
-          <p className="text-sm text-neutral-600">
+        <section className="space-y-3 border-t border-filet pt-8">
+          <h2 className="text-xl font-bold">Rejoins la communauté</h2>
+          <p className="leading-relaxed text-encre-doux">
             Connecte ton compte Discord pour recevoir ton accès invité. C’est là que tout se passe :
             les échanges, les lives et les replays.
           </p>
           <BoutonLierDiscord />
         </section>
       )}
-    </div>
+    </Conteneur>
   );
 }

@@ -1,3 +1,5 @@
+import { Conteneur } from '@/components/ui';
+
 import { FormulaireQualification } from './formulaire';
 
 export const metadata = {
@@ -21,8 +23,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   const { src } = await searchParams;
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <Conteneur largeur="etroite" className="py-16 sm:py-24">
       <FormulaireQualification src={src} />
-    </div>
+    </Conteneur>
   );
 }

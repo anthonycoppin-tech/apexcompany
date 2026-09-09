@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 /**
  * Les quelques primitives partagées du site public.
@@ -10,14 +10,34 @@ import type { ReactNode } from 'react';
  * par les tokens de `globals.css`.
  */
 
+type Largeur = 'large' | 'moyenne' | 'etroite';
+
+const largeurs: Record<Largeur, string> = {
+  large: 'max-w-6xl', // grilles et listes
+  moyenne: 'max-w-3xl', // texte suivi, où la longueur de ligne compte
+  etroite: 'max-w-xl', // formulaires
+};
+
+/**
+ * La largeur passe par une propriété, **jamais par `className`**.
+ *
+ * Deux utilitaires `max-width` sur le même élément ne se départagent pas par
+ * l'ordre des classes écrites ici, mais par leur ordre dans la feuille générée.
+ * `max-w-6xl` y est émis après `max-w-3xl` : un appelant qui passait
+ * `className="max-w-3xl"` obtenait donc la pleine largeur, en silence, alors que
+ * `max-w-md` — émis après — fonctionnait. Cinq pages du site public
+ * s'affichaient ainsi trop larges, sans que rien ne le signale.
+ */
 export function Conteneur({
   children,
+  largeur = 'large',
   className = '',
 }: {
   children: ReactNode;
+  largeur?: Largeur;
   className?: string;
 }) {
-  return <div className={`mx-auto w-full max-w-6xl px-5 ${className}`}>{children}</div>;
+  return <div className={`mx-auto w-full px-5 ${largeurs[largeur]} ${className}`}>{children}</div>;
 }
 
 export function Section({
@@ -57,6 +77,9 @@ const variantes: Record<Variante, string> = {
   clair: 'bg-white text-encre hover:bg-surface-forte',
 };
 
+const classesBouton = (variante: Variante, className: string) =>
+  `inline-flex items-center justify-center rounded-douce px-5 py-3 text-sm font-semibold transition-colors ${variantes[variante]} ${className}`;
+
 export function Bouton({
   href,
   children,
@@ -69,14 +92,46 @@ export function Bouton({
   className?: string;
 }) {
   return (
-    <Link
-      href={href}
-      className={`inline-flex items-center justify-center rounded-douce px-5 py-3 text-sm font-semibold transition-colors ${variantes[variante]} ${className}`}
-    >
+    <Link href={href} className={classesBouton(variante, className)}>
       {children}
     </Link>
   );
 }
+
+/**
+ * Le même bouton, en `<button>`.
+ *
+ * Deux composants courts plutôt qu'un seul qui déciderait selon la présence
+ * d'un `href` : un formulaire soumet, il ne navigue pas, et confondre les deux
+ * finit toujours par produire un lien qui poste ou un bouton qui ne soumet rien.
+ */
+export function BoutonAction({
+  children,
+  variante = 'principal',
+  className = '',
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: Variante }) {
+  return (
+    <button
+      {...props}
+      className={`${classesBouton(variante, className)} disabled:cursor-not-allowed disabled:opacity-50`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
+ * L'habillage des champs de saisie, en constante plutôt qu'en composant : les
+ * champs varient trop par leurs attributs (`type`, `name`, `value`, contrôlé ou
+ * non) pour qu'un emballage y gagne quoi que ce soit.
+ *
+ * Le contour de focus du navigateur est conservé — seule la bordure change de
+ * couleur. Le supprimer rendrait le formulaire impraticable au clavier, et
+ * c'est la première chose qu'on casse en habillant un champ.
+ */
+export const CHAMP =
+  'w-full rounded-douce border border-filet-fort bg-fond px-3 py-2 text-sm text-encre transition-colors placeholder:text-encre-faible focus:border-accent';
 
 export function Carte({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (

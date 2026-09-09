@@ -26,7 +26,7 @@ export default function Page() {
   return (
     <>
       <section className="border-b border-filet bg-surface">
-        <Conteneur className="max-w-3xl space-y-5 py-16 sm:py-24">
+        <Conteneur largeur="moyenne" className="space-y-5 py-16 sm:py-24">
           <Surtitre>L’équipe</Surtitre>
           <h1 className="text-4xl font-extrabold sm:text-5xl">Des formateurs, pas des vendeurs</h1>
           <p className="text-lg leading-relaxed text-encre-doux">

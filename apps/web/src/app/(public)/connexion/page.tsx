@@ -3,12 +3,16 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { BoutonAction, CHAMP, Carte, Conteneur } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 
 /**
- * Formulaire fonctionnel minimal — pas de design, juste la mécanique
- * d'authentification. La redirection post-connexion vers /espace ou /admin
- * selon le rôle est à raffiner quand les écrans cibles existent réellement.
+ * `/connexion`.
+ *
+ * La redirection post-connexion mène à `/espace` quel que soit le rôle : un
+ * admin qui atterrit sur son espace client y trouve un lien, alors qu'un client
+ * renvoyé vers `/admin` se heurterait à la garde de layout. Se tromper dans ce
+ * sens-là ne coûte qu'un clic.
  */
 export default function ConnexionPage() {
   const router = useRouter();
@@ -37,34 +41,62 @@ export default function ConnexionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm space-y-4">
-      <h1 className="text-2xl font-semibold">Connexion</h1>
-      <form onSubmit={onSubmit} className="space-y-3">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full rounded border p-2"
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={motDePasse}
-          onChange={(e) => setMotDePasse(e.target.value)}
-          required
-          className="w-full rounded border p-2"
-        />
-        {erreur && <p className="text-sm text-red-600">{erreur}</p>}
-        <button
-          type="submit"
-          disabled={enCours}
-          className="w-full rounded bg-neutral-900 p-2 text-white disabled:opacity-50"
-        >
-          {enCours ? 'Connexion…' : 'Se connecter'}
-        </button>
-      </form>
-    </div>
+    <Conteneur largeur="etroite" className="py-16 sm:py-24">
+      <Carte className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-extrabold">Connexion</h1>
+          <p className="text-sm text-encre-doux">
+            Vos accès, vos rendez-vous et vos factures se trouvent dans votre espace.
+          </p>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
+          {/* Des libellés, pas des seuls `placeholder` : un texte d'exemple
+              disparaît dès la première frappe et n'est pas lu comme un intitulé
+              par un lecteur d'écran. */}
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-sm font-medium">
+              Adresse email
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className={CHAMP}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="mot-de-passe" className="block text-sm font-medium">
+              Mot de passe
+            </label>
+            <input
+              id="mot-de-passe"
+              type="password"
+              autoComplete="current-password"
+              value={motDePasse}
+              onChange={(e) => setMotDePasse(e.target.value)}
+              required
+              className={CHAMP}
+            />
+          </div>
+
+          {/* `role="alert"` pour que l'échec soit annoncé : sans lui, un lecteur
+              d'écran ne signale rien et l'utilisateur croit sa saisie partie. */}
+          {erreur && (
+            <p role="alert" className="text-sm text-alerte">
+              {erreur}
+            </p>
+          )}
+
+          <BoutonAction type="submit" disabled={enCours} className="w-full">
+            {enCours ? 'Connexion…' : 'Se connecter'}
+          </BoutonAction>
+        </form>
+      </Carte>
+    </Conteneur>
   );
 }
