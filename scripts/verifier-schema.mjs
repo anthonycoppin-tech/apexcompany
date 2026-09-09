@@ -293,6 +293,12 @@ async function main() {
   verifier('aucune inscription', await compter('public.inscriptions'), 0);
   verifier('aucune proposition', await compter('public.propositions'), 0);
 
+  // Le contenu éditorial est le seul endroit où du brouillon côtoie du publié
+  // dans la même table et sur la même page. Un témoignage recueilli mais pas
+  // encore autorisé qui fuiterait ici, c'est une citation publiée sans accord.
+  verifier('ne voit que le témoignage publié', await compter('public.temoignages'), 1);
+  verifier('ne voit que la fiche formateur publiée', await compter('public.formateurs_fiches'), 1);
+
   // ── Invariant 5 : admin et owner ─────────────────────────────────────────
   console.log('\nAdmin et owner\n');
   await devenir('22222222-2222-2222-2222-222222222222');
@@ -364,6 +370,27 @@ async function main() {
     readhesion = false;
   }
   verifier('une inscription terminée nempêche pas den reprendre une', readhesion, true);
+
+  // Publier la citation dune personne sans son accord nest pas une erreur
+  // dinterface : cest un traitement de données personnelles. La contrainte
+  // refuse, pour quon nait pas à compter sur la vigilance de qui saisit.
+  let publicationSansAccord = false;
+  try {
+    await db.exec(`insert into public.temoignages (auteur, contenu, consentement, publie)
+                   values ('Sans accord', 'Ne doit pas passer.', false, true);`);
+  } catch {
+    publicationSansAccord = true;
+  }
+  verifier('un témoignage sans consentement ne peut pas être publié', publicationSansAccord, true);
+
+  let publicationAvecAccord = true;
+  try {
+    await db.exec(`insert into public.temoignages (auteur, contenu, consentement, publie)
+                   values ('Avec accord', 'Doit passer.', true, true);`);
+  } catch {
+    publicationAvecAccord = false;
+  }
+  verifier('le consentement obtenu lève le verrou', publicationAvecAccord, true);
 
   // La cohérence du type de produit, écrite en contrainte plutôt quen usage.
   let dureeIncoherente = false;

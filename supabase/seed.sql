@@ -373,3 +373,49 @@ insert into public.discord_links (user_id, discord_user_id, discord_username, ro
 insert into public.consents (user_id, type, accorde, version_texte, ip) values
   ('66666666-6666-6666-6666-666666666666', 'confidentialite', true, '2026-09-v1', '203.0.113.10'),
   ('77777777-7777-7777-7777-777777777777', 'confidentialite', true, '2026-09-v1', '203.0.113.11');
+
+-- Contenu éditorial ────────────────────────────────────────────────────────
+-- Témoignages et fiches formateurs sont du contenu client : ce qui suit est un
+-- jeu d'essai, volontairement identifiable comme tel. Il existe pour que les
+-- écrans aient de quoi s'afficher et pour que les invariants de publication
+-- soient rejouables — pas pour être publié.
+--
+-- Trois cas qui comptent : un témoignage publié, un recueilli mais pas encore
+-- autorisé, et un autorisé mais laissé en brouillon. Seul le premier doit
+-- sortir chez un visiteur anonyme.
+
+insert into public.temoignages (auteur, contexte, contenu, note, formation_id, consentement, publie, ordre) values
+  (
+    'Chloé D. (jeu d''essai)',
+    'Accompagnement 3 mois',
+    'JEU D''ESSAI — le suivi individuel a surtout changé ma façon de préparer mes séances.',
+    5, 'a0000000-0000-0000-0000-000000000002', true, true, 1
+  ),
+  (
+    'Camil B. (jeu d''essai)',
+    'Abonnement communauté',
+    'JEU D''ESSAI — recueilli, consentement pas encore obtenu : ne doit jamais être public.',
+    4, 'a0000000-0000-0000-0000-000000000001', false, false, 2
+  ),
+  (
+    'Témoin C. (jeu d''essai)',
+    'Formation',
+    'JEU D''ESSAI — consentement obtenu mais laissé en brouillon : invisible tant que non publié.',
+    null, null, true, false, 3
+  );
+
+insert into public.formateurs_fiches (user_id, nom, fonction, biographie, specialites, publie, ordre) values
+  (
+    '44444444-4444-4444-4444-444444444444',
+    'Formateur A (jeu d''essai)',
+    'Directeur de l''accompagnement',
+    'JEU D''ESSAI — biographie à remplacer par le contenu client.',
+    '{"psychologie de l''exécution"}', true, 1
+  ),
+  (
+    null,
+    'Formateur B (jeu d''essai)',
+    'Formateur technique',
+    'JEU D''ESSAI — fiche en brouillon, invisible du site public.',
+    '{"gestion du risque"}', false, 2
+  );
