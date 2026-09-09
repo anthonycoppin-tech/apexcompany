@@ -7,7 +7,13 @@ La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
 `06-PERIMETRE.md` (ce qu'on construit et ce qu'on ne construit pas),
 `07-REPARTITION.md` (qui possède quoi entre les deux développeurs),
 `08-CE-QUI-MANQUE.md` (**tout ce que le code attend de l'extérieur** : clés, informations
-juridiques, contenu — à donner au client, pas à un développeur).
+juridiques, contenu — à donner au client, pas à un développeur),
+`09-CHANTIERS.md` (**qui travaille sur quoi — à lire et à mettre à jour avant de commencer**).
+
+**Avant de coder quoi que ce soit : ouvrir `09-CHANTIERS.md`, prendre un sujet, committer la
+prise et la pousser.** Le verrou est Git, pas l'intention : une prise gardée en local ne
+protège de rien. Ce fichier remplace le découpage par couche de `07-REPARTITION.md` — personne
+n'est limité à un périmètre, on se répartit par sujet.
 
 **Les quatre documents sont à la révision 3** (8 septembre 2026) : tunnel inversé, trois
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
