@@ -13,6 +13,9 @@ import { createClient } from '@/lib/supabase/server';
  *   reviendrait à faire noter du vide à un moteur. Elles rejoignent cette liste
  *   le jour où elles sont écrites, ce qui est de toute façon un préalable à la
  *   mise en vente (`docs/08-CE-QUI-MANQUE.md`) ;
+ * - **`/evenements`**, pour la même raison et une de plus : la billetterie est
+ *   reportée après la première livraison (`docs/02-SITEMAP.md`), la page n'est
+ *   liée depuis nulle part, et elle n'a pas de contenu ;
  * - **`/connexion`, `/reserver` et les écrans de souscription**, qui n'ont de
  *   sens qu'au sein d'un parcours ;
  * - **tout ce qui vit derrière une garde de rôle**, déjà refusé par `robots.ts`.
@@ -30,7 +33,6 @@ const PAGES: Array<{ chemin: string; priorite: number; frequence: Frequence }> =
   { chemin: '/formateurs', priorite: 0.6, frequence: 'monthly' },
   { chemin: '/faq', priorite: 0.6, frequence: 'monthly' },
   { chemin: '/contact', priorite: 0.5, frequence: 'yearly' },
-  { chemin: '/evenements', priorite: 0.4, frequence: 'monthly' },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
