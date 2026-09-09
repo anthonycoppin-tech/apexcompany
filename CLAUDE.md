@@ -15,31 +15,6 @@ prise et la pousser.** Le verrou est Git, pas l'intention : une prise gardée en
 protège de rien. Ce fichier remplace le découpage par couche de `07-REPARTITION.md` — personne
 n'est limité à un périmètre, on se répartit par sujet.
 
-## ⚠ Une migration attend d'être poussée
-
-`supabase/migrations/20260909120000_a_contenu_editorial.sql` (tables `temoignages` et
-`formateurs_fiches`) est écrite, vérifiée, commitée — **et pas encore appliquée sur le projet
-hébergé.** Elle a été produite depuis un environnement sans jeton Supabase et sans accès
-réseau à `supabase.co`.
-
-**Si tu lis ceci depuis un poste qui atteint la base, c'est la première chose à faire** —
-tant qu'elle n'est pas poussée, `packages/db/src/database.types.ts` ignore ces deux tables et
-aucun écran ne peut être écrit dessus.
-
-```bash
-npm run db:check          # 78 vérifications attendues, 0 échec — avant de toucher la base partagée
-npm run db:push
-npm run db:types:linked   # c'est CE fichier régénéré qui débloque les écrans
-git add packages/db/src/database.types.ts && git commit && git push
-```
-
-**N'écris pas une nouvelle migration pour ce changement.** Le fichier existe : il s'applique,
-il ne se régénère pas. En rédiger un second pour le même objet donnerait deux migrations
-concurrentes sur une base partagée — et une migration ne se modifie jamais après application.
-
-Prévenir l'autre développeur avant de lancer `db:push` : la base est commune. Une fois fait,
-retirer ce bloc et passer la ligne correspondante de `09-CHANTIERS.md` en `fait`.
-
 **Les quatre documents sont à la révision 3** (8 septembre 2026) : tunnel inversé, trois
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.

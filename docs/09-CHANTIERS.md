@@ -32,7 +32,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | -------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Référencement du site public                 | 9 sept. | `sitemap.xml`, `robots.txt`, Open Graph, données structurées. `robots.txt` interdit tout tant que `NEXT_PUBLIC_SITE_URL` n'est pas en HTTPS.                                                                                                               |
 | Tunnel d'entrée au design system             | 9 sept. | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.                                                                                                                       |
-| Contenu éditorial — schéma                   | 9 sept. | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. **Migration pas encore poussée.**                                                                                                                                        |
+| Contenu éditorial — schéma                   | 9 sept. | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. Migration appliquée sur le projet hébergé le 9 septembre, types régénérés.                                                                                               |
 | `(espace)` et `(formateur)` au design system | 9 sept. | Dix-huit fichiers sortis de Tailwind brut. Navigation avec état actif, couleur Discord passée en token. **Non vérifié à l'écran** : ces pages sont derrière une garde de rôle, et la base est injoignable depuis l'environnement où le travail a été fait. |
 | Chiffres de l'accueil                        | 9 sept. | Un chiffre ne s'affiche que s'il porte une source et une date. Aucun des quatre n'en a : la section a disparu de l'accueil, et y revient dès que le client répond.                                                                                         |
 | CI de `main` réparée                         | 9 sept. | Rouge depuis le renommage `coach` → `formateur` : le login réel visait `coach.a@apex.test`, absent du seed. Les tests pgTAP, eux, passaient.                                                                                                               |
@@ -42,25 +42,24 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                       | Pourquoi ça vaut le coup                                                                        |
-| --------------------------- | ----------------------------------------------------------------------------------------------- |
-| Écrans du contenu éditorial | Dépend de `db:push` + `db:types:linked` — voir « Bloqué » ci-dessous. Le schéma, lui, est prêt. |
+| Sujet                                                   | Pourquoi ça vaut le coup                                                                                                                                                                                                   |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Écrans du contenu éditorial                             | Débloqué : la migration est appliquée et `database.types.ts` connaît `temoignages` et `formateurs_fiches`. Rien ne manque pour commencer.                                                                                  |
+| Revérifier les gardes de layout avec de vraies sessions | Les écrans de `(espace)` et `(formateur)` sont passés au design system sans jamais être vus : ils sont derrière une garde de rôle et la base était injoignable. Depuis un poste qui l'atteint, c'est une heure de travail. |
 
 ## Bloqué, et par quoi
 
 Ces sujets n'attendent pas un développeur. Le détail de ce qu'il faut obtenir est dans
 [`08-CE-QUI-MANQUE.md`](08-CE-QUI-MANQUE.md).
 
-| Sujet                                                   | Attend                                                                                                                                                                   |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Pousser la migration du contenu éditorial               | `db:push` puis `db:types:linked`, depuis un poste qui a un jeton Supabase et un accès réseau à `supabase.co`. Tant que ce n'est pas fait, aucun écran ne peut être typé. |
-| Les six pages légales                                   | Les informations de la société — et surtout **laquelle des deux vend**.                                                                                                  |
-| Image Open Graph                                        | La charte du designer.                                                                                                                                                   |
-| Calendrier sur `/reserver`                              | `NEXT_PUBLIC_CAL_LIEN`, donc un compte Cal.com.                                                                                                                          |
-| `/admin/emails`                                         | Qu'un envoi d'emails existe.                                                                                                                                             |
-| Planificateur de la révocation quotidienne              | Savoir où le site est hébergé. Sans lui, `revoquer_acces_expires()` ne tourne jamais.                                                                                    |
-| Revérifier les gardes de layout avec de vraies sessions | Un accès réseau à la base hébergée.                                                                                                                                      |
-| Catalogue affichant des données fausses                 | Les vrais produits — la base contient encore des données de la révision 2.                                                                                               |
+| Sujet                                      | Attend                                                                                |
+| ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Les six pages légales                      | Les informations de la société — et surtout **laquelle des deux vend**.               |
+| Image Open Graph                           | La charte du designer.                                                                |
+| Calendrier sur `/reserver`                 | `NEXT_PUBLIC_CAL_LIEN`, donc un compte Cal.com.                                       |
+| `/admin/emails`                            | Qu'un envoi d'emails existe.                                                          |
+| Planificateur de la révocation quotidienne | Savoir où le site est hébergé. Sans lui, `revoquer_acces_expires()` ne tourne jamais. |
+| Catalogue affichant des données fausses    | Les vrais produits — la base contient encore des données de la révision 2.            |
 
 ## Décisions, pas des tâches
 
