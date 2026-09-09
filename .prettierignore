@@ -7,3 +7,7 @@ package-lock.json
 
 # Généré par `supabase gen types` — jamais édité à la main, jamais reformaté.
 packages/db/src/database.types.ts
+
+# Généré par `next dev` et `next build`, et ignoré par Git. Sans cette ligne,
+# `npm run format:check` échoue dès qu'on a lancé un build avant lui.
+apps/web/next-env.d.ts

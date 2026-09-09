@@ -1,3 +1,4 @@
+import { DonneesStructurees } from '@/components/donnees-structurees';
 import { AvertissementRisque, Bouton, Conteneur, Section, Surtitre } from '@/components/ui';
 
 export const metadata = {
@@ -5,6 +6,7 @@ export const metadata = {
   description:
     'Le déroulé, les formats, l’accès Discord, la résiliation et les limites de ce que nous ' +
     'proposons.',
+  alternates: { canonical: '/faq' },
 };
 
 /**
@@ -95,9 +97,31 @@ const RUBRIQUES: Array<{ titre: string; questions: Array<[string, string]> }> = 
   },
 ];
 
+/**
+ * Les mêmes questions, au format que les moteurs savent lire.
+ *
+ * Elles sont dérivées de `RUBRIQUES`, jamais recopiées : une réponse corrigée
+ * dans la page l'est du même coup ici. Deux listes à maintenir en parallèle
+ * divergeraient, et une donnée structurée qui contredit la page visible est
+ * pire que pas de donnée structurée du tout.
+ */
+const DONNEES_FAQ = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: RUBRIQUES.flatMap((rubrique) =>
+    rubrique.questions.map(([question, reponse]) => ({
+      '@type': 'Question',
+      name: question,
+      acceptedAnswer: { '@type': 'Answer', text: reponse },
+    })),
+  ),
+};
+
 export default function Page() {
   return (
     <>
+      <DonneesStructurees donnees={DONNEES_FAQ} />
+
       <section className="border-b border-filet bg-surface">
         <Conteneur className="max-w-3xl space-y-5 py-16 sm:py-24">
           <Surtitre>Questions fréquentes</Surtitre>

@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, Manrope } from 'next/font/google';
 import type { ReactNode } from 'react';
 
+import { urlSite } from '@/lib/site';
+
 import './globals.css';
 
 /**
@@ -26,14 +28,27 @@ const texte = Inter({
   display: 'swap',
 });
 
+const TITRE = 'ApexCompany — rigueur cognitive et technique';
+const DESCRIPTION =
+  'Un accompagnement structuré autour de trois piliers : psychologie de l’exécution, ' +
+  'rigueur méthodique et progression par niveau. Échange d’orientation offert.';
+
 export const metadata: Metadata = {
-  title: {
-    default: 'ApexCompany — rigueur cognitive et technique',
-    template: '%s — ApexCompany',
+  // Sans `metadataBase`, les adresses relatives des balises Open Graph sont
+  // émises telles quelles : un partage sur un réseau social pointe alors vers
+  // une page introuvable. Elle vaut localhost tant que le domaine n'est pas
+  // arrêté, et `robots.ts` interdit l'indexation dans cet état.
+  metadataBase: new URL(urlSite),
+  title: { default: TITRE, template: '%s — ApexCompany' },
+  description: DESCRIPTION,
+  openGraph: {
+    type: 'website',
+    siteName: 'ApexCompany',
+    locale: 'fr_FR',
+    title: TITRE,
+    description: DESCRIPTION,
   },
-  description:
-    'Un accompagnement structuré autour de trois piliers : psychologie de l’exécution, ' +
-    'rigueur méthodique et progression par niveau. Échange d’orientation offert.',
+  twitter: { card: 'summary_large_image', title: TITRE, description: DESCRIPTION },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

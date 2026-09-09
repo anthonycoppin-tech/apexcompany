@@ -2,8 +2,32 @@ import Link from 'next/link';
 
 import { formaterMontant } from '@apex/db';
 
+import { DonneesStructurees } from '@/components/donnees-structurees';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
+import { urlSite } from '@/lib/site';
 import { createClient } from '@/lib/supabase/server';
+
+export const metadata = { alternates: { canonical: '/' } };
+
+/**
+ * L'organisme, décrit une seule fois pour toutes les pages — c'est l'accueil
+ * qui le porte, comme le veut l'usage.
+ *
+ * Ni adresse, ni raison sociale, ni logo : **laquelle des deux sociétés vend
+ * n'est pas tranché** (`docs/08-CE-QUI-MANQUE.md`), et une entité juridique
+ * annoncée à tort ici serait reprise telle quelle par les moteurs. Seul le nom
+ * de marque, employé partout sur le site, est affirmé. Le reste s'ajoute avec
+ * les mentions légales, d'un seul tenant.
+ */
+const DONNEES_ORGANISME = {
+  '@context': 'https://schema.org',
+  '@type': 'EducationalOrganization',
+  name: 'ApexCompany',
+  url: urlSite,
+  description:
+    'Organisme de formation au trading : psychologie de l’exécution, rigueur méthodique et ' +
+    'progression par niveau.',
+};
 
 /**
  * La page d'accueil — le point d'entrée unique des réseaux sociaux.
@@ -88,6 +112,8 @@ export default async function Page() {
 
   return (
     <>
+      <DonneesStructurees donnees={DONNEES_ORGANISME} />
+
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="border-b border-filet bg-fond">
         <Conteneur className="grid gap-12 py-20 sm:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">

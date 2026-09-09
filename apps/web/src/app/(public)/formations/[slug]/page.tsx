@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
 
+import { DonneesStructurees } from '@/components/donnees-structurees';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
+import { urlSite } from '@/lib/site';
 import { createClient } from '@/lib/supabase/server';
 
 const TYPES: Record<string, { nom: string; paiement: string }> = {
@@ -26,7 +28,37 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!data) return { title: 'Programme introuvable' };
 
-  return { title: data.titre, description: data.description ?? undefined };
+  const description = data.description ?? undefined;
+
+  return {
+    title: data.titre,
+    description,
+    // La fiche est atteignable par son seul slug : la canonique évite qu'un
+    // paramètre de campagne collé à l'adresse en fasse une deuxième page aux
+    // yeux d'un moteur.
+    alternates: { canonical: `/formations/${slug}` },
+    openGraph: {
+      type: 'website',
+      title: data.titre,
+      description,
+      url: `/formations/${slug}`,
+    },
+  };
+}
+
+/**
+ * Le prix au format décimal attendu par schema.org, construit depuis l'entier.
+ *
+ * Le reste est retiré avant la division, qui porte donc sur un multiple exact
+ * de 100 : le résultat n'a pas de partie fractionnaire à arrondir. Les centimes
+ * sont recollés en chaîne. Rien n'est reconstruit à partir d'un flottant, comme
+ * partout ailleurs où cette base manipule de l'argent.
+ */
+function prixDecimal(cents: number): string {
+  const centimes = cents % 100;
+  const euros = (cents - centimes) / 100;
+
+  return `${euros}.${String(centimes).padStart(2, '0')}`;
 }
 
 /**
@@ -59,6 +91,33 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   const type = TYPES[formation.type_produit];
 
+  /**
+   * Données structurées de la fiche.
+   *
+   * Volontairement dépourvues de note moyenne et d'avis : nous n'en avons
+   * aucun, et un moteur qui découvre un `aggregateRating` inventé sanctionne
+   * tout le domaine. Elles reviendront le jour où les témoignages existent.
+   */
+  const donneesStructurees = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: formation.titre,
+    url: `${urlSite}/formations/${formation.slug}`,
+    inLanguage: 'fr',
+    provider: { '@type': 'EducationalOrganization', name: 'ApexCompany', url: urlSite },
+    ...(formation.description ? { description: formation.description } : {}),
+    ...(formation.objectifs_pedagogiques ? { teaches: formation.objectifs_pedagogiques } : {}),
+    ...(formation.prerequis ? { coursePrerequisites: formation.prerequis } : {}),
+    offers: {
+      '@type': 'Offer',
+      price: prixDecimal(formation.prix_cents),
+      priceCurrency: formation.devise.toUpperCase(),
+      availability: 'https://schema.org/InStock',
+      url: `${urlSite}/formations/${formation.slug}`,
+      category: type?.nom ?? formation.type_produit,
+    },
+  };
+
   const details: Array<[string, string]> = [
     ['Format', type?.nom ?? formation.type_produit],
     ['Suivi', formation.modalite === 'individuel' ? 'Individuel' : 'En groupe'],
@@ -81,6 +140,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   return (
     <>
+      <DonneesStructurees donnees={donneesStructurees} />
+
       <section className="border-b border-filet bg-surface">
         <Conteneur className="grid gap-12 py-16 sm:py-24 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
           <div className="space-y-6">
