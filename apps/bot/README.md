@@ -28,8 +28,17 @@ compte échoue) et l'étape 7 (la hiérarchie des rôles, sans quoi chaque
 attribution échoue en 403).
 
 1. **Créer l'application** sur https://discord.com/developers/applications,
-   onglet **Bot** → _Reset Token_ → copier le jeton (il ne s'affiche qu'une
-   fois) → `DISCORD_BOT_TOKEN`.
+   **nommée `Apex`**, onglet **Bot** → _Reset Token_ → copier le jeton (il ne
+   s'affiche qu'une fois) → `DISCORD_BOT_TOKEN`.
+
+   Le nom de l'application devient le nom du **rôle** que Discord crée à
+   l'invitation — celui qu'on cherche à l'étape 7 pour le hisser en haut de la
+   pile, et celui que les membres voient trôner en tête de la liste des rôles.
+   Rien dans le code ne s'appuie dessus : le worker ne connaît que le jeton et
+   des identifiants numériques, donc un changement d'avis plus tard ne casse
+   rien. Garder le même nom sur le serveur de test et sur la production évite
+   simplement d'avoir à se le redemander.
+
 2. **Relever l'identifiant et le secret de l'application** — onglet
    _OAuth2_ → `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`. Ils servent au
    site, pas au worker : c'est par eux que le client lie son compte.
@@ -70,11 +79,12 @@ attribution échoue en 403).
    salon par salon (invisible à `@everyone`, visible au rôle du produit). Un
    rôle produit avec zéro permission serveur fonctionne parfaitement.
 
-7. **Remonter le rôle du bot** au-dessus, dans la liste des rôles du serveur,
-   de tous ceux qu'il doit attribuer — le rôle `invité` et un rôle par
-   produit. C'est une règle Discord, pas un défaut de ce code : un rôle placé
-   au-dessus du bot fait échouer chaque attribution en 403, quoi qu'on écrive
-   ici. **C'est l'erreur qu'on fait à tous les coups la première fois.**
+7. **Remonter le rôle `Apex`** tout en haut de la liste des rôles du serveur —
+   au-dessus de `invité` et de chaque rôle de produit, c'est-à-dire de tout ce
+   que le bot doit pouvoir attribuer. C'est une règle Discord, pas un défaut de
+   ce code : un rôle placé au-dessus du bot fait échouer chaque attribution en
+   403, quoi qu'on écrive ici. **C'est l'erreur qu'on fait à tous les coups la
+   première fois.**
 8. **Vérifier avant de démarrer quoi que ce soit** :
 
    ```bash
