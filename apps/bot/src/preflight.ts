@@ -135,10 +135,31 @@ async function main() {
   ok(`Bot présent sur « ${serveur.name} »`);
 
   const roles = await discord<RoleDiscord[]>(`/guilds/${guildId}/roles`, token);
-  const membreBot = await discord<{ roles: string[] }>(`/guilds/${guildId}/members/@me`, token);
 
-  if (estErreur(roles) || estErreur(membreBot)) {
-    echec("Impossible de lire les rôles du serveur ou l'appartenance du bot");
+  if (estErreur(roles)) {
+    echec(
+      `Lecture des rôles du serveur refusée (HTTP ${roles._erreur})`,
+      "Le bot est sur le serveur mais ne peut pas lire ses rôles : vérifier qu'il a bien « Gérer les rôles ».",
+    );
+    process.exit(1);
+  }
+  ok(`${roles.length} rôles lus sur le serveur`);
+
+  // `/members/@me` n'existe pas pour un jeton de bot — c'est une route OAuth2
+  // utilisateur. Un bot lit sa propre appartenance par son identifiant, celui
+  // que `/users/@me` vient de donner.
+  const membreBot = await discord<{ roles: string[] }>(
+    `/guilds/${guildId}/members/${moi.id}`,
+    token,
+  );
+
+  if (estErreur(membreBot)) {
+    echec(
+      `Appartenance du bot au serveur illisible (HTTP ${membreBot._erreur})`,
+      membreBot._erreur === 404
+        ? "Le bot n'apparaît pas comme membre — le réinviter via OAuth2 → URL Generator."
+        : 'Sans elle, impossible de vérifier la hiérarchie des rôles, qui est le point qui casse.',
+    );
     process.exit(1);
   }
 
