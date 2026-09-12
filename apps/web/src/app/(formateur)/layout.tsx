@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { BoutonDeconnexion } from '@/components/bouton-deconnexion';
 import { NavigationEspace } from '@/components/navigation-espace';
 import { Conteneur } from '@/components/ui';
 import { requireRole } from '@/lib/auth/roles';
@@ -48,7 +49,10 @@ export default async function FormateurLayout({ children }: { children: ReactNod
             <span className="text-sm text-encre-doux">formateur</span>
           </Link>
 
-          <NavigationEspace liens={LIENS} />
+          <div className="flex items-center gap-4">
+            <NavigationEspace liens={LIENS} />
+            <BoutonDeconnexion />
+          </div>
         </Conteneur>
       </header>
 

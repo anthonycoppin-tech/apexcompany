@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { EtatSession } from '@/components/etat-session';
 import { AvertissementRisque, Bouton, Conteneur } from '@/components/ui';
 
 const NAVIGATION = [
@@ -57,12 +58,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/connexion"
-              className="hidden text-sm text-encre-doux hover:text-encre sm:block"
-            >
-              Se connecter
-            </Link>
+            {/* Connecté ou non — lu dans le navigateur pour que les pages
+                publiques restent statiques. Voir `etat-session.tsx`. */}
+            <EtatSession />
             <Bouton href="/qualification" className="px-4 py-2">
               Faire le point
             </Bouton>

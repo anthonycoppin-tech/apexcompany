@@ -4,15 +4,19 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { BoutonAction, CHAMP, Carte, Conteneur } from '@/components/ui';
+import { destinationApresConnexion } from '@/lib/auth/destination';
 import { createClient } from '@/lib/supabase/client';
 
 /**
  * `/connexion`.
  *
- * La redirection post-connexion mène à `/espace` quel que soit le rôle : un
- * admin qui atterrit sur son espace client y trouve un lien, alors qu'un client
- * renvoyé vers `/admin` se heurterait à la garde de layout. Se tromper dans ce
- * sens-là ne coûte qu'un clic.
+ * **La redirection dépend du rôle**, et ce n'est pas un confort. Envoyer tout
+ * le monde vers `/espace` renvoyait les comptes du staff vers `/` : le seed
+ * retire le rôle `client` aux comptes internes, donc la garde de `(espace)`
+ * les rejetait. On atterrissait sur l'accueil public, qui affiche « Se
+ * connecter » — et on se croyait non connecté alors que la session était bien
+ * ouverte. La règle vit dans `destinationApresConnexion()`, partagée pour que
+ * le header et cette page ne puissent pas diverger.
  */
 export default function ConnexionPage() {
   const router = useRouter();
@@ -27,16 +31,28 @@ export default function ConnexionPage() {
     setEnCours(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password: motDePasse });
-
-    setEnCours(false);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: motDePasse,
+    });
 
     if (error) {
+      setEnCours(false);
       setErreur(error.message);
       return;
     }
 
-    router.push('/espace');
+    // Lu sous la RLS (`user_roles_lit_les_siens`) : chacun voit ses propres
+    // rôles, et rien d'autre.
+    const { data: lignes } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', data.user.id);
+
+    // `enCours` reste vrai jusqu'à la navigation : le bouton ne doit pas
+    // redevenir cliquable pendant qu'on part, sous peine d'une seconde
+    // soumission qui rejouerait la connexion.
+    router.push(destinationApresConnexion(lignes?.map((l) => l.role) ?? []));
     router.refresh();
   }
 

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { BoutonDeconnexion } from '@/components/bouton-deconnexion';
 import { requireRole } from '@/lib/auth/roles';
 
 /**
@@ -69,7 +70,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             Apex<span className="text-accent">Company</span>
             <span className="ml-2 text-xs font-medium text-encre-doux">back-office</span>
           </Link>
-          <span className="text-xs text-encre-doux">{roles.join(' · ')}</span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-encre-doux">{roles.join(' · ')}</span>
+            <BoutonDeconnexion />
+          </div>
         </div>
       </header>
 
