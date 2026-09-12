@@ -112,6 +112,13 @@ export async function GET(request: Request) {
       statut: 'echec',
       details: { raison: 'DISCORD_ROLE_INVITE_ID non configuré' },
     });
+
+    // Et le dire. Annoncer « ton accès arrive dans la minute » alors qu'on
+    // vient d'enregistrer un échec, c'est envoyer quelqu'un attendre un rôle
+    // que personne n'a demandé — et, comme la liaison existe désormais, il ne
+    // pourra même pas rejouer le parcours pour se rattraper.
+    destination.searchParams.set('discord', 'sans-role');
+    return NextResponse.redirect(destination);
   }
 
   destination.searchParams.set('discord', 'ok');

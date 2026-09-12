@@ -20,7 +20,13 @@ async function appelDiscord(method: 'PUT' | 'DELETE', chemin: string, raison: st
     method,
     headers: {
       Authorization: `Bot ${env.discordBotToken}`,
-      'X-Audit-Log-Reason': raison,
+      // Encodé, et pas seulement par prudence : une valeur d'en-tête HTTP est
+      // une ByteString, donc du latin-1. Le tiret cadratin de « ApexCompany —
+      // synchronisation » faisait lever `fetch` AVANT le moindre appel réseau,
+      // et chaque ligne de la file échouait sur une erreur qui ne parlait ni
+      // de Discord ni de permissions. Discord attend justement de l'UTF-8
+      // percent-encodé ici, et le décode pour son journal d'audit.
+      'X-Audit-Log-Reason': encodeURIComponent(raison),
     },
   });
 
