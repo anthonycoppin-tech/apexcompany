@@ -57,6 +57,11 @@ les mêmes identifiant et secret, et déclarer l'URL de retour
 `https://ovlafpgmrwttxstodqxi.supabase.co/auth/v1/callback` dans les redirections OAuth de
 l'application Discord.
 
+Et un troisième réglage, dans le même écran, qu'on ne trouve qu'en le cherchant : **« Enable
+Manual Linking » doit être activé**. Il est désactivé par défaut, et sans lui `linkIdentity()`
+échoue — c'est-à-dire que le bouton « Connecter mon compte Discord » ne peut jamais aboutir,
+quel que soit l'état du reste. L'exigence vient de `@supabase/auth-js`, pas de notre code.
+
 **Sans ça** : aucun accès n'est jamais attribué ni retiré. Un client peut payer et ne rien
 recevoir.
 

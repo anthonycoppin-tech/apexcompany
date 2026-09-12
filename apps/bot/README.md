@@ -18,9 +18,14 @@ passe le typecheck, mais rien n'a jamais attribué un rôle à quelqu'un.
 
 ## Mise en service — dans cet ordre
 
-Les étapes 1 à 6 se font entièrement depuis un navigateur et l'application
-Discord : aucune n'a besoin du dépôt. La 7 seule demande un poste de
+Les étapes 1 à 7 se font entièrement depuis un navigateur et l'application
+Discord : aucune n'a besoin du dépôt. La 8 seule demande un poste de
 développement.
+
+Deux d'entre elles sont des pièges silencieux, et ce sont les deux qui coûtent
+une soirée : l'étape 4 (« Enable Manual Linking », sans quoi la liaison de
+compte échoue) et l'étape 7 (la hiérarchie des rôles, sans quoi chaque
+attribution échoue en 403).
 
 1. **Créer l'application** sur https://discord.com/developers/applications,
    onglet **Bot** → _Reset Token_ → copier le jeton (il ne s'affiche qu'une
@@ -33,19 +38,32 @@ développement.
    **activer le fournisseur Discord côté Supabase** (Authentication →
    Providers → Discord) avec ces mêmes identifiant et secret. Sans ces deux
    réglages, le bouton « Connecter mon compte Discord » ne mène nulle part.
-4. **Inviter le bot** — _OAuth2_ → _URL Generator_, scope `bot`, permission
+4. **Activer « Enable Manual Linking »** dans les réglages d'authentification
+   du projet Supabase (Authentication → Providers). Ce n'est pas une option
+   décorative : `linkIdentity()` — la seule façon dont le site obtient un
+   `discord_user_id` — **échoue tant qu'elle est désactivée**, et elle l'est
+   par défaut. C'est `@supabase/auth-js` qui l'impose, pas notre code
+   (`components/bouton-lier-discord.tsx`).
+
+   Deux conséquences à connaître avant de tester : il faut **être connecté**
+   pour appeler `linkIdentity()`, et **un même compte Discord ne peut être
+   lié qu'à un seul compte du site**. Tester deux fois avec son propre Discord
+   sur deux comptes différents échoue au second — délier le premier, ou
+   prendre un autre compte Discord.
+
+5. **Inviter le bot** — _OAuth2_ → _URL Generator_, scope `bot`, permission
    `Manage Roles`. Ouvrir l'URL générée, choisir le serveur.
-5. **Créer le rôle `invité`** sur le serveur, et relever son identifiant
+6. **Créer le rôle `invité`** sur le serveur, et relever son identifiant
    (Paramètres utilisateur → Avancé → Mode développeur, puis clic droit sur
    le rôle → Copier l'ID) → `DISCORD_ROLE_INVITE_ID`. Relever au passage
    l'identifiant du serveur (clic droit sur le serveur → Copier l'ID) →
    `DISCORD_GUILD_ID`.
-6. **Remonter le rôle du bot** au-dessus, dans la liste des rôles du serveur,
+7. **Remonter le rôle du bot** au-dessus, dans la liste des rôles du serveur,
    de tous ceux qu'il doit attribuer — le rôle `invité` et un rôle par
    produit. C'est une règle Discord, pas un défaut de ce code : un rôle placé
    au-dessus du bot fait échouer chaque attribution en 403, quoi qu'on écrive
    ici. **C'est l'erreur qu'on fait à tous les coups la première fois.**
-7. **Vérifier avant de démarrer quoi que ce soit** :
+8. **Vérifier avant de démarrer quoi que ce soit** :
 
    ```bash
    npm run discord:check
