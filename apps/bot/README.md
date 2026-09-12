@@ -159,6 +159,18 @@ marche pas :
 `npm run discord:check` résume l'état de la file sans rien modifier : c'est le
 plus rapide pour savoir si une ligne est restée en `echoue` ou `abandonne`.
 
+### Où taper le SQL
+
+Dans **l'éditeur SQL du projet Supabase** :
+https://supabase.com/dashboard/project/ovlafpgmrwttxstodqxi/sql/new
+
+C'est le même endroit qui servira en production. Coller, « Run », lire le
+résultat. Chaque bloc ci-dessous se colle tel quel — les identifiants sont ceux
+de la base de dev et du seed.
+
+**Rappel** : cette base est partagée avec l'autre développeur. Les blocs de
+remise en état à la fin ne sont pas facultatifs.
+
 ### 2. Le retrait
 
 Deux façons, et elles ne prouvent pas la même chose.
@@ -168,9 +180,9 @@ Deux façons, et elles ne prouvent pas la même chose.
 ```sql
 insert into public.discord_sync_queue (user_id, action, role_id)
 values (
-  '66666666-6666-6666-6666-666666666666',  -- client.a
+  '66666666-6666-6666-6666-666666666666',  -- client.a@apex.test
   'revoke',
-  '<DISCORD_ROLE_INVITE_ID>'
+  '1548360556388556840'                    -- rôle « invité » du serveur de test
 );
 ```
 
@@ -178,24 +190,50 @@ Le rôle doit disparaître du membre. Ça vérifie le chemin `revoke` du worker,
 rien d'autre.
 
 **La longue — la chaîne métier.** Celle qui compte, parce qu'elle rejoue ce qui
-se passera réellement en fin d'accès. On fabrique une inscription déjà expirée,
-puis on laisse `revoquer_acces_expires()` la trouver :
+se passera réellement en fin d'accès. `client.a` a déjà une inscription
+Accélérateur active : on la fait expirer, et `revoquer_acces_expires()` la
+trouve.
+
+D'abord lui donner le rôle du produit, sinon on regarderait disparaître un rôle
+qu'il n'a pas :
 
 ```sql
--- 1. Une inscription expirée hier, sur un produit qui porte un rôle.
-insert into public.inscriptions (user_id, formation_id, statut, date_fin_acces)
+-- 1. Le rôle Accélérateur, empilé comme le ferait traiter_paiement().
+insert into public.discord_sync_queue (user_id, action, role_id)
 values (
-  '66666666-6666-6666-6666-666666666666',       -- client.a
-  'a0000000-0000-0000-0000-000000000002',       -- Fondations
-  'active',
-  current_date - 1
+  '66666666-6666-6666-6666-666666666666',  -- client.a@apex.test
+  'grant',
+  '1548360649199849482'                    -- rôle « Accélérateur »
 );
+```
 
--- 2. Donner le rôle du produit au membre, à la main sur Discord — sinon on
---    regarderait disparaître un rôle qu'il n'avait pas.
+Le rôle apparaît sur le membre. Puis la révocation :
+
+```sql
+-- 2. L'accès expire hier.
+update public.inscriptions
+set date_fin_acces = current_date - 1
+where id = 'e0000000-0000-0000-0000-00000000000a';
 
 -- 3. La révocation. Elle renvoie son compte-rendu en JSON.
 select public.revoquer_acces_expires();
+```
+
+Attendu : `{"inscriptions_terminees": 1, "roles_revoques": 1, ...}`,
+l'inscription passe en `terminee`, une ligne `revoke` entre dans la file, le
+worker la consomme, **et le rôle Accélérateur disparaît du membre**.
+
+Remettre en état — la base est partagée, et le seed doit rester reproductible :
+
+```sql
+-- 4. L'inscription redevient ce qu'elle était.
+update public.inscriptions
+set statut = 'active', date_fin_acces = null
+where id = 'e0000000-0000-0000-0000-00000000000a';
+
+-- 5. Les lignes de file du test s'en vont. Indispensable avant de basculer
+--    DISCORD_GUILD_ID sur la production : ces rôles n'y existent pas.
+delete from public.discord_sync_queue;
 ```
 
 Attendu : l'inscription passe en `terminee`, une ligne `revoke` apparaît dans la
