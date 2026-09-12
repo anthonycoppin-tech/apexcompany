@@ -24,7 +24,8 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 | Sujet                                                       | État  | Qui | Depuis |
 | ----------------------------------------------------------- | ----- | --- | ------ |
-| Écrans du contenu éditorial (back-office + pages publiques) | libre | —   | —      |
+| Intégration Discord — mise en service                       | pris  | Christopher | 12 sept. |
+| Écrans du contenu éditorial (back-office + pages publiques) | libre | —           | —        |
 
 ## Fait
 
