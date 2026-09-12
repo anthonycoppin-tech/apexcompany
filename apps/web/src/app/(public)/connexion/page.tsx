@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { BoutonAction, CHAMP, Carte, Conteneur } from '@/components/ui';
@@ -24,6 +24,30 @@ export default function ConnexionPage() {
   const [motDePasse, setMotDePasse] = useState('');
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
+
+  // Déjà connecté : cette page n'a rien à proposer. La garde est ici et non
+  // dans un composant serveur pour que `/connexion` reste générée
+  // statiquement — un `cookies()` la rendrait dynamique pour tout le monde,
+  // alors que le cas visé est rare.
+  useEffect(() => {
+    const supabase = createClient();
+    let vivant = true;
+
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!vivant || !data.user) return;
+
+      const { data: lignes } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id);
+
+      if (vivant) router.replace(destinationApresConnexion(lignes?.map((l) => l.role) ?? []));
+    });
+
+    return () => {
+      vivant = false;
+    };
+  }, [router]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
