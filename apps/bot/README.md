@@ -53,11 +53,23 @@ attribution échoue en 403).
 
 5. **Inviter le bot** — _OAuth2_ → _URL Generator_, scope `bot`, permission
    `Manage Roles`. Ouvrir l'URL générée, choisir le serveur.
-6. **Créer le rôle `invité`** sur le serveur, et relever son identifiant
-   (Paramètres utilisateur → Avancé → Mode développeur, puis clic droit sur
-   le rôle → Copier l'ID) → `DISCORD_ROLE_INVITE_ID`. Relever au passage
-   l'identifiant du serveur (clic droit sur le serveur → Copier l'ID) →
-   `DISCORD_GUILD_ID`.
+6. **Créer TOUS les rôles** — `invité`, plus un rôle par produit actif du
+   catalogue — et relever leurs identifiants (Paramètres utilisateur → Avancé
+   → Mode développeur, puis clic droit sur le rôle → Copier l'ID). Celui
+   d'`invité` va dans `DISCORD_ROLE_INVITE_ID` ; ceux des produits se saisissent
+   dans `/admin/formations`. Relever au passage l'identifiant du serveur (clic
+   droit sur le serveur → Copier l'ID) → `DISCORD_GUILD_ID`.
+
+   **Les créer tous maintenant, pas seulement `invité`** : l'étape suivante
+   positionne le bot au-dessus d'eux, et un rôle créé après coup naît au bas de
+   la pile — donc sous le bot, ce qui va bien — mais un rôle créé après coup
+   **et remonté à la main** repasse facilement au-dessus sans qu'on y pense.
+
+   **Aucune permission à cocher.** Ces rôles ne sont que des étiquettes : ce qui
+   décide de ce qu'on voit, ce sont les autorisations **du salon**, réglées
+   salon par salon (invisible à `@everyone`, visible au rôle du produit). Un
+   rôle produit avec zéro permission serveur fonctionne parfaitement.
+
 7. **Remonter le rôle du bot** au-dessus, dans la liste des rôles du serveur,
    de tous ceux qu'il doit attribuer — le rôle `invité` et un rôle par
    produit. C'est une règle Discord, pas un défaut de ce code : un rôle placé
@@ -80,6 +92,42 @@ Les variables du worker vivent dans `apps/bot/.env` (copier `.env.example`),
 celles du site dans `apps/web/.env.local`. `DISCORD_ROLE_INVITE_ID` est lue
 par le site, et répétée dans `.env` du bot pour que le diagnostic puisse la
 vérifier.
+
+## Rôder sur un serveur de test d'abord
+
+Recommandé, et ça ne coûte presque rien : créer un serveur Discord jetable (on
+en est propriétaire, donc aucune question de hiérarchie ni de permission sur
+soi-même) et y dérouler la mise en service en entier. On se trompe sans témoin,
+et sans réordonner les rôles d'une communauté vivante.
+
+**Ce qui ne se refait PAS en passant en production.** L'application Discord
+n'appartient à aucun serveur : une seule application sert les deux. Les étapes
+1 à 4 — création, jeton, identifiant et secret, réglages Supabase — sont faites
+une fois pour toutes. Seules les étapes 5 à 7 se rejouent sur le vrai serveur :
+inviter le même bot, recréer les rôles, replacer la hiérarchie.
+
+**Ce qui change, et qu'il faut donc remplacer :**
+
+| Valeur                       | Où                                                 |
+| ---------------------------- | -------------------------------------------------- |
+| `DISCORD_GUILD_ID`           | `apps/bot/.env` — autre serveur, autre identifiant |
+| `DISCORD_ROLE_INVITE_ID`     | `apps/bot/.env` et `apps/web/.env.local`           |
+| `formations.discord_role_id` | `/admin/formations`, un par produit                |
+
+**Et une chose à nettoyer avant de basculer** : les lignes de
+`discord_sync_queue` laissées par le test désignent des rôles du serveur de
+test. Traitées après le changement de `DISCORD_GUILD_ID`, elles échouent en
+boucle sur un serveur où ces rôles n'existent pas. Les supprimer, ou les passer
+en `abandonne`, avant de démarrer le worker contre la production.
+
+Deux réserves de moindre importance, mais qui surprennent :
+
+- **La base de dev est partagée** avec l'autre développeur
+  (`docs/07-REPARTITION.md`). Un test écrit de vraies lignes dans
+  `discord_links` et `discord_sync_queue`, et modifie le catalogue.
+- **Un compte Discord ne se lie qu'à un seul compte du site.** Le sien servira
+  au premier test et restera lié ; pour en refaire un autre, délier d'abord
+  (`discord_links`) ou prendre un autre compte Discord.
 
 ## Développement
 
