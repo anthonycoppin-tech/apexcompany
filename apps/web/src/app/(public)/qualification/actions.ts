@@ -12,6 +12,7 @@ import {
   VERSION_CONSENTEMENT,
 } from '@/lib/qualification/questionnaire';
 import { creerCompteEtSession } from '@/lib/auth/creation-compte';
+import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 type LeadSource = Database['public']['Enums']['lead_source'];
@@ -39,6 +40,10 @@ const SOURCES: Readonly<Record<string, LeadSource>> = {
  * moment où le lead s'écrit, d'où le client `service_role`. C'est le troisième
  * usage légitime de cette clé, avec les webhooks et le worker Discord, et pour
  * la même raison — pas de session utilisateur à ce point du parcours.
+ *
+ * « Anonyme » est désormais **vérifié**, pas supposé : voir le garde-fou après
+ * la validation de l'email. Une session déjà ouverte serait écrasée par celle
+ * que cette action installe.
  *
  * L'ordre des écritures n'est pas indifférent :
  *
@@ -86,6 +91,25 @@ export async function soumettreQualification(
   const email = lu('email').toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { erreur: "Cette adresse email n'est pas valide." };
+  }
+
+  // Déjà connecté ? On s'arrête ici.
+  //
+  // `creerCompteEtSession()` finit par un `verifyOtp`, qui **remplace le cookie
+  // de session** : une personne déjà connectée qui remplit ce formulaire avec
+  // une autre adresse se retrouverait silencieusement dans la peau du compte
+  // qu'elle vient de créer. Sur un compte de l'équipe, on y perdrait aussi son
+  // accès au back-office, et le CRM y gagnerait un prospect fictif.
+  //
+  // Le header masque déjà « Faire le point » une fois la session ouverte ;
+  // ceci couvre l'accès direct à l'URL, que masquer un bouton n'empêche pas.
+  const { data: sessionEnCours } = await (await createClient()).auth.getUser();
+
+  if (sessionEnCours.user) {
+    return {
+      erreur:
+        'Tu es déjà connecté. Déconnecte-toi d’abord si tu veux remplir ce formulaire pour quelqu’un d’autre.',
+    };
   }
 
   // Non pré-cochée, et refusée si absente : c'est tout l'intérêt d'un

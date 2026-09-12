@@ -58,12 +58,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-3">
-            {/* Connecté ou non — lu dans le navigateur pour que les pages
-                publiques restent statiques. Voir `etat-session.tsx`. */}
+            {/* Tout le bloc dépend de la session — y compris l'appel à
+                l'action, qui n'a plus de sens une fois qu'on est connecté.
+                Lu dans le navigateur pour que les pages publiques restent
+                statiques. Voir `etat-session.tsx`. */}
             <EtatSession />
-            <Bouton href="/qualification" className="px-4 py-2">
-              Faire le point
-            </Bouton>
           </div>
         </Conteneur>
       </header>

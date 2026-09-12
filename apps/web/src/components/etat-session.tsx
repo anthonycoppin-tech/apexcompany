@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { type AppRole } from '@apex/db';
 
 import { BoutonDeconnexion } from '@/components/bouton-deconnexion';
+import { Bouton } from '@/components/ui';
 import { destinationApresConnexion } from '@/lib/auth/destination';
 import { createClient } from '@/lib/supabase/client';
 
@@ -57,13 +58,22 @@ export function EtatSession() {
   }, []);
 
   // Premier rendu : l'état n'est pas encore connu.
-  if (roles === null) return <div className="h-5 w-px" aria-hidden />;
+  if (roles === null) return <div className="h-9 w-px" aria-hidden />;
 
+  // Visiteur : l'appel à l'action unique du site, celui de `02-SITEMAP.md`.
   if (roles.length === 0) {
     return (
-      <Link href="/connexion" className="hidden text-sm text-encre-doux hover:text-encre sm:block">
-        Se connecter
-      </Link>
+      <>
+        <Link
+          href="/connexion"
+          className="hidden text-sm text-encre-doux hover:text-encre sm:block"
+        >
+          Se connecter
+        </Link>
+        <Bouton href="/qualification" className="px-4 py-2">
+          Faire le point
+        </Bouton>
+      </>
     );
   }
 
@@ -77,12 +87,18 @@ export function EtatSession() {
         ? 'Espace formateur'
         : 'Mon espace';
 
+  // Connecté : « Faire le point » disparaît. C'est l'entrée du tunnel — elle
+  // crée un compte et ouvre une session. Proposée à quelqu'un qui en a déjà
+  // une, elle n'a aucun sens pour un client, et pour un membre de l'équipe
+  // elle remplit le CRM de prospects fictifs. La place revient à la
+  // destination du compte, qui est ce qu'on vient chercher dans ce coin de
+  // l'écran.
   return (
-    <div className="hidden items-center gap-4 sm:flex">
-      <Link href={destination} className="text-sm font-medium text-accent hover:text-accent-fort">
+    <>
+      <BoutonDeconnexion className="hidden sm:block" />
+      <Bouton href={destination} className="px-4 py-2">
         {libelle}
-      </Link>
-      <BoutonDeconnexion />
-    </div>
+      </Bouton>
+    </>
   );
 }
