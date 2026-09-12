@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/worker.ts",
+    "check": "tsx src/preflight.ts",
     "start": "node dist/worker.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit"
