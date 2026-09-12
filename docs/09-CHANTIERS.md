@@ -22,10 +22,9 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                                     | État | Qui         | Depuis   |
-| --------------------------------------------------------- | ---- | ----------- | -------- |
-| Intégration Discord — mise en service                     | pris | Christopher | 12 sept. |
-| État de connexion dans le header, et redirection par rôle | pris | Christopher | 12 sept. |
+| Sujet                                 | État | Qui         | Depuis   |
+| ------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
 
 **Où ça en est** : `npm run discord:check` est écrit — un diagnostic en lecture seule de
 toute la chaîne, jeton compris, et surtout de la hiérarchie des rôles, qui est ce qui casse
@@ -37,14 +36,15 @@ Restent à faire, sur un poste : créer l'application Discord, remplir `apps/bot
 
 ## Fait
 
-| Sujet                                        | Quand   | Notes                                                                                                                                                                                                                                                      |
-| -------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Référencement du site public                 | 9 sept. | `sitemap.xml`, `robots.txt`, Open Graph, données structurées. `robots.txt` interdit tout tant que `NEXT_PUBLIC_SITE_URL` n'est pas en HTTPS.                                                                                                               |
-| Tunnel d'entrée au design system             | 9 sept. | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.                                                                                                                       |
-| Contenu éditorial — schéma                   | 9 sept. | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. Migration appliquée sur le projet hébergé le 9 septembre, types régénérés.                                                                                               |
-| `(espace)` et `(formateur)` au design system | 9 sept. | Dix-huit fichiers sortis de Tailwind brut. Navigation avec état actif, couleur Discord passée en token. **Non vérifié à l'écran** : ces pages sont derrière une garde de rôle, et la base est injoignable depuis l'environnement où le travail a été fait. |
-| Chiffres de l'accueil                        | 9 sept. | Un chiffre ne s'affiche que s'il porte une source et une date. Aucun des quatre n'en a : la section a disparu de l'accueil, et y revient dès que le client répond.                                                                                         |
-| CI de `main` réparée                         | 9 sept. | Rouge depuis le renommage `coach` → `formateur` : le login réel visait `coach.a@apex.test`, absent du seed. Les tests pgTAP, eux, passaient.                                                                                                               |
+| Sujet                                        | Quand    | Notes                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Référencement du site public                 | 9 sept.  | `sitemap.xml`, `robots.txt`, Open Graph, données structurées. `robots.txt` interdit tout tant que `NEXT_PUBLIC_SITE_URL` n'est pas en HTTPS.                                                                                                                                                                                                                      |
+| Tunnel d'entrée au design system             | 9 sept.  | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.                                                                                                                                                                                                                              |
+| Contenu éditorial — schéma                   | 9 sept.  | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. Migration appliquée sur le projet hébergé le 9 septembre, types régénérés.                                                                                                                                                                                                      |
+| `(espace)` et `(formateur)` au design system | 9 sept.  | Dix-huit fichiers sortis de Tailwind brut. Navigation avec état actif, couleur Discord passée en token. **Non vérifié à l'écran** : ces pages sont derrière une garde de rôle, et la base est injoignable depuis l'environnement où le travail a été fait.                                                                                                        |
+| Chiffres de l'accueil                        | 9 sept.  | Un chiffre ne s'affiche que s'il porte une source et une date. Aucun des quatre n'en a : la section a disparu de l'accueil, et y revient dès que le client répond.                                                                                                                                                                                                |
+| CI de `main` réparée                         | 9 sept.  | Rouge depuis le renommage `coach` → `formateur` : le login réel visait `coach.a@apex.test`, absent du seed. Les tests pgTAP, eux, passaient.                                                                                                                                                                                                                      |
+| État de connexion dans le header             | 12 sept. | Se connecter avec un compte staff menait à `/espace`, dont la garde refuse le rôle — on rebondissait sur l'accueil public et on se croyait déconnecté. Redirection par rôle, header qui lit la session, et une déconnexion, qui n'existait nulle part. Les pages publiques restent statiques : la session est lue dans le navigateur, pas dans le layout serveur. |
 
 ## Libre, et rien ne l'empêche
 
