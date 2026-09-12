@@ -111,6 +111,128 @@ celles du site dans `apps/web/.env.local`. `DISCORD_ROLE_INVITE_ID` est lue
 par le site, et répétée dans `.env` du bot pour que le diagnostic puisse la
 vérifier.
 
+## L'aller-retour, de bout en bout
+
+Le diagnostic prouve que la chaîne _peut_ fonctionner. Cette épreuve-ci prouve
+qu'elle fonctionne : un rôle réellement accordé à quelqu'un, puis réellement
+retiré. C'est ce que le projet n'a jamais fait.
+
+### Avant de commencer
+
+Trois conditions, et la troisième est celle qu'on oublie :
+
+1. **Le worker tourne** — `npm run dev:bot` dans un terminal à part. Sans lui,
+   les lignes s'empilent dans la file et rien n'arrive sur Discord.
+2. **Le site tourne** — `npm run dev`.
+3. **Le compte Discord que tu vas lier est déjà membre du serveur de test.**
+   Sinon le worker répond `MembreIntrouvable` et **abandonne la ligne
+   immédiatement**, sans réessayer : aucun nombre de tentatives ne fait
+   rejoindre un serveur à quelqu'un.
+
+Il faut aussi un compte ayant le rôle applicatif `client` : `/espace/communaute`
+est derrière cette garde, et les comptes du staff ne l'ont pas. Le seed en
+fournit deux — `client.a@apex.test` / `password123`.
+
+### 1. La liaison, et l'attribution
+
+Se connecter, puis aller sur `/espace/communaute` et cliquer « Connecter mon
+compte Discord ». Discord demande l'autorisation, puis renvoie sur
+`/api/discord/callback`, qui écrit la liaison **et empile le `grant`** du rôle
+`invité` — dans cet ordre, parce qu'un rôle empilé avant la liaison n'aurait
+aucun identifiant à qui être accordé.
+
+Au retour, l'URL porte `?discord=ok`.
+
+**Ce qu'on doit voir, dans les cinq secondes** (le worker relit la file toutes
+les 5 s) : le rôle `invité` apparaît sur le membre, sur le serveur Discord.
+
+Trois traces le confirment, et elles se lisent dans cet ordre quand ça ne
+marche pas :
+
+| Où                                    | Ce qu'on doit y trouver                            |
+| ------------------------------------- | -------------------------------------------------- |
+| Le terminal du worker                 | Aucune erreur                                      |
+| `discord_sync_queue`                  | La ligne passée en `reussi`, `traite_at` renseigné |
+| `discord_links`                       | `roles_attribues` contient l'identifiant du rôle   |
+| Le journal d'audit du serveur Discord | « ApexCompany — synchronisation grant (file …) »   |
+
+`npm run discord:check` résume l'état de la file sans rien modifier : c'est le
+plus rapide pour savoir si une ligne est restée en `echoue` ou `abandonne`.
+
+### 2. Le retrait
+
+Deux façons, et elles ne prouvent pas la même chose.
+
+**La courte — le worker seul.** Empiler une révocation à la main :
+
+```sql
+insert into public.discord_sync_queue (user_id, action, role_id)
+values (
+  '66666666-6666-6666-6666-666666666666',  -- client.a
+  'revoke',
+  '<DISCORD_ROLE_INVITE_ID>'
+);
+```
+
+Le rôle doit disparaître du membre. Ça vérifie le chemin `revoke` du worker, et
+rien d'autre.
+
+**La longue — la chaîne métier.** Celle qui compte, parce qu'elle rejoue ce qui
+se passera réellement en fin d'accès. On fabrique une inscription déjà expirée,
+puis on laisse `revoquer_acces_expires()` la trouver :
+
+```sql
+-- 1. Une inscription expirée hier, sur un produit qui porte un rôle.
+insert into public.inscriptions (user_id, formation_id, statut, date_fin_acces)
+values (
+  '66666666-6666-6666-6666-666666666666',       -- client.a
+  'a0000000-0000-0000-0000-000000000002',       -- Fondations
+  'active',
+  current_date - 1
+);
+
+-- 2. Donner le rôle du produit au membre, à la main sur Discord — sinon on
+--    regarderait disparaître un rôle qu'il n'avait pas.
+
+-- 3. La révocation. Elle renvoie son compte-rendu en JSON.
+select public.revoquer_acces_expires();
+```
+
+Attendu : l'inscription passe en `terminee`, une ligne `revoke` apparaît dans la
+file, le worker la consomme, le rôle disparaît du membre. Et
+`automation_logs` reçoit une ligne `revocation.quotidienne` — y compris quand il
+n'y a rien à faire, parce qu'un journal vide ne distingue pas « rien à
+révoquer » de « plus rien ne s'exécute ».
+
+Le même chemin s'appelle aussi par HTTP, ce qui teste en plus la route que le
+planificateur appellera :
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/revocation
+```
+
+(`CRON_SECRET` est dans `apps/web/.env.local`, à remplir avec n'importe quelle
+valeur pour un test local — sans elle la route répond 503.)
+
+### Nettoyer derrière soi
+
+La base de dev est partagée. Supprimer l'inscription de test, et vider les
+lignes de file qu'elle a produites — surtout avant de basculer
+`DISCORD_GUILD_ID` sur la production, où ces rôles n'existent pas.
+
+### Si le rôle n'arrive pas
+
+Par ordre de fréquence :
+
+- **Ligne en `abandonne` avec « Compte Discord non lié »** : la liaison a
+  échoué. Vérifier `discord_links`, et que « Enable Manual Linking » est bien
+  activé côté Supabase (étape 4).
+- **Ligne en `abandonne` avec « Membre introuvable »** : le compte Discord lié
+  n'est pas membre du serveur. Le faire rejoindre, puis réempiler.
+- **Ligne en `echoue` avec un 403** : la hiérarchie. Le rôle est passé au-dessus
+  d'`Apex`. `npm run discord:check` le dit précisément.
+- **Rien ne bouge, ligne en `en_attente`** : le worker ne tourne pas.
+
 ## Rôder sur un serveur de test d'abord
 
 Recommandé, et ça ne coûte presque rien : créer un serveur Discord jetable (on
