@@ -22,9 +22,11 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                 | État | Qui         | Depuis   |
-| ------------------------------------- | ---- | ----------- | -------- |
-| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
+| Sujet                                             | État | Qui         | Depuis   |
+| ------------------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
+| Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
+| Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
@@ -36,6 +38,39 @@ empêchait le worker de passer le moindre appel (le tiret cadratin de `X-Audit-L
 (inviter le bot, créer les rôles, replacer la hiérarchie) et remplacer trois valeurs. Les
 réglages Discord et Supabase, eux, ne se refont pas — l'application n'appartient à aucun
 serveur. Détail dans `apps/bot/README.md`.
+
+### Réconciliation des rôles Discord — pris le 13 septembre
+
+**Le problème, démontré le 12 septembre.** Rien ne rattrape un rôle qui n'a pas été accordé.
+La révocation a sa tâche quotidienne ; l'attribution n'a que le `grant` empilé à l'instant du
+paiement ou de la liaison. Si cet instant se passe mal, la base dit « accès actif » et Discord
+dit non, définitivement — et le symptôme côté client est « j'ai payé et je n'ai pas accès »,
+qu'on n'apprend que s'il se plaint.
+
+Trois façons d'y arriver, toutes rencontrées ou possibles : une variable absente (arrivé —
+`DISCORD_ROLE_INVITE_ID` côté site), le worker arrêté au mauvais moment, une ligne passée en
+`abandonne`. Et une quatrième, structurelle : un membre qui quitte le serveur puis le rejoint
+perd ses rôles, et rien ne les lui rend.
+
+**Ce qu'il faut** : une tâche qui compare les inscriptions actives à
+`discord_links.roles_attribues` et réempile ce qui manque. Elle a sa place à côté de
+`revoquer_acces_expires()`, appelée par le même planificateur.
+
+**Bloquant avant d'ouvrir les ventes.**
+
+### Système de messages — pris le 13 septembre
+
+**Il n'en existe aucun**, et trois mécaniques différentes se partagent le besoin :
+`/connexion` garde son erreur dans un `useState`, `/espace/communaute` lit un `?discord=ok`
+dans l'URL, et un retour de paiement n'a nulle part où se dire.
+
+À concevoir **une fois** — un composant et une convention d'URL — avant que chaque écran
+n'invente la sienne. La décision de ne pas l'improviser dans le correctif du 12 septembre
+tient toujours : c'est ce qui aurait produit une quatrième mécanique.
+
+Trois familles à couvrir : le succès, l'erreur, et l'information. Et un cas limite à ne pas
+oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose de faux
+(« ton accès arrive dans la minute » après un échec enregistré) est pire que pas de message.
 
 ## Fait
 
@@ -54,12 +89,10 @@ serveur. Détail dans `apps/bot/README.md`.
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                                                   | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Écrans du contenu éditorial                             | Débloqué : la migration est appliquée et `database.types.ts` connaît `temoignages` et `formateurs_fiches`. Rien ne manque pour commencer.                                                                                                                                                                                                                                                                                                                                                                   |
-| Revérifier les gardes de layout avec de vraies sessions | Les écrans de `(espace)` et `(formateur)` sont passés au design system sans jamais être vus : ils sont derrière une garde de rôle et la base était injoignable. Depuis un poste qui l'atteint, c'est une heure de travail.                                                                                                                                                                                                                                                                                  |
-| Système de messages (succès, erreur, information)       | Il n'en existe aucun. Chaque écran improvise : `/connexion` garde son erreur dans un `useState`, `/espace/communaute` lit un `?discord=ok` dans l'URL, et un retour de paiement n'a nulle part où se dire. À concevoir une fois — un composant et une convention d'URL — avant que chaque page n'invente la sienne.                                                                                                                                                                                         |
-| Réconciliation des rôles Discord                        | Rien ne rattrape un rôle qui n'a pas été accordé. La révocation a sa tâche quotidienne ; l'attribution n'a que le `grant` empilé au moment du paiement ou de la liaison. Si ce moment se passe mal — configuration absente (arrivé le 12 septembre), worker arrêté, ligne `abandonne`, membre qui quitte puis rejoint le serveur — la base dit « accès actif » et Discord dit non, pour toujours. Une tâche qui compare `inscriptions` actives à `discord_links.roles_attribues` et réempile ce qui manque. |
+| Sujet                                                   | Pourquoi ça vaut le coup                                                                                                                                                                                                   |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Écrans du contenu éditorial                             | Débloqué : la migration est appliquée et `database.types.ts` connaît `temoignages` et `formateurs_fiches`. Rien ne manque pour commencer.                                                                                  |
+| Revérifier les gardes de layout avec de vraies sessions | Les écrans de `(espace)` et `(formateur)` sont passés au design system sans jamais être vus : ils sont derrière une garde de rôle et la base était injoignable. Depuis un poste qui l'atteint, c'est une heure de travail. |
 
 ## Bloqué, et par quoi
 

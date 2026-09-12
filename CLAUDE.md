@@ -19,40 +19,83 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
-## Point d'étape — 12 septembre 2026
+## Point d'étape — 12 septembre 2026 (soir)
 
-**Prime sur les deux points d'étape ci-dessous**, qui restent vrais pour tout ce que
-celui-ci ne contredit pas.
+**Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
+contredit pas.
 
-- **Rien n'a bougé sur `main` entre le 9 et le 12 septembre.** Le dernier commit était le
-  merge de la PR #19 (contenu éditorial). La branche `b/types-contenu-editorial` a été
-  supprimée du distant ; `claude/mobile-project-work-c0k1hb` traîne toujours, fusionnée.
-- **`SUPABASE_SERVICE_ROLE_KEY` est renseignée et lit la base hébergée.** C'est la première
-  clé réelle du projet. `docs/08-CE-QUI-MANQUE.md` a été corrigé en conséquence — il la
-  donnait encore pour vide.
-- **`npm run discord:check`** (`apps/bot/src/preflight.ts`) : diagnostic en lecture seule de
-  la mise en service Discord — jeton, présence du bot sur le serveur, permission « Gérer les
-  rôles », **position de chaque rôle à attribuer**, état de la file. La hiérarchie est sa
-  raison d'être : Discord refuse en 403 un rôle placé au-dessus du plus haut rôle du bot, le
-  symptôme est une file entière en échec, et rien dans le code ne l'explique. À lancer avant
-  le worker, jamais après.
-- **Il signale déjà deux vrais problèmes sur la base hébergée**, tous deux des données de la
-  révision 2 restées en place : « Fondations » est **actif sans rôle Discord** — il
-  encaisserait un paiement sans ouvrir d'accès — et « Accélérateur » porte l'identifiant de
-  seed `900000000000000001`, qui n'existe sur aucun serveur. Les deux se corrigent depuis
-  `/admin/formations`.
-- **La marche à suivre Discord est dans `apps/bot/README.md`**, dans l'ordre où il faut la
-  faire. Ses six premières étapes ne demandent qu'un navigateur et l'application Discord.
-- **`apps/web/.env.local` avait quatre clés de retard** sur `.env.example` —
-  `DISCORD_ROLE_INVITE_ID`, `AUDIT_CONSEILLER_USER_ID`, `CRON_SECRET`, `NEXT_PUBLIC_CAL_LIEN`.
-  Elles y sont désormais, vides. `DISCORD_ROLE_INVITE_ID` est le piège du lot : lue par le
-  site, son absence ne se voit qu'à la première liaison de compte qui n'accorde aucun rôle.
-- **Le README du bot annonçait comme restant à faire l'insertion dans `discord_sync_queue`.**
-  Elle est faite depuis, et côté SQL : `traiter_paiement()`, `revoquer_acces_expires()` et
-  `enregistrer_remboursement()` la portent toutes les trois.
-- **Où tourne le worker en production reste ouvert** — c'est un processus long, pas une route
-  HTTP. Même question que le planificateur de la révocation quotidienne, et même réponse
-  attendue : savoir où le site est hébergé.
+### Discord fonctionne — pour de vrai, et pour la première fois
+
+L'aller-retour complet a eu lieu contre un vrai serveur Discord : liaison d'un compte,
+attribution du rôle `invité`, attribution d'un rôle de produit, puis révocation par la
+**chaîne métier entière** — inscription expirée, `revoquer_acces_expires()`, file, worker,
+rôle retiré du membre. `automation_logs` en porte la trace.
+
+C'était sur un **serveur de test**, dont le développeur est propriétaire. La production attend
+un accès administrateur. Ce qui s'y rejoue (inviter le bot, créer les rôles, replacer la
+hiérarchie) et ce qui ne se refait pas (l'application, le jeton, les réglages Supabase) est
+écrit dans `apps/bot/README.md`.
+
+**Le bot s'appelle `Apex`.** Aucun nom n'était fixé nulle part avant.
+
+**Trois défauts trouvés, qu'aucun test hors ligne ne pouvait voir** — c'est l'argument pour
+faire tourner les choses en vrai tôt :
+
+- `X-Audit-Log-Reason` portait un **tiret cadratin**. Une valeur d'en-tête HTTP est une
+  ByteString : `fetch` levait avant d'ouvrir la connexion. **Le worker n'avait jamais pu
+  passer un seul appel**, et l'erreur ne parlait ni de Discord, ni de rôles, ni de
+  permissions.
+- `DISCORD_ROLE_INVITE_ID` était absente de `apps/web/.env.local` — c'est le **site** qui
+  empile le rôle à la liaison, pas le worker. Le `grant` n'était jamais créé, et la page
+  annonçait quand même « ton accès arrive dans la minute ».
+- Le diagnostic lisait l'appartenance du bot par `/members/@me`, une route OAuth2 utilisateur
+  qui répond 404 à un jeton de bot.
+
+**Deux réglages à connaître, parce qu'ils bloquent tout en silence** : « Enable Manual
+Linking » côté Supabase (désactivé par défaut, sans quoi `linkIdentity()` échoue) et la
+hiérarchie des rôles Discord (un rôle au-dessus du bot = 403 à chaque attribution).
+`npm run discord:check` vérifie le second sans rien modifier.
+
+**L'identifiant et le secret de l'application Discord ne vont dans aucun fichier du dépôt** :
+ils se saisissent dans le tableau de bord Supabase. Les lignes de `.env.example` ne servent
+qu'à une instance Supabase locale, qui ne tourne pas ici.
+
+### La connexion menait les comptes du staff dans le mur
+
+Se connecter avec `owner` ou `admin` poussait vers `/espace`, dont la garde n'admet que le
+rôle `client` — que le seed retire justement aux comptes internes. On rebondissait vers `/`,
+où le header, **entièrement statique**, affichait « Se connecter ». Session ouverte, écran de
+visiteur anonyme.
+
+Corrigé : redirection par rôle (`destinationApresConnexion()`, partagée pour que header et
+page de connexion ne divergent pas), header qui lit la session, et **une déconnexion, qui
+n'existait nulle part dans l'application**.
+
+« Faire le point » disparaît une fois connecté — et l'action de `/qualification` refuse
+désormais une session existante : elle se terminait par un `verifyOtp` qui **remplace le
+cookie de session**, donc un membre de l'équipe y perdait silencieusement son back-office.
+`/qualification` et `/connexion` renvoient les comptes connectés vers leur espace.
+
+`EtatSession` lit la session **dans le navigateur** : un `cookies()` dans le layout public
+rendrait dynamiques toutes les pages publiques et déferait leur génération statique, donc le
+travail de référencement. Vérifié au build.
+
+### Ce qui reste, et qui est nouveau
+
+- **La réconciliation des rôles Discord** — rien ne rattrape un `grant` qui n'a pas eu lieu.
+  La révocation a sa tâche quotidienne, l'attribution n'a rien. **Bloquant avant d'ouvrir les
+  ventes.** Pris dans `09-CHANTIERS.md`.
+- **Un système de messages** — il n'en existe aucun, et trois mécaniques improvisées se
+  partagent le besoin. Pris aussi.
+- **Où tourne le worker en production** : c'est un processus long, pas une route HTTP. Même
+  question ouverte que le planificateur de la révocation quotidienne.
+
+### Deux détails qui font perdre du temps
+
+- **`SUPABASE_SERVICE_ROLE_KEY` est renseignée** et lit la base hébergée.
+  `docs/08-CE-QUI-MANQUE.md` la donnait pour vide, c'est corrigé.
+- **Le catalogue de la base hébergée porte enfin de vrais rôles Discord** pour les deux
+  produits actifs. Le reste de ses données est toujours celui de la révision 2.
 
 ## Point d'étape — 9 septembre 2026
 
