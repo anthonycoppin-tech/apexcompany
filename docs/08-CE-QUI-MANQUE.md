@@ -39,12 +39,12 @@ compile », jamais que « ça marche ».
 **Aucune application Discord n'existe aujourd'hui**, et le worker `apps/bot` n'a jamais tourné.
 C'est bloquant dès l'entrée du tunnel, puisque c'est là que le rôle `invité` est attribué.
 
-| À fournir                                                | Variable                                     |
-| -------------------------------------------------------- | -------------------------------------------- |
-| Identifiant du serveur Discord                           | `DISCORD_GUILD_ID`                           |
-| Jeton du bot                                             | `DISCORD_BOT_TOKEN`                          |
-| Identifiant et secret de l'application (connexion OAuth) | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` |
-| Identifiant du rôle `invité`                             | `DISCORD_ROLE_INVITE_ID`                     |
+| À fournir                                                | Variable                                  |
+| -------------------------------------------------------- | ----------------------------------------- |
+| Identifiant du serveur Discord                           | `DISCORD_GUILD_ID`                        |
+| Jeton du bot                                             | `DISCORD_BOT_TOKEN`                       |
+| Identifiant et secret de l'application (connexion OAuth) | À saisir dans le tableau de bord Supabase |
+| Identifiant du rôle `invité`                             | `DISCORD_ROLE_INVITE_ID`                  |
 
 Deux réglages à faire sur le serveur, et le second est un piège classique :
 

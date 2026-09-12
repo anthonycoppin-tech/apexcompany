@@ -40,8 +40,16 @@ attribution échoue en 403).
    simplement d'avoir à se le redemander.
 
 2. **Relever l'identifiant et le secret de l'application** — onglet
-   _OAuth2_ → `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`. Ils servent au
-   site, pas au worker : c'est par eux que le client lie son compte.
+   _OAuth2_. Les garder sous la main pour l'étape 3 : **ils ne vont dans aucun
+   fichier du dépôt**, mais dans le tableau de bord Supabase, qui porte
+   l'échange OAuth à notre place.
+
+   Les lignes `DISCORD_CLIENT_ID` et `DISCORD_CLIENT_SECRET` de
+   `apps/web/.env.local` ne servent qu'à une instance Supabase **locale**
+   (`supabase/config.toml`), laquelle ne tourne pas sur le poste de
+   développement, faute de Docker (voir CLAUDE.md). Contre le projet hébergé,
+   les laisser vides ne change rien.
+
 3. **Déclarer l'URL de retour** dans _OAuth2_ → _Redirects_ :
    `https://ovlafpgmrwttxstodqxi.supabase.co/auth/v1/callback`, puis
    **activer le fournisseur Discord côté Supabase** (Authentication →
