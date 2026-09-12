@@ -358,7 +358,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   encaisserait un paiement sans ouvrir d'accès. Un brouillon, si.
 - [ ] 8 — Événements, migration des données, recette, mise en production
 - [~] **Transverse — Discord** : worker écrit (apps/bot), suit `discord_sync_queue` au plus
-  près du schéma — **jamais testé en réel**, aucune application Discord n'existe encore.
+  près du schéma. **Vérifié de bout en bout contre un vrai serveur le 12 septembre 2026** —
+  liaison, attribution du rôle `invité`, attribution d'un rôle de produit, révocation par
+  `revoquer_acces_expires()`. Sur un serveur de **test** : la production attend l'accès
+  administrateur.
   `npm run discord:check` diagnostique la mise en service sans rien modifier, et la marche à
   suivre est dans `apps/bot/README.md` : c'est par là qu'il faut commencer.
   Voir apps/bot/README.md. Devient bloquant dès la phase 2, et depuis la décision sur les

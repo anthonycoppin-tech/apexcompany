@@ -26,13 +26,16 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | ------------------------------------- | ---- | ----------- | -------- |
 | Intégration Discord — mise en service | pris | Christopher | 12 sept. |
 
-**Où ça en est** : `npm run discord:check` est écrit — un diagnostic en lecture seule de
-toute la chaîne, jeton compris, et surtout de la hiérarchie des rôles, qui est ce qui casse
-à tous les coups la première fois. La marche à suivre est dans `apps/bot/README.md`, et ses
-six premières étapes se font depuis un navigateur et l'application Discord, sans le dépôt.
-Restent à faire, sur un poste : créer l'application Discord, remplir `apps/bot/.env` et
-`apps/web/.env.local`, lancer le diagnostic, puis un vrai aller-retour de rôle.
-| Écrans du contenu éditorial (back-office + pages publiques) | libre | — | — |
+**Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
+Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
+révocation par la chaîne métier — inscription expirée, `revoquer_acces_expires()`, file,
+worker, rôle retiré du membre. Trois défauts trouvés et corrigés au passage, dont un qui
+empêchait le worker de passer le moindre appel (le tiret cadratin de `X-Audit-Log-Reason`).
+
+**Reste** : l'accès administrateur au serveur de production, puis y rejouer les étapes 5 à 7
+(inviter le bot, créer les rôles, replacer la hiérarchie) et remplacer trois valeurs. Les
+réglages Discord et Supabase, eux, ne se refont pas — l'application n'appartient à aucun
+serveur. Détail dans `apps/bot/README.md`.
 
 ## Fait
 

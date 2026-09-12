@@ -10,11 +10,25 @@ liaison de compte (qui remplit `discord_links`) se fait côté web via l'OAuth
 Discord de Supabase Auth — le rôle de ce worker s'arrête à la synchronisation
 des rôles.
 
-## Non testé en conditions réelles
+## Vérifié contre un vrai serveur — le 12 septembre 2026
 
-Contrairement au reste du dépôt, cette partie n'a pas encore été vérifiée
-contre un vrai serveur Discord. La logique suit le schéma au plus près et
-passe le typecheck, mais rien n'a jamais attribué un rôle à quelqu'un.
+L'aller-retour complet a eu lieu sur un serveur de test : liaison d'un compte,
+attribution du rôle `invité`, attribution d'un rôle de produit, puis
+révocation par la chaîne métier — inscription expirée,
+`revoquer_acces_expires()`, file, worker, rôle retiré du membre.
+
+**Ce que ce passage a trouvé, et qu'aucun test hors ligne ne pouvait voir :**
+
+- `X-Audit-Log-Reason` portait un tiret cadratin. Une valeur d'en-tête HTTP
+  est une ByteString : `fetch` levait avant d'ouvrir la connexion, et le worker
+  n'avait jamais pu passer un seul appel. Corrigé par `encodeURIComponent`.
+- `DISCORD_ROLE_INVITE_ID` manquait côté site — le `grant` n'était donc jamais
+  empilé, et la page annonçait quand même « ton accès arrive dans la minute ».
+- Le diagnostic lisait l'appartenance du bot par `/members/@me`, une route
+  OAuth2 utilisateur qui répond 404 à un jeton de bot.
+
+Reste à faire le même passage sur le serveur de production. Ce qui s'y rejoue,
+et ce qui n'a pas à l'être, est décrit plus bas.
 
 ## Mise en service — dans cet ordre
 
@@ -316,8 +330,13 @@ npm run dev --workspace=@apex/bot
 
 ## Ce qui manque encore
 
-- **Le test réel** : attribution et retrait d'un rôle sur un vrai compte, de
-  bout en bout. C'est ce que la mise en service ci-dessus permet enfin.
+- **Le passage en production** : la même mise en service sur le vrai serveur,
+  puis un aller-retour de vérification. Sur le serveur de test, c'est fait.
+- **La réconciliation des rôles.** Rien ne rattrape un rôle qui n'a pas été
+  accordé : la révocation a sa tâche quotidienne, l'attribution n'a que le
+  `grant` empilé à l'instant du paiement ou de la liaison. Si cet instant se
+  passe mal — ce qui est arrivé le 12 septembre — la base dit « accès actif »
+  et Discord dit non, sans que rien ne le remarque (docs/09-CHANTIERS.md).
 - **Un rôle Discord par produit actif du catalogue.** Au 12 septembre 2026, la
   base hébergée porte encore les données de la révision 2 : « Fondations » est
   actif sans aucun rôle, et « Accélérateur » porte un identifiant de seed
