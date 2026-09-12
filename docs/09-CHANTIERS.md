@@ -22,9 +22,10 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                 | État | Qui         | Depuis   |
-| ------------------------------------- | ---- | ----------- | -------- |
-| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
+| Sujet                                                     | État | Qui         | Depuis   |
+| --------------------------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service                     | pris | Christopher | 12 sept. |
+| État de connexion dans le header, et redirection par rôle | pris | Christopher | 12 sept. |
 
 **Où ça en est** : `npm run discord:check` est écrit — un diagnostic en lecture seule de
 toute la chaîne, jeton compris, et surtout de la hiérarchie des rôles, qui est ce qui casse
@@ -50,10 +51,11 @@ Restent à faire, sur un poste : créer l'application Discord, remplir `apps/bot
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                                                   | Pourquoi ça vaut le coup                                                                                                                                                                                                   |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Écrans du contenu éditorial                             | Débloqué : la migration est appliquée et `database.types.ts` connaît `temoignages` et `formateurs_fiches`. Rien ne manque pour commencer.                                                                                  |
-| Revérifier les gardes de layout avec de vraies sessions | Les écrans de `(espace)` et `(formateur)` sont passés au design system sans jamais être vus : ils sont derrière une garde de rôle et la base était injoignable. Depuis un poste qui l'atteint, c'est une heure de travail. |
+| Sujet                                                   | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Écrans du contenu éditorial                             | Débloqué : la migration est appliquée et `database.types.ts` connaît `temoignages` et `formateurs_fiches`. Rien ne manque pour commencer.                                                                                                                                                                           |
+| Revérifier les gardes de layout avec de vraies sessions | Les écrans de `(espace)` et `(formateur)` sont passés au design system sans jamais être vus : ils sont derrière une garde de rôle et la base était injoignable. Depuis un poste qui l'atteint, c'est une heure de travail.                                                                                          |
+| Système de messages (succès, erreur, information)       | Il n'en existe aucun. Chaque écran improvise : `/connexion` garde son erreur dans un `useState`, `/espace/communaute` lit un `?discord=ok` dans l'URL, et un retour de paiement n'a nulle part où se dire. À concevoir une fois — un composant et une convention d'URL — avant que chaque page n'invente la sienne. |
 
 ## Bloqué, et par quoi
 
