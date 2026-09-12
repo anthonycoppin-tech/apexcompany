@@ -60,10 +60,11 @@ l'application Discord.
 **Sans ça** : aucun accès n'est jamais attribué ni retiré. Un client peut payer et ne rien
 recevoir.
 
-### Supabase — la clé serveur
+### Supabase — la clé serveur — **fournie**
 
-`SUPABASE_SERVICE_ROLE_KEY` est **vide** dans `.env.local`. Elle se récupère dans les réglages
-du projet hébergé.
+`SUPABASE_SERVICE_ROLE_KEY` est renseignée depuis le 12 septembre 2026 et lit bien la base
+hébergée. Elle reste à reporter sur l'hébergement du site et sur celui du worker le jour où
+ils existent.
 
 **Sans elle** : le formulaire de qualification ne crée ni compte ni prospect. Le tunnel ne
 démarre pas du tout.

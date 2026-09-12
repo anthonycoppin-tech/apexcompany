@@ -22,10 +22,17 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                                       | État  | Qui | Depuis |
-| ----------------------------------------------------------- | ----- | --- | ------ |
-| Intégration Discord — mise en service                       | pris  | Christopher | 12 sept. |
-| Écrans du contenu éditorial (back-office + pages publiques) | libre | —           | —        |
+| Sujet                                 | État | Qui         | Depuis   |
+| ------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
+
+**Où ça en est** : `npm run discord:check` est écrit — un diagnostic en lecture seule de
+toute la chaîne, jeton compris, et surtout de la hiérarchie des rôles, qui est ce qui casse
+à tous les coups la première fois. La marche à suivre est dans `apps/bot/README.md`, et ses
+six premières étapes se font depuis un navigateur et l'application Discord, sans le dépôt.
+Restent à faire, sur un poste : créer l'application Discord, remplir `apps/bot/.env` et
+`apps/web/.env.local`, lancer le diagnostic, puis un vrai aller-retour de rôle.
+| Écrans du contenu éditorial (back-office + pages publiques) | libre | — | — |
 
 ## Fait
 
@@ -61,6 +68,7 @@ Ces sujets n'attendent pas un développeur. Le détail de ce qu'il faut obtenir 
 | `/admin/emails`                            | Qu'un envoi d'emails existe.                                                          |
 | Planificateur de la révocation quotidienne | Savoir où le site est hébergé. Sans lui, `revoquer_acces_expires()` ne tourne jamais. |
 | Catalogue affichant des données fausses    | Les vrais produits — la base contient encore des données de la révision 2.            |
+| Hébergement du worker Discord              | Savoir où le site est hébergé. C'est un processus long, pas une route HTTP.           |
 
 ## Décisions, pas des tâches
 

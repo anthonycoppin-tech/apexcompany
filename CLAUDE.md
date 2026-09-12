@@ -19,6 +19,41 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
+## Point d'étape — 12 septembre 2026
+
+**Prime sur les deux points d'étape ci-dessous**, qui restent vrais pour tout ce que
+celui-ci ne contredit pas.
+
+- **Rien n'a bougé sur `main` entre le 9 et le 12 septembre.** Le dernier commit était le
+  merge de la PR #19 (contenu éditorial). La branche `b/types-contenu-editorial` a été
+  supprimée du distant ; `claude/mobile-project-work-c0k1hb` traîne toujours, fusionnée.
+- **`SUPABASE_SERVICE_ROLE_KEY` est renseignée et lit la base hébergée.** C'est la première
+  clé réelle du projet. `docs/08-CE-QUI-MANQUE.md` a été corrigé en conséquence — il la
+  donnait encore pour vide.
+- **`npm run discord:check`** (`apps/bot/src/preflight.ts`) : diagnostic en lecture seule de
+  la mise en service Discord — jeton, présence du bot sur le serveur, permission « Gérer les
+  rôles », **position de chaque rôle à attribuer**, état de la file. La hiérarchie est sa
+  raison d'être : Discord refuse en 403 un rôle placé au-dessus du plus haut rôle du bot, le
+  symptôme est une file entière en échec, et rien dans le code ne l'explique. À lancer avant
+  le worker, jamais après.
+- **Il signale déjà deux vrais problèmes sur la base hébergée**, tous deux des données de la
+  révision 2 restées en place : « Fondations » est **actif sans rôle Discord** — il
+  encaisserait un paiement sans ouvrir d'accès — et « Accélérateur » porte l'identifiant de
+  seed `900000000000000001`, qui n'existe sur aucun serveur. Les deux se corrigent depuis
+  `/admin/formations`.
+- **La marche à suivre Discord est dans `apps/bot/README.md`**, dans l'ordre où il faut la
+  faire. Ses six premières étapes ne demandent qu'un navigateur et l'application Discord.
+- **`apps/web/.env.local` avait quatre clés de retard** sur `.env.example` —
+  `DISCORD_ROLE_INVITE_ID`, `AUDIT_CONSEILLER_USER_ID`, `CRON_SECRET`, `NEXT_PUBLIC_CAL_LIEN`.
+  Elles y sont désormais, vides. `DISCORD_ROLE_INVITE_ID` est le piège du lot : lue par le
+  site, son absence ne se voit qu'à la première liaison de compte qui n'accorde aucun rôle.
+- **Le README du bot annonçait comme restant à faire l'insertion dans `discord_sync_queue`.**
+  Elle est faite depuis, et côté SQL : `traiter_paiement()`, `revoquer_acces_expires()` et
+  `enregistrer_remboursement()` la portent toutes les trois.
+- **Où tourne le worker en production reste ouvert** — c'est un processus long, pas une route
+  HTTP. Même question que le planificateur de la révocation quotidienne, et même réponse
+  attendue : savoir où le site est hébergé.
+
 ## Point d'étape — 9 septembre 2026
 
 Ce qui a changé depuis la veille. **Prime sur le point d'étape du 8 septembre ci-dessous**,
@@ -324,6 +359,8 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
 - [ ] 8 — Événements, migration des données, recette, mise en production
 - [~] **Transverse — Discord** : worker écrit (apps/bot), suit `discord_sync_queue` au plus
   près du schéma — **jamais testé en réel**, aucune application Discord n'existe encore.
+  `npm run discord:check` diagnostique la mise en service sans rien modifier, et la marche à
+  suivre est dans `apps/bot/README.md` : c'est par là qu'il faut commencer.
   Voir apps/bot/README.md. Devient bloquant dès la phase 2, et depuis la décision sur les
   calls de groupe (`docs/06-PERIMETRE.md`), il porte aussi la tenue des cours eux-mêmes,
   pas seulement la synchronisation des rôles.
