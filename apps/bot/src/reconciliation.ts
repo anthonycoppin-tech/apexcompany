@@ -129,6 +129,7 @@ export async function reconcilier() {
   let absents = 0;
   let empiles = 0;
   const manques: Array<{ user_id: string; role_id: string }> = [];
+  const identifiantsAbsents: string[] = [];
 
   for (const attendu of attendus) {
     if (attendu.roles.size === 0) continue;
@@ -151,7 +152,13 @@ export async function reconcilier() {
     if (reels === null) {
       // Compte lié mais pas membre du serveur. Empiler un `grant` ne
       // produirait qu'un `MembreIntrouvable` de plus, abandonné aussitôt.
+      //
+      // On retient QUI, pas seulement combien : c'est la seule source de cette
+      // information — la base ne peut pas savoir qui est présent sur Discord —
+      // et sans les identités, le tableau de bord ne peut afficher qu'un
+      // nombre, que personne ne sait par quel bout prendre.
       absents += 1;
+      identifiantsAbsents.push(attendu.userId);
       continue;
     }
 
@@ -191,6 +198,8 @@ export async function reconcilier() {
       comptes_lies: attendus.length,
       membres_lus: lus,
       absents_du_serveur: absents,
+      // Les identités, pas seulement le compte : /admin les nomme.
+      absents: identifiantsAbsents,
       roles_reempiles: empiles,
     },
   });

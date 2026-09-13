@@ -1,16 +1,21 @@
 import { formaterMontant } from '@apex/db';
 
 import { EnTete, Pastille, Tableau, Tuile, Vide } from '@/components/admin';
+import { DemandeQuelquun } from '@/components/demande-quelquun';
 import { bornesDuJour, dateHeure, heure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
 /**
  * `/admin` — ce qu'on ouvre le matin.
  *
- * Deux rangées, dans cet ordre : **ce qui va bien** (l'argent encaissé, les
- * accès ouverts) puis **ce qui demande une action**. Un tableau de bord qui
- * mélange les deux oblige à relire tous les chiffres pour trouver celui qui
- * cloche.
+ * Trois blocs, dans cet ordre : **ce qui attend une personne**, puis **ce qui
+ * va bien** (l'argent encaissé, les accès ouverts), puis **ce qui demande une
+ * action**. Mélanger les deux derniers oblige à relire tous les chiffres pour
+ * trouver celui qui cloche.
+ *
+ * Et un compteur, même bien rangé, ne dit ni à qui ni quoi faire : « incidents
+ * techniques : 3 » finit par s'ignorer tout seul. D'où la file nommée en tête,
+ * qui donne des personnes et un geste.
  *
  * Chaque tuile qui signale un problème mène à la liste correspondante : un
  * chiffre qui interpelle sans lien à suivre fait perdre le temps qu'il
@@ -76,6 +81,10 @@ export default async function Page() {
         titre="Tableau de bord"
         description={`Situation au ${dateHeure(maintenant.toISOString())}`}
       />
+
+      {/* En tête, avant les compteurs : ce qui attend une personne passe avant
+          ce qui se contemple. */}
+      <DemandeQuelquun />
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-encre-doux">L’activité</h2>
