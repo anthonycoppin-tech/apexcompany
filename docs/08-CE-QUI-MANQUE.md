@@ -191,13 +191,23 @@ d'accès.
 
 ### Le reste
 
-| À fournir                                           | Où ça sert                                                                  |
-| --------------------------------------------------- | --------------------------------------------------------------------------- |
-| Biographies et photos des formateurs                | `/formateurs`, aujourd'hui sans aucune fiche                                |
-| Témoignages réels, avec accord écrit de publication | La section n'a pas été créée faute de matière                               |
-| Source et date des quatre chiffres de l'accueil     | 80+ apprenants, 9/10, 100 %, 24 h — **retirés de l'affichage en attendant** |
-| Logo et visuels                                     | C'est le principal écart visuel avec la référence citée                     |
-| Une preuve sociale externe, si elle existe          | Type Trustpilot — c'est ce qui porte la crédibilité chez le concurrent cité |
+> **Le plus simple est d'ouvrir `/admin/contenu`.** Cette page montre les vraies sections du
+> site remplies avec des exemples, et dit ce qui distingue un témoignage publiable d'un
+> témoignage inutilisable. Les exemples y sont fictifs et ne quittent jamais le back-office —
+> ils servent à expliquer la forme attendue, pas à meubler le site.
+
+| À fournir                                           | Où ça sert                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Biographies et photos des formateurs                | `/formateurs`, aujourd'hui sans aucune fiche — saisie dans `/admin/formateurs` |
+| Témoignages réels, avec accord écrit de publication | Accueil et fiches produit — saisie dans `/admin/temoignages`                   |
+| Source et date des quatre chiffres de l'accueil     | 80+ apprenants, 9/10, 100 %, 24 h — **retirés de l'affichage en attendant**    |
+| Logo et visuels                                     | C'est le principal écart visuel avec la référence citée                        |
+| Une preuve sociale externe, si elle existe          | Type Trustpilot — c'est ce qui porte la crédibilité chez le concurrent cité    |
+
+**Deux refus qui ne se contournent pas**, et qui valent d'être connus avant de rassembler la
+matière : un témoignage ne se publie pas sans consentement enregistré, et un chiffre ne
+s'affiche pas sans source ni date de relevé. Ce ne sont pas des options d'interface — l'écran
+de saisie et la base refusent tous les deux.
 
 Un chiffre de réassurance invérifiable se retourne contre celui qui l'affiche, et il vieillit
 sans prévenir. Les quatre chiffres **ne s'affichent plus** : le code exige désormais une

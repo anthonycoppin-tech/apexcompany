@@ -27,23 +27,12 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
 | Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
-| Écrans du contenu éditorial                       | pris | Anthony     | 13 sept. |
 
-**Où ça en est** : le back-office est fait — témoignages et fiches formateurs, avec liste,
-création, édition et suppression. `/formateurs` est branchée sur les fiches et n'affiche
-personne tant qu'aucune n'est publiée. **Reste** : l'affichage des témoignages sur le site
-public (accueil, fiches produit), qui est un choix éditorial autant que technique — où les
-mettre, et combien.
-
-**Rien n'est visible pour autant.** Ces écrans attendent que le client saisisse ses
-biographies et ses témoignages ; le blocage était technique, il est maintenant éditorial
-(`08-CE-QUI-MANQUE.md`).
-
-**Une couture entre deux chantiers pris en même temps.** Les écrans du contenu éditorial ont
-besoin d'afficher des succès et des erreurs — précisément ce que le système de messages doit
-unifier. Ils n'inventeront donc **aucune** convention : ils réutilisent le motif déjà présent
-dans le code (`role="status"` et `role="alert"` en ligne, comme `/espace/compte`). Une seule
-mécanique à reprendre le jour où le système de messages arrive, pas deux.
+**Pour le système de messages : ce qu'il y a à balayer.** Les écrans du contenu éditorial,
+livrés le 13 septembre, avaient besoin d'afficher des succès et des erreurs. Ils n'ont inventé
+**aucune** convention et ont repris le motif déjà présent dans le code — `role="status"` et
+`role="alert"` en ligne, comme `/espace/compte`. C'est donc une mécanique de plus à reprendre,
+pas une de plus à supprimer.
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
@@ -91,15 +80,16 @@ oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose 
 
 ## Fait
 
-| Sujet                                        | Quand    | Notes                                                                                                                                                                                                                                                                                                                                                             |
-| -------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Référencement du site public                 | 9 sept.  | `sitemap.xml`, `robots.txt`, Open Graph, données structurées. `robots.txt` interdit tout tant que `NEXT_PUBLIC_SITE_URL` n'est pas en HTTPS.                                                                                                                                                                                                                      |
-| Tunnel d'entrée au design system             | 9 sept.  | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.                                                                                                                                                                                                                              |
-| Contenu éditorial — schéma                   | 9 sept.  | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. Migration appliquée sur le projet hébergé le 9 septembre, types régénérés.                                                                                                                                                                                                      |
-| `(espace)` et `(formateur)` au design system | 9 sept.  | Dix-huit fichiers sortis de Tailwind brut. Navigation avec état actif, couleur Discord passée en token. **Non vérifié à l'écran** : ces pages sont derrière une garde de rôle, et la base est injoignable depuis l'environnement où le travail a été fait.                                                                                                        |
-| Chiffres de l'accueil                        | 9 sept.  | Un chiffre ne s'affiche que s'il porte une source et une date. Aucun des quatre n'en a : la section a disparu de l'accueil, et y revient dès que le client répond.                                                                                                                                                                                                |
-| CI de `main` réparée                         | 9 sept.  | Rouge depuis le renommage `coach` → `formateur` : le login réel visait `coach.a@apex.test`, absent du seed. Les tests pgTAP, eux, passaient.                                                                                                                                                                                                                      |
-| État de connexion dans le header             | 12 sept. | Se connecter avec un compte staff menait à `/espace`, dont la garde refuse le rôle — on rebondissait sur l'accueil public et on se croyait déconnecté. Redirection par rôle, header qui lit la session, et une déconnexion, qui n'existait nulle part. Les pages publiques restent statiques : la session est lue dans le navigateur, pas dans le layout serveur. |
+| Sujet                                        | Quand    | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Référencement du site public                 | 9 sept.  | `sitemap.xml`, `robots.txt`, Open Graph, données structurées. `robots.txt` interdit tout tant que `NEXT_PUBLIC_SITE_URL` n'est pas en HTTPS.                                                                                                                                                                                                                                                                                             |
+| Tunnel d'entrée au design system             | 9 sept.  | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.                                                                                                                                                                                                                                                                                                     |
+| Contenu éditorial — schéma                   | 9 sept.  | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. Migration appliquée sur le projet hébergé le 9 septembre, types régénérés.                                                                                                                                                                                                                                                                             |
+| `(espace)` et `(formateur)` au design system | 9 sept.  | Dix-huit fichiers sortis de Tailwind brut. Navigation avec état actif, couleur Discord passée en token. **Non vérifié à l'écran** : ces pages sont derrière une garde de rôle, et la base est injoignable depuis l'environnement où le travail a été fait.                                                                                                                                                                               |
+| Chiffres de l'accueil                        | 9 sept.  | Un chiffre ne s'affiche que s'il porte une source et une date. Aucun des quatre n'en a : la section a disparu de l'accueil, et y revient dès que le client répond.                                                                                                                                                                                                                                                                       |
+| CI de `main` réparée                         | 9 sept.  | Rouge depuis le renommage `coach` → `formateur` : le login réel visait `coach.a@apex.test`, absent du seed. Les tests pgTAP, eux, passaient.                                                                                                                                                                                                                                                                                             |
+| Écrans du contenu éditorial                  | 13 sept. | Back-office des témoignages et des fiches formateurs, `/formateurs` branchée sur les fiches, témoignages affichés sur l'accueil et les fiches produit. Plus un **guide de contenu** (`/admin/contenu`) qui montre au client la forme attendue avec des exemples fictifs, confinés au back-office. **Rien n'apparaît sur le site tant que le client n'a pas fourni sa matière** : le blocage était technique, il est désormais éditorial. |
+| État de connexion dans le header             | 12 sept. | Se connecter avec un compte staff menait à `/espace`, dont la garde refuse le rôle — on rebondissait sur l'accueil public et on se croyait déconnecté. Redirection par rôle, header qui lit la session, et une déconnexion, qui n'existait nulle part. Les pages publiques restent statiques : la session est lue dans le navigateur, pas dans le layout serveur.                                                                        |
 
 ## Libre, et rien ne l'empêche
 
