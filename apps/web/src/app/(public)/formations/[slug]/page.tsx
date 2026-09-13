@@ -86,16 +86,27 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     .eq('slug', slug)
     .maybeSingle();
 
-  // La RLS ne laisse voir que les produits actifs : un brouillon rend 404, ce
-  // qui est le bon comportement — il n'est pas encore publié.
+  // Un brouillon rend 404 pour un visiteur, ce qui est le bon comportement.
+  //
+  // Nuance qui a été écrite à tort ici : ce n'est pas « la RLS ne laisse voir
+  // que les produits actifs ». Les politiques se combinent en OU, donc un
+  // membre du staff connecté obtient bien la page d'un brouillon. C'est le seul
+  // endroit où on laisse ce comportement : prévisualiser une fiche avant de la
+  // publier est utile, et seul le staff y a accès. Les listes publiques, elles,
+  // filtrent explicitement.
   if (!formation) notFound();
 
   // Après le `notFound()` : inutile d'interroger les témoignages d'un produit
   // qui n'existe pas, ou que la RLS vient de masquer.
+  //
+  // `publie` est filtré explicitement : les politiques se combinent en OU, donc
+  // sans lui un membre du staff connecté verrait les brouillons sur la page
+  // publique.
   const { data: temoignages } = await supabase
     .from('temoignages')
     .select('id, auteur, contexte, contenu, note')
     .eq('formation_id', formation.id)
+    .eq('publie', true)
     .order('ordre');
 
   const type = TYPES[formation.type_produit];

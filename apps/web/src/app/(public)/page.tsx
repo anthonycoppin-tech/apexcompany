@@ -127,19 +127,27 @@ const TYPES: Record<string, string> = {
 export default async function Page() {
   const supabase = await createClient();
 
-  // La politique `formations_publiques_en_lecture` ne laisse passer que les
-  // produits actifs : le brouillon reste invisible sans filtre à écrire ici.
-  // Même chose pour les témoignages : `temoignages_publies_en_lecture` filtre
-  // sur `publie`, donc un brouillon n'a aucun moyen d'arriver jusqu'ici.
+  // `.eq('publie', true)` n'est pas une redondance de la RLS, et c'est un piège
+  // qui mérite d'être expliqué : les politiques d'une même commande se
+  // combinent en **OU**. `temoignages_interne_lit_tout` s'ajoute donc à
+  // `temoignages_publies_en_lecture`, et un membre du staff connecté verrait
+  // les brouillons ici — sur la page publique.
+  //
+  // Ce n'est pas une fuite : seul le staff est concerné, et il a le droit de
+  // les lire. C'est pire que ça en pratique : un témoignage sans consentement
+  // affiché à Franck lui ferait croire qu'il est en ligne, et cesser de
+  // réclamer l'accord. Une page publique montre la même chose à tout le monde.
   const [{ data: formations }, { data: temoignages }] = await Promise.all([
     supabase
       .from('formations')
       .select('id, slug, titre, description, prix_cents, devise, type_produit, modalite')
+      .eq('actif', true)
       .order('ordre')
       .limit(3),
     supabase
       .from('temoignages')
       .select('id, auteur, contexte, contenu, note')
+      .eq('publie', true)
       .order('ordre')
       .limit(3),
   ]);

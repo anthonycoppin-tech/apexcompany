@@ -12,9 +12,13 @@ export const metadata = {
  * `/formateurs` — l'équipe.
  *
  * Les fiches viennent de la base, saisies au back-office : elles changent plus
- * souvent que le code, et une biographie ne mérite pas un déploiement. La RLS
- * ne laisse passer que celles qui sont publiées — un brouillon n'a aucun moyen
- * d'atterrir ici.
+ * souvent que le code, et une biographie ne mérite pas un déploiement.
+ *
+ * Le filtre `publie` est explicite et ne double pas la RLS pour rien : les
+ * politiques d'une même commande se combinent en **OU**, donc
+ * `formateurs_fiches_interne_lit_tout` ferait voir les brouillons à un membre
+ * du staff connecté — sur la page publique. Une page publique doit montrer la
+ * même chose à tout le monde.
  *
  * **Rien n'est inventé en leur absence.** Tant qu'aucune fiche n'est publiée, la
  * page ne montre personne et se contente de ce qui est vrai et vérifiable : le
@@ -31,6 +35,7 @@ export default async function Page() {
   const { data: fiches } = await supabase
     .from('formateurs_fiches')
     .select('id, nom, fonction, biographie, specialites, photo_url')
+    .eq('publie', true)
     .order('ordre');
 
   const equipe = fiches ?? [];

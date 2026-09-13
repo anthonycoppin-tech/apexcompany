@@ -33,11 +33,16 @@ const TYPES: Record<string, { nom: string; acces: string }> = {
 export default async function Page() {
   const supabase = await createClient();
 
+  // `actif` est filtré explicitement. Les politiques RLS d'une même commande se
+  // combinent en OU : `formations_interne_lit_tout` s'ajoute à
+  // `formations_publiques_en_lecture`, donc sans ce filtre un membre du staff
+  // connecté verrait les brouillons dans le catalogue public.
   const { data: formations } = await supabase
     .from('formations')
     .select(
       'id, slug, titre, description, prix_cents, devise, type_produit, modalite, duree_semaines, duree_acces_jours',
     )
+    .eq('actif', true)
     .order('ordre');
 
   return (
