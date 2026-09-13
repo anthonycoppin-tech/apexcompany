@@ -398,11 +398,11 @@ npm run dev --workspace=@apex/bot
 - **Planifier la réconciliation.** Elle est écrite et vérifiée
   (`npm run discord:reconcile`), mais rien ne l'appelle encore — même question
   ouverte que le planificateur de `revoquer_acces_expires()`.
-- **Un rôle Discord par produit actif du catalogue.** Au 12 septembre 2026, la
-  base hébergée porte encore les données de la révision 2 : « Fondations » est
-  actif sans aucun rôle, et « Accélérateur » porte un identifiant de seed
-  (`900000000000000001`) qui n'existe sur aucun serveur. Les deux se corrigent
-  depuis `/admin/formations`, et `npm run discord:check` les signale.
+- **Les rôles du catalogue désignent le serveur de TEST.** Les deux produits
+  actifs portent de vrais identifiants depuis le 12 septembre, mais ce sont ceux
+  du serveur de rodage. Ils devront être resaisis depuis `/admin/formations`
+  au passage en production — `npm run discord:check` les signalera comme
+  inexistants sur le nouveau serveur, ce qui est le filet prévu.
 - **Deux salons par produit**, visibles uniquement du rôle du produit
   (`formations.discord_role_id`) : un **salon vocal** où se tiennent les calls,
   qui remplace le lien Zoom, et un **salon texte** où l'équipe publie le
