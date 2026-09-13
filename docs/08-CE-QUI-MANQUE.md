@@ -136,6 +136,16 @@ prestataire n'est pas décidé.
 **Les six pages légales sont vides.** Elles ne peuvent pas être écrites sans ces réponses, et
 en inventer serait pire que de les laisser en attente.
 
+Depuis le 13 septembre elles ne disent plus « Placeholder — écran à construire » : chacune
+annonce ce qu'elle contiendra, renvoie vers le contact, et **se retire de l'indexation** tant
+qu'elle est dans cet état. `/confidentialite` et `/cookies` disent en plus ce qui est déjà
+vrai — ce que le code collecte, chez qui ça transite, et qu'aucun traceur n'est posé. Rien de
+juridique n'y a été rédigé pour autant : c'est ce tableau qui débloque la rédaction.
+
+**L'inventaire des traitements est prêt, lui, et il est dans `/admin/legal`** — quelles données
+dans quelle table, écrites par quoi, et ce qui reste à trancher pour chacune. C'est la première
+chose qu'un juriste demande ; l'apporter au rendez-vous évite un aller-retour par question.
+
 Le contrat de prestation transmis apprend que **APEX COMPANY LLC-FZ** est une société de zone
 franche immatriculée 264 5781 à Dubaï, dirigée par Franck Alexandre, et mentionne une seconde
 entité, **NEURO TRADE APEX LLC**.
@@ -148,6 +158,8 @@ entité, **NEURO TRADE APEX LLC**.
 | Adresse de contact, et adresse dédiée aux demandes RGPD  | Obligatoire, et attendue sur la page de contact            |
 | Médiateur de la consommation retenu                      | Obligatoire pour qui vend à des consommateurs français     |
 | Régime de TVA retenu                                     | Voir ci-dessous                                            |
+| Durée de conservation d'un prospect qui n'achète jamais  | Rien ne purge `leads` aujourd'hui                          |
+| Le consentement doit-il tracer l'adresse IP ?            | La colonne existe et n'est jamais remplie                  |
 
 ### Trois points pour un conseil, pas pour les développeurs
 
