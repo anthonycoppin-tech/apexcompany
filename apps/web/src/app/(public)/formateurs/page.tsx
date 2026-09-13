@@ -1,4 +1,5 @@
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
+import { createClient } from '@/lib/supabase/server';
 
 export const metadata = {
   title: 'L’équipe',
@@ -10,19 +11,36 @@ export const metadata = {
 /**
  * `/formateurs` — l'équipe.
  *
- * **Cette page attend du contenu client** : biographies, photos, parcours,
- * spécialités. Rien n'a été inventé ici — une biographie inventée sur un site
- * de formation en investissement est un risque, pas un espace réservé.
+ * Les fiches viennent de la base, saisies au back-office : elles changent plus
+ * souvent que le code, et une biographie ne mérite pas un déploiement. La RLS
+ * ne laisse passer que celles qui sont publiées — un brouillon n'a aucun moyen
+ * d'atterrir ici.
  *
- * Ce qui est écrit est vrai et vérifiable : le fonctionnement du suivi, qui
- * reçoit les prospects, et comment un client passe d'un formateur à l'autre.
- * C'est déjà l'essentiel de ce que cette page doit répondre — « à qui vais-je
- * avoir affaire ? ».
+ * **Rien n'est inventé en leur absence.** Tant qu'aucune fiche n'est publiée, la
+ * page ne montre personne et se contente de ce qui est vrai et vérifiable : le
+ * fonctionnement du suivi, qui reçoit les prospects, comment on se passe le
+ * relais. C'est déjà l'essentiel de ce qu'elle doit répondre — « à qui vais-je
+ * avoir affaire ? ». Une biographie inventée sur un site de formation en
+ * investissement est un risque, pas un espace réservé.
  *
- * Le jour où les fiches arrivent, elles méritent leur propre table plutôt que
- * du contenu en dur : elles changent plus souvent que le code.
+ * La page est dynamique depuis qu'elle lit la base, comme le catalogue.
  */
-export default function Page() {
+export default async function Page() {
+  const supabase = await createClient();
+
+  const { data: fiches } = await supabase
+    .from('formateurs_fiches')
+    .select('id, nom, fonction, biographie, specialites, photo_url')
+    .order('ordre');
+
+  const equipe = fiches ?? [];
+
+  // La section d'équipe s'insère au milieu de la page et décale l'alternance
+  // des fonds : sans ça, deux sections de même couleur se retrouvent collées
+  // selon qu'il existe ou non des fiches publiées.
+  const apresEquipe = equipe.length > 0 ? 'surface' : 'clair';
+  const final = equipe.length > 0 ? 'clair' : 'surface';
+
   return (
     <>
       <section className="border-b border-filet bg-surface">
@@ -37,7 +55,52 @@ export default function Page() {
         </Conteneur>
       </section>
 
-      <Section>
+      {/* Les personnes d'abord, quand il y en a : c'est ce que la page promet.
+          Sans fiche publiée, la section disparaît entièrement plutôt que
+          d'afficher un cadre vide. */}
+      {equipe.length > 0 && (
+        <Section>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {equipe.map((f) => (
+              <Carte key={f.id} className="space-y-4">
+                {/* `next/image` refuse une adresse hors des domaines déclarés dans
+                    next.config, et celle-ci est saisie librement au back-office. */}
+                {f.photo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={f.photo_url}
+                    alt=""
+                    className="h-20 w-20 rounded-full border border-filet object-cover"
+                  />
+                )}
+                <div className="space-y-1">
+                  <h2 className="text-xl font-bold">{f.nom}</h2>
+                  {f.fonction && <p className="text-sm text-encre-doux">{f.fonction}</p>}
+                </div>
+                {f.biographie && (
+                  <p className="leading-relaxed whitespace-pre-line text-encre-doux">
+                    {f.biographie}
+                  </p>
+                )}
+                {f.specialites.length > 0 && (
+                  <ul className="flex flex-wrap gap-2 border-t border-filet pt-4">
+                    {f.specialites.map((s) => (
+                      <li
+                        key={s}
+                        className="rounded-douce bg-accent-doux px-2.5 py-1 text-xs font-medium text-accent"
+                      >
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Carte>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      <Section fond={apresEquipe}>
         <div className="grid gap-6 md:grid-cols-3">
           {[
             [
@@ -61,7 +124,7 @@ export default function Page() {
         </div>
       </Section>
 
-      <Section fond="surface">
+      <Section fond={final}>
         <div className="mx-auto max-w-2xl space-y-6 text-center">
           <h2 className="text-3xl font-extrabold">Le plus simple est d’en parler</h2>
           <p className="text-lg text-encre-doux">

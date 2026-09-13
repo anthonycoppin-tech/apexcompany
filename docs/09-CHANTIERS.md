@@ -29,6 +29,16 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
 | Écrans du contenu éditorial                       | pris | Anthony     | 13 sept. |
 
+**Où ça en est** : le back-office est fait — témoignages et fiches formateurs, avec liste,
+création, édition et suppression. `/formateurs` est branchée sur les fiches et n'affiche
+personne tant qu'aucune n'est publiée. **Reste** : l'affichage des témoignages sur le site
+public (accueil, fiches produit), qui est un choix éditorial autant que technique — où les
+mettre, et combien.
+
+**Rien n'est visible pour autant.** Ces écrans attendent que le client saisisse ses
+biographies et ses témoignages ; le blocage était technique, il est maintenant éditorial
+(`08-CE-QUI-MANQUE.md`).
+
 **Une couture entre deux chantiers pris en même temps.** Les écrans du contenu éditorial ont
 besoin d'afficher des succès et des erreurs — précisément ce que le système de messages doit
 unifier. Ils n'inventeront donc **aucune** convention : ils réutilisent le motif déjà présent
