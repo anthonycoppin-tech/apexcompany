@@ -415,9 +415,18 @@ npm run dev --workspace=@apex/bot
   HTTP : il ne peut pas vivre sur le même hébergement que le site s'il est
   serverless. Même question ouverte que le planificateur de
   `revoquer_acces_expires()` (docs/09-CHANTIERS.md).
-- **Décider quoi faire d'un `MembreIntrouvable` répété** : relancer une invite,
-  ou juste laisser l'alerte dans `admin/logs` pour une action manuelle. Non
-  tranché dans docs/06-PERIMETRE.md.
+- **`MembreIntrouvable` répété — tranché le 13 septembre 2026** : relance par
+  email **2 jours** après l'ouverture de l'accès, puis passage à l'action
+  humaine au bout d'**une semaine**. Deux prérequis manquent, et aucun n'est du
+  ressort du worker : **un envoi d'emails** (il n'en existe aucun dans le
+  projet) et **un lien d'invitation au serveur**, qui n'est configuré nulle
+  part — sans lui, une relance ne peut même pas dire où aller.
+
+  Deux populations distinctes, qu'il ne faut pas confondre : celui qui n'a
+  **jamais lié son Discord** se lit en base sans appeler Discord, tandis que
+  celui qui l'a lié **sans rejoindre le serveur** n'est connu que par la
+  réconciliation, qui le compte déjà (`absents_du_serveur`).
+
 - Si le worker tourne un jour en plusieurs instances : remplacer la
   réclamation en deux étapes de `reclamerLot()` (src/worker.ts) par une
   fonction RPC `SELECT ... FOR UPDATE SKIP LOCKED` côté Postgres, qui seule

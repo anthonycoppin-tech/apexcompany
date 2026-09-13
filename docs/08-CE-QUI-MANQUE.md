@@ -45,6 +45,7 @@ C'est bloquant dès l'entrée du tunnel, puisque c'est là que le rôle `invité
 | Jeton du bot                                             | `DISCORD_BOT_TOKEN`                       |
 | Identifiant et secret de l'application (connexion OAuth) | À saisir dans le tableau de bord Supabase |
 | Identifiant du rôle `invité`                             | `DISCORD_ROLE_INVITE_ID`                  |
+| Lien d'invitation permanent au serveur                   | `NEXT_PUBLIC_DISCORD_INVITE_URL`          |
 
 Deux réglages à faire sur le serveur, et le second est un piège classique :
 
@@ -63,6 +64,13 @@ Manual Linking » doit être activé**. Il est désactivé par défaut, et sans 
 quel que soit l'état du reste. L'exigence vient de `@supabase/auth-js`, pas de notre code.
 
 **Sans ça** : aucun accès n'est jamais attribué ni retiré. Un client peut payer et ne rien
+
+Le **lien d'invitation** est le seul des quatre à n'avoir aucune conséquence technique
+immédiate : rien ne casse sans lui. Il devient nécessaire le jour où l'on relance quelqu'un qui
+a payé sans rejoindre le serveur — décidé le 13 septembre 2026 — puisqu'une relance qui ne dit
+pas où aller ne sert à rien. À créer en **invitation permanente, sans expiration** : une
+invitation qui périme transforme la relance en impasse, et personne ne s'en aperçoit avant la
+première plainte.
 recevoir.
 
 ### Supabase — la clé serveur — **fournie**
