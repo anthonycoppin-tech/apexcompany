@@ -20,9 +20,13 @@ import { createClient } from '@/lib/supabase/server';
  *   sens qu'au sein d'un parcours ;
  * - **tout ce qui vit derrière une garde de rôle**, déjà refusé par `robots.ts`.
  *
- * Le catalogue vient de la base, pas d'une liste écrite ici : la politique
- * `formations_publiques_en_lecture` ne laisse passer que les produits actifs,
- * donc un brouillon n'a aucun moyen d'atterrir dans le plan de site.
+ * Le catalogue vient de la base, pas d'une liste écrite ici, et `actif` est
+ * filtré explicitement. Ce n'était pas le cas au départ : le commentaire
+ * affirmait que `formations_publiques_en_lecture` suffisait, ce qui est faux —
+ * les politiques d'une même commande se combinent en OU, et le staff lit aussi
+ * les brouillons. Aucun brouillon n'a jamais pu fuiter vers un moteur, qui
+ * interroge en anonyme, mais cette route sert le même XML à qui la demande :
+ * autant qu'elle réponde la même chose à tout le monde.
  */
 type Frequence = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>;
 
@@ -41,6 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: formations } = await supabase
     .from('formations')
     .select('slug, updated_at')
+    .eq('actif', true)
     .order('ordre');
 
   return [

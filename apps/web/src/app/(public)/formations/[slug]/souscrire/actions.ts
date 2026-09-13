@@ -39,13 +39,21 @@ export async function souscrire(
 
   const supabase = await createClient();
 
-  // Lu sous RLS : `formations_publiques_en_lecture` ne laisse passer que les
-  // produits actifs. Un brouillon n'est donc pas souscriptible, sans qu'on ait
-  // à l'écrire.
+  // `actif` est filtré explicitement, et c'est **le filtre qui coûte le plus
+  // cher à oublier de tout le dépôt.**
+  //
+  // Le commentaire qui tenait ici affirmait que la RLS suffisait. C'est faux :
+  // les politiques d'une même commande se combinent en OU, et
+  // `formations_interne_lit_tout` laisse le staff lire les brouillons. Un
+  // membre de l'équipe connecté pouvait donc ouvrir un vrai abonnement Stripe
+  // sur un produit qui n'est pas en vente — encaissement réel, inscription
+  // réelle, et un produit dont le rôle Discord n'est peut-être même pas créé
+  // puisque rien n'oblige un brouillon à en déclarer un.
   const { data: formation } = await supabase
     .from('formations')
     .select('id, titre, prix_cents, devise, type_produit')
     .eq('slug', slug)
+    .eq('actif', true)
     .maybeSingle();
 
   if (!formation) return { erreur: 'Ce produit n’est pas disponible.' };

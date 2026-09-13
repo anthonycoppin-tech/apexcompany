@@ -40,10 +40,15 @@ export default async function Page({
   const [{ slug }, { verifier, paiement }] = await Promise.all([params, searchParams]);
   const supabase = await createClient();
 
+  // `actif` filtré explicitement : la RLS laisse le staff lire les brouillons
+  // (les politiques se combinent en OU), et cet écran ouvre un paiement réel.
+  // L'action le revérifie de son côté — ici on évite surtout d'afficher un
+  // bouton « souscrire » sur un produit qui n'est pas en vente.
   const { data: formation } = await supabase
     .from('formations')
     .select('id, slug, titre, description, prix_cents, devise, type_produit')
     .eq('slug', slug)
+    .eq('actif', true)
     .maybeSingle();
 
   if (!formation) notFound();
