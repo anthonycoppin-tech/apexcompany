@@ -19,10 +19,70 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
-## Point d'étape — 12 septembre 2026 (soir)
+## Point d'étape — 13 septembre 2026
 
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
-contredit pas.
+contredit pas. Deux personnes ont travaillé en parallèle toute la journée, sur des sujets
+pris dans `docs/09-CHANTIERS.md` — le mécanisme a tenu, aucun conflit.
+
+### Le site ne ment plus nulle part
+
+Trois choses, trouvées le même jour et de la même famille : **une page qui affirme ce qui
+n'est pas.**
+
+- **Un brouillon pouvait ouvrir un paiement réel.** `/formations/[slug]/souscrire` ne filtrait
+  pas `actif`. Un membre du staff connecté — et lui seul, la page étant introuvable pour un
+  visiteur — pouvait déclencher un abonnement Stripe sur un produit non publié. La cause est
+  générale et vaut d'être retenue : **les politiques RLS d'une même commande se combinent en
+  OU**, donc « la RLS ne laisse voir que les produits actifs » est faux dès qu'une seconde
+  politique ouvre la table au staff. Plusieurs commentaires du dépôt l'affirmaient ; ils
+  étaient faux. Les pages publiques filtrent désormais explicitement.
+- **Les six pages légales affichaient « Placeholder — écran à construire. Voir
+  docs/02-SITEMAP.md »**, publiquement. `/confidentialite` est liée depuis trois formulaires,
+  dont celui de qualification, qui fait accepter un consentement « dans les conditions décrites
+  par la politique de confidentialité ». Elles disent maintenant ce qu'elles contiendront,
+  renvoient vers le contact, et **se retirent de l'indexation** tant qu'elles sont dans cet
+  état — `robots.txt` interdit déjà tout faute de domaine HTTPS, mais il ouvrira le jour de la
+  mise en ligne. **Rien de juridique n'a été rédigé** : ni l'identité de la société qui vend,
+  ni le régime de TVA ne sont connus, et un modèle recopié engagerait sur des clauses que
+  personne n'a lues. Ce qui est déjà vrai est dit — ce que le code collecte, les services
+  traversés, l'absence totale de traceur.
+- **L'aide d'exploitation ne peut pas se périmer** : `/admin/aide`, rangée par symptôme (« j'ai
+  payé et je n'ai pas accès ») et non par mécanisme, lit ses quatre indicateurs en base plutôt
+  que de les affirmer.
+
+C'est le même garde-fou que les trois du 9 septembre : rendre l'état faux impossible plutôt
+que compter sur la vigilance.
+
+### Ce qui a été livré
+
+- **Discord — la réconciliation des rôles existe.** `npm run discord:reconcile` lit l'état réel
+  du serveur, un GET par compte lié, et réempile ce qui manque. Elle n'accorde jamais qu'elle
+  ne retire, ne touche que les rôles qu'elle gère, et a trouvé une divergence réelle du premier
+  coup. Plus un bouton « Réattribuer les accès Discord » sur la fiche client.
+- **Le contenu éditorial est branché de bout en bout** : back-office des témoignages et des
+  fiches formateurs, `/formateurs` alimentée par les fiches, témoignages sur l'accueil et les
+  fiches produit. Plus un **guide de contenu** (`/admin/contenu`) qui montre au client la forme
+  attendue avec des exemples fictifs — **confinés au back-office**, jamais publics.
+- **`/admin/legal`** porte l'inventaire des traitements de données, relevé table par table, et
+  les questions à poser au juriste page par page. Ce n'est pas un registre RGPD, c'est ce qu'un
+  juriste demande en premier. Il a fait apparaître deux manques que personne n'avait vus : rien
+  ne purge un prospect qui n'achète jamais, et la colonne prévue pour l'adresse IP du
+  consentement n'est jamais remplie.
+
+### Ce qui reste, et qui est nouveau
+
+- **Le déclencheur d'audit de `temoignages` et `formateurs_fiches` ne couvre que les
+  modifications.** Supprimer un témoignage efface donc la seule trace de son consentement. La
+  suppression se confirme désormais en deux temps, ce qui réduit le risque du geste sans
+  réparer le déclencheur — **c'est une migration**, notée dans les sujets libres.
+- **`/admin/contenu` et `/admin/legal` n'ont jamais été vus à l'écran.** Ils compilent et sont
+  typés, c'est tout ce qu'on peut affirmer : l'environnement où ils ont été écrits n'atteint
+  pas `supabase.co`. Même réserve que les écrans de `(espace)` et `(formateur)`.
+
+## Point d'étape — 12 septembre 2026 (soir)
+
+**Reste vrai pour tout ce que le point d'étape du 13 septembre ne contredit pas.**
 
 ### Discord fonctionne — pour de vrai, et pour la première fois
 
@@ -374,9 +434,19 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   pas servi en HTTPS depuis son vrai domaine** (`lib/site.ts`), `metadataBase` et les balises Open
   Graph sont posées, et les données structurées couvrent l'organisme, les fiches produit et la FAQ
   — sans note moyenne ni raison sociale, faute de témoignages et de société désignée.
-  **Restent à faire** : les six pages légales, qui attendent les informations de la société ; les
-  témoignages et les biographies des formateurs, qui attendent du contenu client ; l'image Open
-  Graph, qui attend la charte du designer.
+  **Les témoignages et les fiches formateurs sont branchés** — accueil, fiches produit et
+  `/formateurs` les affichent dès qu'ils existent en base, et s'effacent tant qu'ils n'existent
+  pas. Un témoignage ne se publie pas sans consentement enregistré ; la forme attendue est
+  montrée au client dans `/admin/contenu`, avec des exemples fictifs qui ne quittent jamais le
+  back-office.
+  **Les six pages légales ne sont plus des placeholders** : chacune annonce ce qu'elle
+  contiendra, renvoie vers le contact et **se retire de l'indexation** tant qu'elle est dans cet
+  état. `/confidentialite` et `/cookies` disent en plus ce qui est déjà vrai — les données
+  réellement collectées, les services traversés, l'absence de tout traceur. Aucun texte
+  juridique n'y est rédigé, et il n'y en aura pas avant le juriste.
+  **Restent à faire** : le contenu des six pages légales, qui attend les informations de la
+  société ; les témoignages et les biographies eux-mêmes, qui attendent du contenu client ;
+  l'image Open Graph, qui attend la charte du designer.
 - [~] **Back-office** : garde admin/owner resserrée, navigation par sections, tableau de bord,
   **CRM prospects** (liste filtrable par étape du pipeline, fiche complète avec affectation et
   statut), **propositions** (avec l'écart au prix catalogue, puisque la remise est libre),
@@ -398,6 +468,15 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   mécanisme — on y arrive avec la phrase d'un client, pas avec le nom d'une fonction. Ce qui
   peut être mesuré y est lu en base plutôt qu'affirmé : une aide qui écrirait « la
   réconciliation tourne tous les jours » deviendrait fausse sans que personne ne le voie.
+  **Le contenu éditorial a ses écrans** : `/admin/temoignages`, `/admin/formateurs`, et
+  `/admin/contenu` qui montre au client la forme attendue sur des exemples fictifs — confinés
+  au back-office, chaque nom portant « (exemple) ». La publication d'un témoignage est refusée
+  sans consentement enregistré, par l'écran **et** par la base. La suppression, dans ces deux
+  écrans, se confirme en deux temps : elle efface aussi la trace du consentement, le
+  déclencheur d'audit ne couvrant que les modifications (`docs/09-CHANTIERS.md`).
+  **`/admin/legal`** rassemble l'inventaire des traitements de données — relevé table par
+  table, à relire à chaque migration qui en touche une — et ce qu'il faut obtenir pour écrire
+  chaque page légale. Une seule réponse débloque la moitié de la liste : qui vend.
   **Reste un placeholder** : `/admin/emails`, qui attend qu'un envoi d'emails existe.
   **L'édition du catalogue est écrite** (`/admin/formations/[id]` et `/nouveau`), avec deux
   garde-fous : la cohérence type de produit / durée d'accès est vérifiée avant la base pour
