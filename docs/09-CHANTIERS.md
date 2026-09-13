@@ -25,6 +25,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Sujet                                             | État | Qui         | Depuis   |
 | ------------------------------------------------- | ---- | ----------- | -------- |
 | Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
+| Tableau de bord : « demande quelqu'un »           | pris | Christopher | 13 sept. |
 | Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
 
