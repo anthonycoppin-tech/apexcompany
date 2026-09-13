@@ -80,6 +80,65 @@ que compter sur la vigilance.
   typés, c'est tout ce qu'on peut affirmer : l'environnement où ils ont été écrits n'atteint
   pas `supabase.co`. Même réserve que les écrans de `(espace)` et `(formateur)`.
 
+### La réconciliation des rôles Discord existe, et elle est vérifiée
+
+`npm run discord:reconcile` compare l'état **réel** de Discord — un `GET` par compte lié —
+à ce que la base dit dû, et réempile ce qui manque. Trois garde-fous, dans l'ordre où ils
+comptent :
+
+- **elle ne touche que les rôles du site** (`invité` et les `formations.discord_role_id`).
+  Un bot qui « remet l'état conforme » sans cette limite dépouille les modérateurs au premier
+  passage ;
+- **elle accorde, elle ne retire jamais.** Le retrait appartient à `revoquer_acces_expires()` ;
+- **`reussi` ne vaut pas dédoublonnage** : un `grant` réussi hier et un rôle absent
+  aujourd'hui, c'est exactement le membre parti et revenu.
+
+**Vérifiée le 13 septembre**, sur les deux chemins. Quitter un serveur Discord et y revenir
+efface bien tous les rôles — constaté avec un second compte, là où ce n'était qu'une
+supposition. Et le rattrapage prend quatre secondes, détection comprise.
+
+Elle a trouvé une divergence réelle au premier passage : une inscription active sans son rôle,
+séquelle du test de révocation de la veille.
+
+**Pas de migration** : c'est de la logique de worker, comme `reclamerLot()`. Rien à pousser
+sur la base partagée.
+
+### Deux écrans pour que les pannes se voient
+
+**`/admin/aide`** — des runbooks rangés par **symptôme** (« j'ai payé et je n'ai pas accès »),
+pas par mécanisme : personne n'arrive là en connaissant le mot « réconciliation ». Et **ce qui
+peut être mesuré n'y est jamais affirmé** : les quatre indicateurs sont lus en base à
+l'affichage. Une aide qui écrirait « la réconciliation tourne tous les jours » deviendrait
+fausse sans que personne ne le voie, et une aide à laquelle on se fie et qui ment est pire
+qu'une aide absente.
+
+**« Demande quelqu'un »** sur `/admin`, juste avant les incidents — une file qui **nomme des
+personnes** au lieu de les compter, chaque ligne menant à la fiche du client où le bouton
+« Réattribuer les accès Discord » existe. Trois cas, tous constatés, aucun anticipé.
+
+Écarté au passage : le récap hebdomadaire par email. Il aurait échoué comme `/admin/logs`
+échoue, avec trois semaines de retard, dans un filtre.
+
+### Une règle qu'on s'impose pour ces deux écrans
+
+**Une entrée ne naît que d'un incident réellement survenu.** Anticiper les pannes produit des
+pages que personne ne relit et que rien ne vérifie — c'est ce qui pourrit une documentation.
+
+### Tranché
+
+**`MembreIntrouvable` répété** : relance par email 2 jours après l'ouverture de l'accès, action
+humaine au bout d'une semaine. Deux prérequis manquent et figurent désormais dans
+`08-CE-QUI-MANQUE.md` — **aucun envoi d'emails n'existe dans le projet**, et **aucun lien
+d'invitation au serveur n'est configuré** : même avec les emails, une relance ne saurait pas
+où envoyer la personne.
+
+### Ce qui reste côté Discord, et de qui ça dépend
+
+Rien qui dépende d'un développeur seul. Le serveur de production attend un accès
+administrateur ; la planification de la réconciliation et de la révocation attend de savoir
+où le site est hébergé ; **les salons attendent trois décisions**, consignées dans
+`09-CHANTIERS.md` — sans eux, un client reçoit son rôle et ne voit rien de nouveau.
+
 ## Point d'étape — 12 septembre 2026 (soir)
 
 **Reste vrai pour tout ce que le point d'étape du 13 septembre ne contredit pas.**

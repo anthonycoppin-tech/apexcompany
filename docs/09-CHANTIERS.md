@@ -124,7 +124,36 @@ Ces sujets n'attendent pas un développeur. Le détail de ce qu'il faut obtenir 
 À trancher par le client ou le chef de projet. Les coder avant la décision, c'est du travail
 à refaire.
 
+- **L'arborescence des salons Discord — trois questions, et elles bloquent la seule chose
+  qui reste à construire côté Discord.** Un client reçoit aujourd'hui son rôle et ne voit
+  rien de nouveau : aucun salon n'existe. Or c'est ce qui remplace Circle et Zoom
+  (`06-PERIMETRE.md`, « La visioconférence »).
+
+  1. **Que voit un `invité` ?** C'est l'état d'avant-achat de tout le monde — un salon
+     d'accueil, une présentation, rien du tout ? La spécification est muette.
+  2. **Le salon planning est-il en lecture seule ?** Le cahier des charges dit « l'équipe y
+     publie le planning hebdomadaire », ce qui se lit comme un salon d'annonces, mais ce
+     n'est écrit nulle part.
+  3. **Y a-t-il un rôle « équipe » ou « formateur » côté Discord ?** Aujourd'hui non — les
+     formateurs voient donc les salons de produit par quel moyen ?
+
+  Ce qui est en revanche tranché, et vérifié le 13 septembre : **les rôles ne portent aucune
+  permission serveur**. L'accès se règle salon par salon (invisible à `@everyone`, visible
+  au rôle du produit). Un rôle produit avec zéro permission fonctionne.
+
 - **Tutoiement ou vouvoiement.** Le site mélange les deux : « Vous faites le point » sur
   l'accueil, « Réserve ton audit » sur `/reserver` et `/qualification`. Il faut choisir.
 - Les décisions encore ouvertes de `CLAUDE.md` : hébergement des vidéos exclusives, régime de
   vente et de TVA, plan Supabase Pro.
+
+## Observations sans propriétaire
+
+Relevées en passant, vraies, et qui n'ont encore déclenché aucune décision.
+
+- **Le rôle de « Fondations » s'appelle `Fondation` au singulier sur le serveur de test.**
+  Sans conséquence technique — le code ne compare que des identifiants — mais à corriger
+  avant de reproduire la structure en production, sous peine de la recopier.
+- **Le rôle applicatif `branding` n'a aucune destination.** `destinationApresConnexion()`
+  le renvoie sur le site public, faute d'espace à lui. Or le pôle branding a un besoin
+  identifié — savoir quel réseau convertit, ce que le `?src=` du tunnel capte déjà
+  (`02-SITEMAP.md`) — sans un écran pour le servir.
