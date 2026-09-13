@@ -41,6 +41,7 @@ const SECTIONS: Array<{ titre: string; liens: Array<{ href: string; libelle: str
   {
     titre: 'Contenu',
     liens: [
+      { href: '/admin/contenu', libelle: 'Guide de contenu' },
       { href: '/admin/temoignages', libelle: 'Témoignages' },
       { href: '/admin/formateurs', libelle: 'Fiches formateurs' },
     ],
