@@ -1,10 +1,12 @@
+import { METADONNEES_LEGALES, PageLegale } from '@/components/page-legale';
+
+export const metadata = { title: 'Conditions générales de vente', ...METADONNEES_LEGALES };
+
 export default function Page() {
   return (
-    <div className="space-y-2">
-      <h1 className="text-2xl font-semibold">Conditions générales de vente</h1>
-      <p className="text-sm text-neutral-500">
-        Placeholder — écran à construire. Voir docs/02-SITEMAP.md.
-      </p>
-    </div>
+    <PageLegale
+      titre="Conditions générales de vente"
+      contiendra="Ce que vous achetez exactement, à quel prix et pour combien de temps, comment un abonnement se résilie, ce que recouvre le droit de rétractation, et ce qui se passe en cas de désaccord."
+    />
   );
 }

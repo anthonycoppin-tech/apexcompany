@@ -1,16 +1,12 @@
 import Link from 'next/link';
 
 import { Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
+import { EMAIL_CONTACT } from '@/lib/contact';
 
 export const metadata = {
   title: 'Contact',
   description: 'Comment nous joindre, et par quel chemin selon votre situation.',
 };
-
-// À CONFIRMER avec le client avant mise en ligne : adresse retenue pour le
-// support, et adresse dédiée aux demandes RGPD (elle doit figurer dans la
-// politique de confidentialité).
-const EMAIL_SUPPORT = 'contact@apexcompany.com';
 
 /**
  * `/contact` — volontairement sans formulaire.
@@ -65,10 +61,10 @@ export default function Page() {
               nous, nous répondons sous 24 heures ouvrées.
             </p>
             <a
-              href={`mailto:${EMAIL_SUPPORT}`}
+              href={`mailto:${EMAIL_CONTACT}`}
               className="font-semibold text-accent hover:underline"
             >
-              {EMAIL_SUPPORT}
+              {EMAIL_CONTACT}
             </a>
           </Carte>
         </div>

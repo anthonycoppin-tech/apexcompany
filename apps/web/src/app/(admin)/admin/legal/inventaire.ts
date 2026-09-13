@@ -1,0 +1,152 @@
+/**
+ * L'inventaire des traitements de données, relevé dans le code.
+ *
+ * **Ce n'est pas un registre RGPD** — un registre engage un responsable de
+ * traitement nommé, indique une base légale et une durée de conservation par
+ * finalité. Rien de tout cela n'est décidé : on ne sait même pas laquelle des
+ * deux sociétés vend (`docs/08-CE-QUI-MANQUE.md`).
+ *
+ * C'est la matière première de ce registre : ce que la plateforme collecte
+ * réellement, où ça se range, et chez qui ça transite. Un juriste demande cet
+ * état en premier ; le produire ici évite un aller-retour par relevé, et il se
+ * vérifie ligne à ligne contre le schéma plutôt que de sortir d'un souvenir.
+ *
+ * **Il se relit à chaque migration qui touche une de ces tables.** Un inventaire
+ * faux est pire qu'absent : il donne l'illusion d'avoir regardé.
+ */
+export type Traitement = {
+  /** La table, telle qu'elle s'appelle en base. */
+  table: string;
+  /** À quoi elle sert, en une phrase. */
+  finalite: string;
+  /** Les données personnelles qu'elle porte. Vide si elle n'en porte aucune. */
+  donnees: string[];
+  /** Ce qui déclenche l'écriture. */
+  origine: string;
+  /** Ce qui reste à trancher avant de pouvoir l'écrire dans un registre. */
+  aTrancher?: string;
+};
+
+export const TRAITEMENTS: Traitement[] = [
+  {
+    table: 'leads',
+    finalite: 'Le prospect et ses réponses au formulaire d’orientation.',
+    donnees: [
+      'prénom',
+      'nom',
+      'email',
+      'téléphone',
+      'zone géographique',
+      'tranche d’âge',
+      'situation professionnelle',
+      'niveau de trading',
+      'passage en prop firm',
+      'blocage déclaré',
+      'budget envisagé',
+      'échéance',
+      'source et paramètres de campagne',
+    ],
+    origine: 'Soumission du formulaire /qualification, en une seule écriture à la fin.',
+    aTrancher:
+      'Durée de conservation d’un prospect qui n’achète jamais. Rien ne les purge aujourd’hui.',
+  },
+  {
+    table: 'profiles',
+    finalite: 'Le compte client, créé en même temps que le lead.',
+    donnees: ['prénom', 'nom', 'email', 'téléphone', 'photo'],
+    origine: 'Création du compte à la fin du formulaire, puis modifications depuis /espace/compte.',
+    aTrancher: 'Ce qu’il advient du compte à la demande de suppression : effacé, ou anonymisé ?',
+  },
+  {
+    table: 'consents',
+    finalite: 'La preuve du consentement donné au formulaire.',
+    donnees: ['email', 'date', 'version du texte accepté'],
+    origine: 'Écrit à la création du compte, par la même fonction qui crée le compte.',
+    aTrancher:
+      'La colonne prévue pour l’adresse IP existe et n’est jamais remplie. À confirmer : faut-il tracer l’adresse pour que le consentement soit opposable, ou l’horodatage et la version du texte suffisent-ils ?',
+  },
+  {
+    table: 'appointments',
+    finalite: 'Le rendez-vous d’orientation et son compte rendu.',
+    donnees: ['créneau', 'issue', 'compte rendu écrit par le formateur', 'notes internes'],
+    origine: 'Webhook Cal.com, puis saisie du formateur.',
+    aTrancher:
+      'Le compte rendu est un avis sur une personne. Sa durée de conservation et sa communicabilité à l’intéressé sont à cadrer.',
+  },
+  {
+    table: 'suivi_notes',
+    finalite: 'Les notes de suivi du formateur sur un client.',
+    donnees: ['contenu libre écrit par le formateur'],
+    origine: 'Saisie depuis l’espace formateur.',
+    aTrancher:
+      'Une note peut être marquée visible ou non par le client. Celles qui ne le sont pas restent communicables sur demande d’accès — à expliquer aux formateurs avant qu’ils n’écrivent.',
+  },
+  {
+    table: 'discord_links',
+    finalite: 'Le rattachement du compte à un membre Discord, et les rôles accordés.',
+    donnees: ['identifiant Discord', 'pseudonyme Discord'],
+    origine: 'Liaison volontaire par le client depuis son espace.',
+  },
+  {
+    table: 'orders, payments, invoices, refunds, disputes',
+    finalite: 'Le chemin de l’argent : commande, encaissement, facture, remboursement, litige.',
+    donnees: ['montants', 'dates', 'références des transactions'],
+    origine: 'Webhooks du prestataire de paiement, en une seule transaction.',
+    aTrancher:
+      'La conservation comptable est imposée par la loi du pays du vendeur, et le vendeur n’est pas désigné. Elle prime sur une demande de suppression — il faut savoir laquelle s’applique.',
+  },
+  {
+    table: 'inscriptions, subscriptions, propositions',
+    finalite: 'Ce que la personne a acheté et jusqu’à quand elle y a accès.',
+    donnees: ['produit', 'dates d’accès', 'montant proposé'],
+    origine: 'Ouverture de l’accès au paiement, résiliation, révocation en fin d’accès.',
+  },
+  {
+    table: 'temoignages, formateurs_fiches',
+    finalite: 'Le contenu éditorial publié sur le site public.',
+    donnees: ['nom affiché', 'propos cités', 'biographie', 'photo'],
+    origine: 'Saisie au back-office. Publication impossible sans consentement enregistré.',
+    aTrancher:
+      'Le retrait du consentement doit laisser une trace. Le déclencheur d’audit de ces deux tables ne couvre pas encore les suppressions — noté dans les chantiers.',
+  },
+  {
+    table: 'audit_logs, automation_logs, lead_events, payment_events',
+    finalite: 'La traçabilité : qui a fait quoi, et ce que les services externes ont envoyé.',
+    donnees: ['identifiants de comptes', 'contenu brut des événements reçus'],
+    origine: 'Déclencheurs en base et webhooks.',
+    aTrancher:
+      'Les événements bruts contiennent de l’email et du nom. Une demande de suppression doit-elle les atteindre, sachant qu’ils sont la preuve qu’un paiement a eu lieu ?',
+  },
+];
+
+/**
+ * Les services chez qui les données transitent.
+ *
+ * La liste sort de `/admin/parametres` — ce sont ceux réellement branchés, pas
+ * ceux envisagés. Le lieu d'hébergement est celui qu'il faut vérifier compte en
+ * main : c'est ce qui décide s'il y a transfert hors Union, et c'est aussi ce
+ * qui change quand on change de région de projet sans y penser.
+ */
+export const SOUS_TRAITANTS: Array<{ nom: string; role: string; aVerifier: string }> = [
+  {
+    nom: 'Supabase',
+    role: 'Base de données, comptes et authentification. Toutes les tables ci-dessus.',
+    aVerifier: 'La région du projet hébergé, et l’accord de sous-traitance à signer.',
+  },
+  {
+    nom: 'Stripe',
+    role: 'Encaissement, abonnements, remboursements. Détient les moyens de paiement.',
+    aVerifier: 'Le compte n’est pas encore ouvert : à faire au nom de la société qui vend.',
+  },
+  {
+    nom: 'Discord',
+    role: 'Communauté et accès. Détient les échanges entre clients et formateurs.',
+    aVerifier:
+      'Les échanges vivent chez Discord et non chez nous — ce qui est un choix à assumer explicitement dans la politique.',
+  },
+  {
+    nom: 'Cal.com',
+    role: 'Prise de rendez-vous. Reçoit le nom et l’email au moment de la réservation.',
+    aVerifier: 'Compte non ouvert. Auto-hébergeable, ce qui supprimerait ce sous-traitant.',
+  },
+];

@@ -1,10 +1,12 @@
+import { METADONNEES_LEGALES, PageLegale } from '@/components/page-legale';
+
+export const metadata = { title: 'Mentions légales', ...METADONNEES_LEGALES };
+
 export default function Page() {
   return (
-    <div className="space-y-2">
-      <h1 className="text-2xl font-semibold">Mentions légales</h1>
-      <p className="text-sm text-neutral-500">
-        Placeholder — écran à construire. Voir docs/02-SITEMAP.md.
-      </p>
-    </div>
+    <PageLegale
+      titre="Mentions légales"
+      contiendra="Qui édite ce site et qui l’héberge : raison sociale, forme juridique, adresse, immatriculation, directeur de la publication, et les coordonnées de l’hébergeur."
+    />
   );
 }
