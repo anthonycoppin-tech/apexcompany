@@ -323,6 +323,27 @@ Deux réserves de moindre importance, mais qui surprennent :
 
 ## La réconciliation
 
+**Vérifiée contre un vrai serveur le 13 septembre 2026, sur les deux chemins qui
+comptent.**
+
+Le départ-retour d'abord, avec un second compte : quitter le serveur et y
+revenir **efface bien tous les rôles** du membre. C'était la prémisse de tout ce
+qui suit, et elle n'avait jamais été constatée — seulement supposée.
+
+Puis le rattrapage, chronométré :
+
+```
+15:10:17  réconciliation — 2 rôles manquants détectés, empilés
+15:10:21  worker — « invité » accordé
+15:10:22  worker — « Accélérateur » accordé
+```
+
+Quatre secondes entre la détection et la restauration. Le test s'obtient en
+retirant les rôles à la main : vu de l'API, un départ-retour et un modérateur
+qui décoche produisent exactement le même état, donc le même chemin de code.
+C'est aussi pourquoi la réconciliation n'a pas à savoir _pourquoi_ un rôle
+manque.
+
 ```bash
 npm run discord:reconcile
 ```

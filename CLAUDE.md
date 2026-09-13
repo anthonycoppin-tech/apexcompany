@@ -142,9 +142,11 @@ travail de référencement. Vérifié au build.
 
 ### Ce qui reste, et qui est nouveau
 
-- **La réconciliation des rôles Discord** — rien ne rattrape un `grant` qui n'a pas eu lieu.
-  La révocation a sa tâche quotidienne, l'attribution n'a rien. **Bloquant avant d'ouvrir les
-  ventes.** Pris dans `09-CHANTIERS.md`.
+- **La réconciliation des rôles Discord** — écrite et **vérifiée contre un vrai serveur le
+  13 septembre** : `npm run discord:reconcile` détecte les rôles manquants et les réempile,
+  quatre secondes de bout en bout. Le départ-retour, qui en était la prémisse, a été constaté
+  avec un second compte — quitter et revenir efface bien tous les rôles. **Reste à la
+  planifier** : rien ne l'appelle encore.
 - **Un système de messages** — il n'en existe aucun, et trois mécaniques improvisées se
   partagent le besoin. Pris aussi.
 - **Où tourne le worker en production** : c'est un processus long, pas une route HTTP. Même
