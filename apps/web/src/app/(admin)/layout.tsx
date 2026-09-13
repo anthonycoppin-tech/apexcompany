@@ -39,6 +39,10 @@ const SECTIONS: Array<{ titre: string; liens: Array<{ href: string; libelle: str
     ],
   },
   {
+    titre: 'Contenu',
+    liens: [{ href: '/admin/temoignages', libelle: 'Témoignages' }],
+  },
+  {
     titre: 'Argent',
     liens: [
       { href: '/admin/paiements/transactions', libelle: 'Transactions' },
