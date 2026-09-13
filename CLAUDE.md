@@ -54,6 +54,44 @@ n'est pas.**
 C'est le même garde-fou que les trois du 9 septembre : rendre l'état faux impossible plutôt
 que compter sur la vigilance.
 
+### Le système de messages, et la règle qui le tient
+
+**Une URL transporte un accent, jamais une proposition.** Ce qui est affirmé vient des données
+que la page a chargées. Le test qui range chaque code : _si un inconnu tape cette URL sur une
+page où rien ne s'est passé, ce qu'il lit est-il encore vrai ?_
+
+Il y avait **cinq** mécaniques, pas trois — le `useState` de `/connexion`, quatorze types d'état
+de `useActionState` sous **trois formes incompatibles**, quatre conventions de paramètre d'URL,
+un bloc serveur forgeable, et de la validation de champ en ligne. Il en reste une :
+`lib/messages/` et `components/message.tsx`. Le composant **dérive le rôle ARIA du ton** — on ne
+peut plus écrire un message muet.
+
+Le catalogue `?m=` a deux familles. Les **constantes** restent vraies même forgées
+(« Paiement interrompu — rien n'a été débité » l'est pour qui n'a rien payé). Les
+**dépendantes** exigent une `Preuve` — un type marqué, infabricable hors de `preuves.ts`, et
+**borné à dix minutes** : l'URL dit qu'un événement a eu lieu, la base dit qu'un tel événement
+a eu lieu récemment pour ce compte, et il faut les deux. Sans preuve, pas de message dégradé :
+**pas de message**.
+
+**Trois défauts trouvés en faisant l'inventaire**, tous du même genre que ce qui a motivé le
+chantier :
+
+- `/qualification` redirigeait vers `/reserver?inscription=ok`, que `/reserver` **n'a jamais
+  lu**. Le seul retour du tunnel qui dit « ton compte est créé » tombait dans le vide.
+- `?paiement=ok` sur `/espace` et `?paiement=annule` sur `/souscrire` n'avaient **aucun rôle
+  ARIA**. Le message le plus important du produit n'était pas annoncé.
+- **L'insertion du `grant` dans `api/discord/callback` jetait son erreur.** Le `sans-role` du
+  12 septembre ne bouchait qu'une branche : si l'insertion échouait, la page annonçait toujours
+  « ton accès arrive dans la minute ». C'est l'argument qui a fait descendre la vérification
+  dans les données plutôt que de la laisser dans le paramètre d'URL.
+
+**Vérifié contre le site qui tourne** : `/reserver?m=compte-cree` sans session n'affiche rien,
+un code inconnu n'affiche rien et le contenu de l'URL n'est jamais rendu, une constante
+s'affiche avec le `role="status"` posé par le composant. Le ton `alerte` et les codes
+dépendants en situation vraie n'ont **pas** été vus à l'écran : ils demandent une session, et
+le catalogue de la base partagée n'a toujours aucun produit `abonnement` (données de la
+révision 2).
+
 ### Ce qui a été livré
 
 - **Discord — la réconciliation des rôles existe.** `npm run discord:reconcile` lit l'état réel
@@ -206,8 +244,6 @@ travail de référencement. Vérifié au build.
   quatre secondes de bout en bout. Le départ-retour, qui en était la prémisse, a été constaté
   avec un second compte — quitter et revenir efface bien tous les rôles. **Reste à la
   planifier** : rien ne l'appelle encore.
-- **Un système de messages** — il n'en existe aucun, et trois mécaniques improvisées se
-  partagent le besoin. Pris aussi.
 - **Où tourne le worker en production** : c'est un processus long, pas une route HTTP. Même
   question ouverte que le planificateur de la révocation quotidienne.
 

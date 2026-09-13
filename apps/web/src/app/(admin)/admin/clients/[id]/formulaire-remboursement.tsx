@@ -2,12 +2,10 @@
 
 import { useActionState, useState } from 'react';
 
-import {
-  demanderRemboursement,
-  type EtatRemboursement,
-} from '../../paiements/remboursements/actions';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-const ETAT_INITIAL: EtatRemboursement = { erreur: null, ok: false };
+import { demanderRemboursement } from '../../paiements/remboursements/actions';
 
 /**
  * Demander un remboursement depuis la fiche client.
@@ -28,10 +26,10 @@ export function FormulaireRemboursement({
   paymentId: string;
   montantMax: string;
 }) {
-  const [etat, action, enCours] = useActionState(demanderRemboursement, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(demanderRemboursement, REPOS);
   const [ouvert, setOuvert] = useState(false);
 
-  if (etat.ok) {
+  if (etat.statut === 'succes') {
     return (
       <span className="text-xs text-succes">
         Demande enregistrée — à exécuter depuis les remboursements.
@@ -95,7 +93,7 @@ export function FormulaireRemboursement({
         </button>
       </div>
 
-      {etat.erreur && <p className="text-xs text-alerte">{etat.erreur}</p>}
+      <MessageLigne message={messageDe(etat)} taille="petite" />
     </form>
   );
 }

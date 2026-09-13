@@ -3,11 +3,10 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 const ISSUES = ['honore', 'absent', 'annule'] as const;
 type Issue = (typeof ISSUES)[number];
-
-export type EtatCompteRendu = { readonly erreur: string | null; readonly ok: boolean };
 
 /**
  * Consigner l'issue d'un audit et son compte rendu.
@@ -23,15 +22,15 @@ export type EtatCompteRendu = { readonly erreur: string | null; readonly ok: boo
  * de perte d'un tunnel de vente par appel.
  */
 export async function consignerIssue(
-  _precedent: EtatCompteRendu,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatCompteRendu> {
+): Promise<EtatAction> {
   const id = (donnees.get('id') ?? '').toString();
   const issue = (donnees.get('issue') ?? '').toString();
   const compteRendu = (donnees.get('compte_rendu') ?? '').toString().trim();
 
-  if (!id) return { erreur: 'Rendez-vous introuvable.', ok: false };
-  if (!ISSUES.includes(issue as Issue)) return { erreur: 'Issue invalide.', ok: false };
+  if (!id) return echoue('Rendez-vous introuvable.');
+  if (!ISSUES.includes(issue as Issue)) return echoue('Issue invalide.');
 
   const supabase = await createClient();
 
@@ -48,11 +47,11 @@ export async function consignerIssue(
     .eq('id', id);
 
   if (error) {
-    return { erreur: "L'enregistrement a échoué. Réessaie dans un instant.", ok: false };
+    return echoue("L'enregistrement a échoué. Réessaie dans un instant.");
   }
 
   revalidatePath('/formateur/rendez-vous');
   revalidatePath('/formateur');
 
-  return { erreur: null, ok: true };
+  return reussi('Compte rendu enregistré.');
 }

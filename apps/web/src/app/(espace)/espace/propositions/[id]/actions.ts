@@ -4,8 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
 import { ouvrirCheckout } from '@/lib/paiement/checkout';
-
-export type EtatPaiement = { readonly erreur: string | null };
+import { echoue, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Ouvrir le paiement d'une proposition.
@@ -24,11 +23,11 @@ export type EtatPaiement = { readonly erreur: string | null };
  * qui ne sait pas si l'argent est arrivé.
  */
 export async function ouvrirPaiement(
-  _precedent: EtatPaiement,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatPaiement> {
+): Promise<EtatAction> {
   const propositionId = (donnees.get('proposition_id') ?? '').toString();
-  if (!propositionId) return { erreur: 'Proposition introuvable.' };
+  if (!propositionId) return echoue('Proposition introuvable.');
 
   const supabase = await createClient();
 
@@ -36,7 +35,7 @@ export async function ouvrirPaiement(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { erreur: 'Session expirée. Reconnecte-toi pour continuer.' };
+  if (!user) return echoue('Session expirée. Reconnecte-toi pour continuer.');
 
   const { data: proposition } = await supabase
     .from('propositions')
@@ -47,17 +46,17 @@ export async function ouvrirPaiement(
     .maybeSingle();
 
   if (!proposition || !proposition.formations) {
-    return { erreur: 'Cette proposition n’existe pas ou ne t’est pas destinée.' };
+    return echoue('Cette proposition n’existe pas ou ne t’est pas destinée.');
   }
 
   if (proposition.statut !== 'envoyee') {
-    return {
-      erreur: 'Cette proposition n’est plus valable. Ton formateur peut en émettre une nouvelle.',
-    };
+    return echoue(
+      'Cette proposition n’est plus valable. Ton formateur peut en émettre une nouvelle.',
+    );
   }
 
   if (proposition.expire_le && new Date(proposition.expire_le) < new Date()) {
-    return { erreur: 'Cette proposition a expiré. Ton formateur peut en émettre une nouvelle.' };
+    return echoue('Cette proposition a expiré. Ton formateur peut en émettre une nouvelle.');
   }
 
   // ── L'email doit être vérifié avant de payer ─────────────────────────────
@@ -65,10 +64,9 @@ export async function ouvrirPaiement(
   // bloquante avant le paiement. Une facture qui part vers une adresse non
   // vérifiée est une facture qu'on ne peut pas prouver avoir envoyée.
   if (!user.email_confirmed_at) {
-    return {
-      erreur:
-        'Vérifie d’abord ton adresse email : nous t’avons envoyé un lien à la création de ton compte. C’est ce qui garantit que ta facture arrive bien chez toi.',
-    };
+    return echoue(
+      'Vérifie d’abord ton adresse email : nous t’avons envoyé un lien à la création de ton compte. C’est ce qui garantit que ta facture arrive bien chez toi.',
+    );
   }
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -87,11 +85,11 @@ export async function ouvrirPaiement(
     },
     montantCents: proposition.montant_cents,
     propositionId: proposition.id,
-    urlSucces: `${site}/espace?paiement=ok`,
-    urlAnnulation: `${site}/espace/propositions/${proposition.id}?paiement=annule`,
+    urlSucces: `${site}/espace?m=paiement-recu`,
+    urlAnnulation: `${site}/espace/propositions/${proposition.id}?m=paiement-annule`,
   });
 
-  if ('erreur' in resultat) return { erreur: resultat.erreur };
+  if ('erreur' in resultat) return echoue(resultat.erreur);
 
   // Hors de tout try/catch : `redirect` lève une exception pour interrompre le
   // rendu, et un catch la prendrait pour un échec.

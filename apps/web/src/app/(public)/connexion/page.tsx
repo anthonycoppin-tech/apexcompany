@@ -3,7 +3,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { MessageLigne } from '@/components/message';
 import { BoutonAction, CHAMP, Carte, Conteneur } from '@/components/ui';
+import { alerte, type Message } from '@/lib/messages/types';
 import { destinationApresConnexion } from '@/lib/auth/destination';
 import { createClient } from '@/lib/supabase/client';
 
@@ -22,7 +24,7 @@ export default function ConnexionPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
-  const [erreur, setErreur] = useState<string | null>(null);
+  const [message, setMessage] = useState<Message | null>(null);
   const [enCours, setEnCours] = useState(false);
 
   // Déjà connecté : cette page n'a rien à proposer. La garde est ici et non
@@ -51,7 +53,7 @@ export default function ConnexionPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setErreur(null);
+    setMessage(null);
     setEnCours(true);
 
     const supabase = createClient();
@@ -62,7 +64,7 @@ export default function ConnexionPage() {
 
     if (error) {
       setEnCours(false);
-      setErreur(error.message);
+      setMessage(alerte(error.message));
       return;
     }
 
@@ -124,13 +126,7 @@ export default function ConnexionPage() {
             />
           </div>
 
-          {/* `role="alert"` pour que l'échec soit annoncé : sans lui, un lecteur
-              d'écran ne signale rien et l'utilisateur croit sa saisie partie. */}
-          {erreur && (
-            <p role="alert" className="text-sm text-alerte">
-              {erreur}
-            </p>
-          )}
+          <MessageLigne message={message} />
 
           <BoutonAction type="submit" disabled={enCours} className="w-full">
             {enCours ? 'Connexion…' : 'Se connecter'}

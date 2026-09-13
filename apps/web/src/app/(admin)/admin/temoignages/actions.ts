@@ -4,8 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
-
-export type EtatTemoignage = { readonly erreur: string | null; readonly ok: boolean };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Créer ou modifier un témoignage.
@@ -22,9 +21,9 @@ export type EtatTemoignage = { readonly erreur: string | null; readonly ok: bool
  * commerciale qu'on ne peut pas justifier.
  */
 export async function enregistrerTemoignage(
-  _precedent: EtatTemoignage,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatTemoignage> {
+): Promise<EtatAction> {
   const lu = (champ: string) => (donnees.get(champ) ?? '').toString().trim();
 
   const id = lu('id');
@@ -33,15 +32,13 @@ export async function enregistrerTemoignage(
   const consentement = lu('consentement') === 'on';
   const publie = lu('publie') === 'on';
 
-  if (!auteur) return { erreur: 'L’auteur est nécessaire.', ok: false };
-  if (!contenu) return { erreur: 'Le témoignage ne peut pas être vide.', ok: false };
+  if (!auteur) return echoue('L’auteur est nécessaire.');
+  if (!contenu) return echoue('Le témoignage ne peut pas être vide.');
 
   if (publie && !consentement) {
-    return {
-      erreur:
-        'Un témoignage ne peut pas être publié sans consentement enregistré : ce sont le nom et les mots d’une personne. Garde-le en brouillon le temps d’obtenir son accord écrit.',
-      ok: false,
-    };
+    return echoue(
+      'Un témoignage ne peut pas être publié sans consentement enregistré : ce sont le nom et les mots d’une personne. Garde-le en brouillon le temps d’obtenir son accord écrit.',
+    );
   }
 
   // La note est facultative ; renseignée, elle est bornée comme en base.
@@ -50,7 +47,7 @@ export async function enregistrerTemoignage(
   if (noteBrute) {
     const n = Number(noteBrute);
     if (!Number.isInteger(n) || n < 1 || n > 5) {
-      return { erreur: 'La note va de 1 à 5, ou reste vide.', ok: false };
+      return echoue('La note va de 1 à 5, ou reste vide.');
     }
     note = n;
   }
@@ -58,7 +55,7 @@ export async function enregistrerTemoignage(
   const ordreBrut = lu('ordre');
   const ordre = ordreBrut ? Number(ordreBrut) : 0;
   if (!Number.isInteger(ordre) || ordre < 0) {
-    return { erreur: 'L’ordre doit être un nombre entier positif.', ok: false };
+    return echoue('L’ordre doit être un nombre entier positif.');
   }
 
   const supabase = await createClient();
@@ -81,13 +78,11 @@ export async function enregistrerTemoignage(
     : await supabase.from('temoignages').insert(valeurs).select('id').single();
 
   if (error) {
-    return {
-      erreur:
-        error.code === '23514'
-          ? 'La base a refusé : un témoignage publié doit porter un consentement.'
-          : 'L’enregistrement a échoué. Réessaie dans un instant.',
-      ok: false,
-    };
+    return echoue(
+      error.code === '23514'
+        ? 'La base a refusé : un témoignage publié doit porter un consentement.'
+        : 'L’enregistrement a échoué. Réessaie dans un instant.',
+    );
   }
 
   revalidatePath('/admin/temoignages');
@@ -97,7 +92,7 @@ export async function enregistrerTemoignage(
   // s'est rien passé — même parti que le catalogue.
   if (!id) redirect(`/admin/temoignages/${data.id}`);
 
-  return { erreur: null, ok: true };
+  return reussi('Témoignage enregistré.');
 }
 
 /**

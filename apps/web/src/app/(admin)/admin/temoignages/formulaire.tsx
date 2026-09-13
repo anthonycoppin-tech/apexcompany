@@ -3,10 +3,10 @@
 import { useActionState, useState } from 'react';
 
 import { BoutonAction, CHAMP } from '@/components/ui';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-import { enregistrerTemoignage, supprimerTemoignage, type EtatTemoignage } from './actions';
-
-const ETAT_INITIAL: EtatTemoignage = { erreur: null, ok: false };
+import { enregistrerTemoignage, supprimerTemoignage } from './actions';
 
 type Temoignage = {
   id: string;
@@ -22,12 +22,7 @@ type Temoignage = {
 
 /**
  * Saisie d'un témoignage.
- *
- * Les retours de succès et d'erreur reprennent **le motif déjà présent dans le
- * code** (`role="status"` et `role="alert"` en ligne, comme `/espace/compte`).
- * Rien de nouveau n'est inventé ici : un système de messages est en cours de
- * conception (`docs/09-CHANTIERS.md`), et lui opposer une convention de plus
- * serait exactement ce qu'il cherche à supprimer.
+
  */
 export function FormulaireTemoignage({
   temoignage,
@@ -36,7 +31,7 @@ export function FormulaireTemoignage({
   temoignage?: Temoignage;
   formations: Array<{ id: string; titre: string }>;
 }) {
-  const [etat, action, enCours] = useActionState(enregistrerTemoignage, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(enregistrerTemoignage, REPOS);
 
   // Le consentement pilote l'affichage de « publier » : on ne propose pas une
   // case que l'enregistrement refusera. La contrainte en base reste la garantie.
@@ -160,16 +155,7 @@ export function FormulaireTemoignage({
           <BoutonAction type="submit" disabled={enCours}>
             {enCours ? 'Enregistrement…' : 'Enregistrer'}
           </BoutonAction>
-          {etat.ok && (
-            <span role="status" className="text-sm font-medium text-succes">
-              Enregistré.
-            </span>
-          )}
-          {etat.erreur && (
-            <span role="alert" className="text-sm text-alerte">
-              {etat.erreur}
-            </span>
-          )}
+          <MessageLigne message={messageDe(etat)} />
         </div>
       </form>
 

@@ -41,9 +41,16 @@
   --color-nuit: #0e1420;
   --color-nuit-douce: #1a2130;
 
-  /* ── Sémantique — distincte de l'accent, volontairement ───────────────── */
+  /* ── Sémantique — distincte de l'accent, volontairement ─────────────────
+   * Les deux tons `-doux` sont les fonds des bandeaux de message. Un bandeau a
+   * besoin d'un fond : sans lui il ne se distingue du texte courant que par une
+   * bordure, et se lit comme un encadré décoratif plutôt que comme le retour
+   * d'une action qu'on vient de faire.
+   */
   --color-succes: #1f6f4a;
+  --color-succes-doux: #eaf5ef;
   --color-alerte: #a84420;
+  --color-alerte-doux: #fbeeea;
 
   /* ── Marque tierce ─────────────────────────────────────────────────────
    * La couleur officielle de Discord. Elle est ici, et pas en dur dans le

@@ -3,10 +3,10 @@
 import { useActionState } from 'react';
 
 import { BoutonAction, CHAMP } from '@/components/ui';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-import { consignerIssue, type EtatCompteRendu } from './actions';
-
-const ETAT_INITIAL: EtatCompteRendu = { erreur: null, ok: false };
+import { consignerIssue } from './actions';
 
 const ISSUES = [
   { valeur: 'honore', libelle: 'Honoré' },
@@ -31,7 +31,7 @@ export function FormulaireIssue({
   issue: string | null;
   compteRendu: string | null;
 }) {
-  const [etat, action, enCours] = useActionState(consignerIssue, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(consignerIssue, REPOS);
 
   return (
     <form action={action} className="space-y-4 border-t border-filet pt-4">
@@ -67,16 +67,7 @@ export function FormulaireIssue({
         <BoutonAction type="submit" disabled={enCours}>
           {enCours ? 'Enregistrement…' : 'Enregistrer'}
         </BoutonAction>
-        {etat.ok && (
-          <span role="status" className="text-sm font-medium text-succes">
-            Enregistré.
-          </span>
-        )}
-        {etat.erreur && (
-          <span role="alert" className="text-sm text-alerte">
-            {etat.erreur}
-          </span>
-        )}
+        <MessageLigne message={messageDe(etat)} />
       </div>
     </form>
   );

@@ -6,11 +6,10 @@ import { redirect } from 'next/navigation';
 import type { Database } from '@apex/db';
 
 import { createClient } from '@/lib/supabase/server';
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 type TypeProduit = Database['public']['Enums']['type_produit'];
 type Modalite = Database['public']['Enums']['modalite_formation'];
-
-export type EtatFormation = { readonly erreur: string | null; readonly ok: boolean };
 
 const TYPES: TypeProduit[] = ['abonnement', 'accompagnement', 'formation'];
 const MODALITES: Modalite[] = ['individuel', 'groupe'];
@@ -44,9 +43,9 @@ const entierOuNull = (valeur: string): number | null => {
  * On peut préparer un brouillon sans rôle, on ne peut pas le publier.
  */
 export async function enregistrerFormation(
-  _precedent: EtatFormation,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatFormation> {
+): Promise<EtatAction> {
   const lu = (champ: string) => (donnees.get(champ) ?? '').toString().trim();
 
   const id = lu('id');
@@ -57,24 +56,22 @@ export async function enregistrerFormation(
   const actif = lu('actif') === 'on';
   const discordRoleId = lu('discord_role_id');
 
-  if (!titre) return { erreur: 'Le titre est nécessaire.', ok: false };
+  if (!titre) return echoue('Le titre est nécessaire.');
 
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
-    return {
-      erreur:
-        'L’adresse (slug) ne peut contenir que des minuscules, des chiffres et des tirets — sans tiret au début ni à la fin.',
-      ok: false,
-    };
+    return echoue(
+      'L’adresse (slug) ne peut contenir que des minuscules, des chiffres et des tirets — sans tiret au début ni à la fin.',
+    );
   }
 
-  if (!TYPES.includes(typeProduit)) return { erreur: 'Type de produit inconnu.', ok: false };
-  if (!MODALITES.includes(modalite)) return { erreur: 'Modalité inconnue.', ok: false };
+  if (!TYPES.includes(typeProduit)) return echoue('Type de produit inconnu.');
+  if (!MODALITES.includes(modalite)) return echoue('Modalité inconnue.');
 
   // Saisi en euros, stocké en centimes. L'argent est un entier partout, et la
   // conversion se fait à la frontière plutôt que de laisser filer un flottant.
   const prixEuros = Number(lu('prix_euros').replace(',', '.'));
   if (!Number.isFinite(prixEuros) || prixEuros < 0) {
-    return { erreur: 'Le tarif n’est pas un montant valide.', ok: false };
+    return echoue('Le tarif n’est pas un montant valide.');
   }
   const prixCents = Math.round(prixEuros * 100);
 
@@ -84,34 +81,28 @@ export async function enregistrerFormation(
   const ordre = entierOuNull(lu('ordre')) ?? 0;
 
   if (Number.isNaN(dureeAcces) || Number.isNaN(dureeSemaines) || Number.isNaN(volumeHoraire)) {
-    return { erreur: 'Les durées doivent être des nombres entiers positifs.', ok: false };
+    return echoue('Les durées doivent être des nombres entiers positifs.');
   }
 
   // La même règle qu'en base, dite en français.
   if (typeProduit === 'accompagnement' && (dureeAcces === null || dureeAcces === 0)) {
-    return {
-      erreur:
-        'Un accompagnement doit déclarer sa durée d’accès en jours — c’est elle qui fixe la date de fin.',
-      ok: false,
-    };
+    return echoue(
+      'Un accompagnement doit déclarer sa durée d’accès en jours — c’est elle qui fixe la date de fin.',
+    );
   }
 
   if (typeProduit !== 'accompagnement' && dureeAcces !== null) {
-    return {
-      erreur:
-        typeProduit === 'formation'
-          ? 'Une formation donne un accès illimité : elle ne peut pas porter de durée d’accès.'
-          : 'Un abonnement voit sa date d’accès repoussée à chaque prélèvement : il ne porte pas de durée fixe.',
-      ok: false,
-    };
+    return echoue(
+      typeProduit === 'formation'
+        ? 'Une formation donne un accès illimité : elle ne peut pas porter de durée d’accès.'
+        : 'Un abonnement voit sa date d’accès repoussée à chaque prélèvement : il ne porte pas de durée fixe.',
+    );
   }
 
   if (actif && !discordRoleId) {
-    return {
-      erreur:
-        'Un produit publié doit déclarer son rôle Discord, sinon il encaisse un paiement sans ouvrir d’accès. Enregistre-le en brouillon le temps de créer le rôle.',
-      ok: false,
-    };
+    return echoue(
+      'Un produit publié doit déclarer son rôle Discord, sinon il encaisse un paiement sans ouvrir d’accès. Enregistre-le en brouillon le temps de créer le rôle.',
+    );
   }
 
   const supabase = await createClient();
@@ -142,12 +133,11 @@ export async function enregistrerFormation(
   if (error) {
     const slugPris = error.code === '23505';
 
-    return {
-      erreur: slugPris
+    return echoue(
+      slugPris
         ? 'Cette adresse (slug) est déjà utilisée par un autre produit.'
         : 'L’enregistrement a échoué. Réessaie dans un instant.',
-      ok: false,
-    };
+    );
   }
 
   revalidatePath('/admin/formations');
@@ -158,5 +148,5 @@ export async function enregistrerFormation(
   // vide après avoir créé un produit laisse croire que rien ne s'est passé.
   if (!id) redirect(`/admin/formations/${data.id}`);
 
-  return { erreur: null, ok: true };
+  return reussi('Produit enregistré.');
 }

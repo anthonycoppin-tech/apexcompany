@@ -4,10 +4,10 @@ import { useActionState, useState } from 'react';
 
 import { BoutonAction, CHAMP, Carte } from '@/components/ui';
 import { ECRANS, MOINS_18 } from '@/lib/qualification/questionnaire';
+import { MessageLigne } from '@/components/message';
+import { REPOS, alerte, messageDe } from '@/lib/messages/types';
 
-import { soumettreQualification, type EtatFormulaire } from './actions';
-
-const ETAT_INITIAL: EtatFormulaire = { erreur: null };
+import { soumettreQualification } from './actions';
 
 /**
  * Le formulaire de qualification, en cinq écrans.
@@ -19,7 +19,7 @@ const ETAT_INITIAL: EtatFormulaire = { erreur: null };
  * quelqu'un qui abandonne à l'écran 3.
  */
 export function FormulaireQualification({ src }: { src?: string }) {
-  const [etat, action, enCours] = useActionState(soumettreQualification, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(soumettreQualification, REPOS);
   const [index, setIndex] = useState(0);
   const [reponses, setReponses] = useState<Record<string, string>>({});
   const [manque, setManque] = useState<string | null>(null);
@@ -131,11 +131,13 @@ export function FormulaireQualification({ src }: { src?: string }) {
                 />
               )}
 
-              {manque === question.champ && (
-                <p role="alert" className="text-sm text-alerte">
-                  Cette réponse est nécessaire pour continuer.
-                </p>
-              )}
+              <MessageLigne
+                message={
+                  manque === question.champ
+                    ? alerte('Cette réponse est nécessaire pour continuer.')
+                    : null
+                }
+              />
             </fieldset>
           ))}
         </div>
@@ -156,11 +158,7 @@ export function FormulaireQualification({ src }: { src?: string }) {
         </label>
       )}
 
-      {etat.erreur && (
-        <p role="alert" className="text-sm text-alerte">
-          {etat.erreur}
-        </p>
-      )}
+      <MessageLigne message={messageDe(etat)} />
 
       <div className="flex items-center gap-4 border-t border-filet pt-6">
         {dernier ? (

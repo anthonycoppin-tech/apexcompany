@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import type { Database } from '@apex/db';
 
 import { evaluerEligibilite } from '@/lib/qualification/eligibilite';
+import { echoue, type EtatAction } from '@/lib/messages/types';
 import {
   CHAMPS_ATTENDUS,
   ECRANS,
@@ -16,8 +17,6 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 type LeadSource = Database['public']['Enums']['lead_source'];
-
-export type EtatFormulaire = { readonly erreur: string | null };
 
 /** `?src=ig` sur le lien mis en avant sur les réseaux → valeur d'énumération. */
 const SOURCES: Readonly<Record<string, LeadSource>> = {
@@ -60,9 +59,9 @@ const SOURCES: Readonly<Record<string, LeadSource>> = {
  * fonction : il n'y a pas encore d'identifiant Discord à qui l'accorder.
  */
 export async function soumettreQualification(
-  _precedent: EtatFormulaire,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatFormulaire> {
+): Promise<EtatAction> {
   const lu = (champ: string) => (donnees.get(champ) ?? '').toString().trim();
 
   // ── Refus dur des mineurs ────────────────────────────────────────────────
@@ -70,7 +69,7 @@ export async function soumettreQualification(
   // qu'une action serveur est une API publique : elle ne peut pas faire
   // confiance à l'écran qui l'appelle. Aucune écriture n'a encore eu lieu.
   if (lu('tranche_age') === MOINS_18) {
-    return { erreur: 'Nos accompagnements ne sont pas ouverts aux moins de 18 ans.' };
+    return echoue('Nos accompagnements ne sont pas ouverts aux moins de 18 ans.');
   }
 
   // ── Validation contre le questionnaire ───────────────────────────────────
@@ -79,18 +78,18 @@ export async function soumettreQualification(
       const valeur = lu(question.champ);
 
       if (!valeur) {
-        return { erreur: `Une réponse manque : « ${question.libelle} »` };
+        return echoue(`Une réponse manque : « ${question.libelle} »`);
       }
 
       if (question.type === 'choix' && !question.options.some((o) => o.valeur === valeur)) {
-        return { erreur: `Réponse invalide pour « ${question.libelle} »` };
+        return echoue(`Réponse invalide pour « ${question.libelle} »`);
       }
     }
   }
 
   const email = lu('email').toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { erreur: "Cette adresse email n'est pas valide." };
+    return echoue("Cette adresse email n'est pas valide.");
   }
 
   // Déjà connecté ? On s'arrête ici.
@@ -106,16 +105,15 @@ export async function soumettreQualification(
   const { data: sessionEnCours } = await (await createClient()).auth.getUser();
 
   if (sessionEnCours.user) {
-    return {
-      erreur:
-        'Tu es déjà connecté. Déconnecte-toi d’abord si tu veux remplir ce formulaire pour quelqu’un d’autre.',
-    };
+    return echoue(
+      'Tu es déjà connecté. Déconnecte-toi d’abord si tu veux remplir ce formulaire pour quelqu’un d’autre.',
+    );
   }
 
   // Non pré-cochée, et refusée si absente : c'est tout l'intérêt d'un
   // consentement explicite.
   if (lu('consentement') !== 'on') {
-    return { erreur: 'Merci d’accepter la politique de confidentialité pour continuer.' };
+    return echoue('Merci d’accepter la politique de confidentialité pour continuer.');
   }
 
   const reponses = Object.fromEntries(CHAMPS_ATTENDUS.map((champ) => [champ, lu(champ)])) as Record<
@@ -144,7 +142,7 @@ export async function soumettreQualification(
   });
 
   if (!creation.ok) {
-    return { erreur: creation.erreur };
+    return echoue(creation.erreur);
   }
 
   const userId = creation.userId;
@@ -174,7 +172,7 @@ export async function soumettreQualification(
     .single();
 
   if (erreurLead || !lead) {
-    return { erreur: "L'enregistrement a échoué. Réessaie dans un instant." };
+    return echoue("L'enregistrement a échoué. Réessaie dans un instant.");
   }
 
   // ── 3. La soumission complète, telle quelle ──────────────────────────────
@@ -199,5 +197,5 @@ export async function soumettreQualification(
 
   // `redirect` lève une exception pour interrompre le rendu : elle doit rester
   // hors de tout try/catch, sinon elle est avalée et la page ne change pas.
-  redirect('/reserver?inscription=ok');
+  redirect('/reserver?m=compte-cree');
 }

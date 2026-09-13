@@ -3,10 +3,10 @@
 import { useActionState, useState } from 'react';
 
 import { BoutonAction, CHAMP } from '@/components/ui';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-import { enregistrerFiche, supprimerFiche, type EtatFiche } from './actions';
-
-const ETAT_INITIAL: EtatFiche = { erreur: null, ok: false };
+import { enregistrerFiche, supprimerFiche } from './actions';
 
 type Fiche = {
   id: string;
@@ -22,9 +22,7 @@ type Fiche = {
 
 /**
  * Saisie d'une fiche publique.
- *
- * Mêmes retours que le reste du back-office (`role="status"`, `role="alert"`),
- * sans convention nouvelle : le système de messages est un chantier en cours.
+
  */
 export function FormulaireFiche({
   fiche,
@@ -33,7 +31,7 @@ export function FormulaireFiche({
   fiche?: Fiche;
   comptes: Array<{ id: string; libelle: string }>;
 }) {
-  const [etat, action, enCours] = useActionState(enregistrerFiche, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(enregistrerFiche, REPOS);
   const [confirmeSuppression, setConfirmeSuppression] = useState(false);
 
   return (
@@ -137,16 +135,7 @@ export function FormulaireFiche({
           <BoutonAction type="submit" disabled={enCours}>
             {enCours ? 'Enregistrement…' : 'Enregistrer'}
           </BoutonAction>
-          {etat.ok && (
-            <span role="status" className="text-sm font-medium text-succes">
-              Enregistré.
-            </span>
-          )}
-          {etat.erreur && (
-            <span role="alert" className="text-sm text-alerte">
-              {etat.erreur}
-            </span>
-          )}
+          <MessageLigne message={messageDe(etat)} />
         </div>
       </form>
 

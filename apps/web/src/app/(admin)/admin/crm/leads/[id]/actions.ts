@@ -4,8 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { PIPELINE } from '@/lib/crm/pipeline';
 import { createClient } from '@/lib/supabase/server';
-
-export type EtatFiche = { readonly erreur: string | null; readonly ok: boolean };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Affecter un prospect à un formateur, et faire avancer son statut.
@@ -22,17 +21,17 @@ export type EtatFiche = { readonly erreur: string | null; readonly ok: boolean }
  * et jamais à changer l'affectation vers quelqu'un d'autre.
  */
 export async function mettreAJourFiche(
-  _precedent: EtatFiche,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatFiche> {
+): Promise<EtatAction> {
   const id = (donnees.get('lead_id') ?? '').toString();
   const affecteA = (donnees.get('assigned_to') ?? '').toString();
   const statut = (donnees.get('statut') ?? '').toString();
 
-  if (!id) return { erreur: 'Fiche introuvable.', ok: false };
+  if (!id) return echoue('Fiche introuvable.');
 
   if (statut && !PIPELINE.some((e) => e.valeur === statut)) {
-    return { erreur: 'Statut inconnu.', ok: false };
+    return echoue('Statut inconnu.');
   }
 
   const supabase = await createClient();
@@ -49,11 +48,11 @@ export async function mettreAJourFiche(
     .eq('id', id);
 
   if (error) {
-    return { erreur: "L'enregistrement a échoué. Réessaie dans un instant.", ok: false };
+    return echoue("L'enregistrement a échoué. Réessaie dans un instant.");
   }
 
   revalidatePath(`/admin/crm/leads/${id}`);
   revalidatePath('/admin/crm/leads');
 
-  return { erreur: null, ok: true };
+  return reussi('Fiche enregistrée.');
 }

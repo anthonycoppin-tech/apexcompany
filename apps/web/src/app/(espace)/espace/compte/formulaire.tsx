@@ -3,10 +3,10 @@
 import { useActionState } from 'react';
 
 import { BoutonAction, CHAMP } from '@/components/ui';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-import { mettreAJourCompte, type EtatCompte } from './actions';
-
-const ETAT_INITIAL: EtatCompte = { erreur: null, ok: false };
+import { mettreAJourCompte } from './actions';
 
 export function FormulaireCompte({
   prenom,
@@ -19,7 +19,7 @@ export function FormulaireCompte({
   telephone: string | null;
   email: string;
 }) {
-  const [etat, action, enCours] = useActionState(mettreAJourCompte, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(mettreAJourCompte, REPOS);
 
   return (
     <form action={action} className="max-w-md space-y-5">
@@ -56,19 +56,7 @@ export function FormulaireCompte({
         <BoutonAction type="submit" disabled={enCours}>
           {enCours ? 'Enregistrement…' : 'Enregistrer'}
         </BoutonAction>
-        {/* `role="status"` pour la confirmation, `role="alert"` pour l'échec :
-            sans eux, un lecteur d'écran ne signale ni l'un ni l'autre et on
-            reste devant un formulaire qui n'a l'air de rien avoir fait. */}
-        {etat.ok && (
-          <span role="status" className="text-sm font-medium text-succes">
-            Enregistré.
-          </span>
-        )}
-        {etat.erreur && (
-          <span role="alert" className="text-sm text-alerte">
-            {etat.erreur}
-          </span>
-        )}
+        <MessageLigne message={messageDe(etat)} />
       </div>
     </form>
   );

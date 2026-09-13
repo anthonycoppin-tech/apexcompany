@@ -2,9 +2,10 @@
 
 import { useActionState, useState } from 'react';
 
-import { enregistrerFormation, type EtatFormation } from './actions';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-const ETAT_INITIAL: EtatFormation = { erreur: null, ok: false };
+import { enregistrerFormation } from './actions';
 
 export type FormationEditable = {
   id: string;
@@ -64,7 +65,7 @@ const Champ = ({
  * changement de type ne parte en base et ne se fasse refuser par la contrainte.
  */
 export function FormulaireFormation({ formation }: { formation?: FormationEditable }) {
-  const [etat, action, enCours] = useActionState(enregistrerFormation, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(enregistrerFormation, REPOS);
   const [type, setType] = useState(formation?.type_produit ?? 'accompagnement');
   const [publie, setPublie] = useState(formation?.actif ?? false);
   const [role, setRole] = useState(formation?.discord_role_id ?? '');
@@ -251,8 +252,7 @@ export function FormulaireFormation({ formation }: { formation?: FormationEditab
         >
           {enCours ? 'Enregistrement…' : formation ? 'Enregistrer' : 'Créer le produit'}
         </button>
-        {etat.ok && <span className="text-sm text-succes">Enregistré.</span>}
-        {etat.erreur && <span className="text-sm text-alerte">{etat.erreur}</span>}
+        <MessageLigne message={messageDe(etat)} />
       </div>
     </form>
   );

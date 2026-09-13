@@ -3,7 +3,9 @@ import { notFound, redirect } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
 
+import { MessageURL } from '@/components/message-url';
 import { AvertissementRisque, Carte, Conteneur, Section } from '@/components/ui';
+import { PARAM, messageConstant } from '@/lib/messages/catalogue';
 import { createClient } from '@/lib/supabase/server';
 
 import { BoutonRenvoyer } from './bouton-renvoyer';
@@ -35,9 +37,9 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ verifier?: string; paiement?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const [{ slug }, { verifier, paiement }] = await Promise.all([params, searchParams]);
+  const [{ slug }, parametres] = await Promise.all([params, searchParams]);
   const supabase = await createClient();
 
   // `actif` filtré explicitement : la RLS laisse le staff lire les brouillons
@@ -73,11 +75,7 @@ export default async function Page({
           )}
         </div>
 
-        {paiement === 'annule' && (
-          <p className="rounded-carte border border-filet p-4 text-sm">
-            Paiement interrompu — rien n’a été débité.
-          </p>
-        )}
+        <MessageURL message={messageConstant(parametres[PARAM])} />
 
         <Carte className="space-y-6">
           <div className="flex items-baseline justify-between gap-4 border-b border-filet pb-5">
@@ -91,7 +89,7 @@ export default async function Page({
               l'inscription, bloquant ici. Une facture qui part vers une adresse
               non vérifiée est une facture qu'on ne peut pas prouver avoir
               envoyée. */}
-          {emailAVerifier || verifier ? (
+          {emailAVerifier ? (
             <div className="space-y-4">
               <div className="space-y-2">
                 <h2 className="font-semibold">Vérifie ton adresse email</h2>

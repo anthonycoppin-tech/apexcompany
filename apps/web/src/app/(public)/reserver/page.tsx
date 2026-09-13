@@ -1,5 +1,8 @@
 import { BoutonLierDiscord } from '@/components/bouton-lier-discord';
+import { MessageURL } from '@/components/message-url';
 import { Carte, Conteneur } from '@/components/ui';
+import { PARAM, messageCompte } from '@/lib/messages/catalogue';
+import { lireEtatCompte } from '@/lib/messages/preuves';
 import { createClient } from '@/lib/supabase/server';
 
 /**
@@ -18,8 +21,17 @@ import { createClient } from '@/lib/supabase/server';
  * s'interposer entre le formulaire et la prise de rendez-vous, qui est la seule
  * étape du tunnel produisant du chiffre d'affaires.
  */
-export default async function Page() {
-  const supabase = await createClient();
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const [parametres, supabase, preuve] = await Promise.all([
+    searchParams,
+    createClient(),
+    lireEtatCompte(),
+  ]);
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -35,6 +47,11 @@ export default async function Page() {
           t’arrange.
         </p>
       </div>
+
+      {/* L'orphelin du tunnel : `/qualification` redirigeait ici avec un
+          `?inscription=ok` que cette page n'a jamais lu. Le seul retour qui
+          dit « ton compte est créé » tombait dans le vide depuis le début. */}
+      <MessageURL message={messageCompte(parametres[PARAM], preuve)} />
 
       {lienCal ? (
         <iframe

@@ -5,8 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { ROLES, type AppRole } from '@apex/db';
 
 import { createClient } from '@/lib/supabase/server';
-
-export type EtatRole = { readonly erreur: string | null; readonly ok: boolean };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Accorder ou retirer un rôle.
@@ -24,15 +23,15 @@ export type EtatRole = { readonly erreur: string | null; readonly ok: boolean };
  * La trace est automatique — un trigger `audit_user_roles` écrit chaque
  * attribution et chaque retrait dans `audit_logs`, que seul un owner relit.
  */
-export async function changerRole(_precedent: EtatRole, donnees: FormData): Promise<EtatRole> {
+export async function changerRole(_precedent: EtatAction, donnees: FormData): Promise<EtatAction> {
   const userId = (donnees.get('user_id') ?? '').toString();
   const role = (donnees.get('role') ?? '').toString();
   const sens = (donnees.get('sens') ?? '').toString();
 
-  if (!userId) return { erreur: 'Compte introuvable.', ok: false };
-  if (!ROLES.includes(role as AppRole)) return { erreur: 'Rôle inconnu.', ok: false };
+  if (!userId) return echoue('Compte introuvable.');
+  if (!ROLES.includes(role as AppRole)) return echoue('Rôle inconnu.');
   if (sens !== 'accorder' && sens !== 'retirer') {
-    return { erreur: 'Action inconnue.', ok: false };
+    return echoue('Action inconnue.');
   }
 
   const supabase = await createClient();
@@ -41,18 +40,16 @@ export async function changerRole(_precedent: EtatRole, donnees: FormData): Prom
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { erreur: 'Session expirée.', ok: false };
+  if (!user) return echoue('Session expirée.');
 
   // Un owner qui se retirerait son propre rôle `owner` fermerait la porte
   // derrière lui : plus personne ne pourrait gérer les rôles, et il n'y a pas
   // d'écran de secours. Le refus est ici parce que la RLS, elle, ne voit qu'une
   // écriture parfaitement légitime.
   if (sens === 'retirer' && role === 'owner' && userId === user.id) {
-    return {
-      erreur:
-        'Tu ne peux pas retirer ton propre rôle owner : personne ne pourrait plus gérer les rôles. Demande à un autre owner.',
-      ok: false,
-    };
+    return echoue(
+      'Tu ne peux pas retirer ton propre rôle owner : personne ne pourrait plus gérer les rôles. Demande à un autre owner.',
+    );
   }
 
   const requete =
@@ -73,15 +70,14 @@ export async function changerRole(_precedent: EtatRole, donnees: FormData): Prom
     // un double clic ne crée pas deux lignes, il échoue proprement.
     const dejaLa = error.code === '23505';
 
-    return {
-      erreur: dejaLa
+    return echoue(
+      dejaLa
         ? 'Ce rôle est déjà attribué.'
         : 'L’opération a échoué. Seul un owner peut modifier les rôles.',
-      ok: false,
-    };
+    );
   }
 
   revalidatePath('/admin/utilisateurs');
 
-  return { erreur: null, ok: true };
+  return reussi('Rôle mis à jour.');
 }

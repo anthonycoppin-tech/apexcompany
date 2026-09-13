@@ -4,8 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
-
-export type EtatFiche = { readonly erreur: string | null; readonly ok: boolean };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Créer ou modifier une fiche publique de formateur.
@@ -22,16 +21,16 @@ export type EtatFiche = { readonly erreur: string | null; readonly ok: boolean }
  * mérite un coup d'œil à la page.
  */
 export async function enregistrerFiche(
-  _precedent: EtatFiche,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatFiche> {
+): Promise<EtatAction> {
   const lu = (champ: string) => (donnees.get(champ) ?? '').toString().trim();
 
   const id = lu('id');
   const nom = lu('nom');
   const photoUrl = lu('photo_url');
 
-  if (!nom) return { erreur: 'Le nom est nécessaire.', ok: false };
+  if (!nom) return echoue('Le nom est nécessaire.');
 
   // Une adresse d'image invalide ne casse rien côté serveur, mais affiche une
   // image brisée sur la page d'équipe — et personne ne va la revérifier.
@@ -44,17 +43,14 @@ export async function enregistrerFiche(
       valide = false;
     }
     if (!valide) {
-      return {
-        erreur: 'L’adresse de la photo doit être une URL http ou https complète.',
-        ok: false,
-      };
+      return echoue('L’adresse de la photo doit être une URL http ou https complète.');
     }
   }
 
   const ordreBrut = lu('ordre');
   const ordre = ordreBrut ? Number(ordreBrut) : 0;
   if (!Number.isInteger(ordre) || ordre < 0) {
-    return { erreur: 'L’ordre doit être un nombre entier positif.', ok: false };
+    return echoue('L’ordre doit être un nombre entier positif.');
   }
 
   // Saisies séparées par des virgules, stockées en tableau. Les vides sautent,
@@ -83,13 +79,11 @@ export async function enregistrerFiche(
     : await supabase.from('formateurs_fiches').insert(valeurs).select('id').single();
 
   if (error) {
-    return {
-      erreur:
-        error.code === '23505'
-          ? 'Ce compte est déjà rattaché à une autre fiche : un compte, une fiche.'
-          : 'L’enregistrement a échoué. Réessaie dans un instant.',
-      ok: false,
-    };
+    return echoue(
+      error.code === '23505'
+        ? 'Ce compte est déjà rattaché à une autre fiche : un compte, une fiche.'
+        : 'L’enregistrement a échoué. Réessaie dans un instant.',
+    );
   }
 
   revalidatePath('/admin/formateurs');
@@ -97,7 +91,7 @@ export async function enregistrerFiche(
 
   if (!id) redirect(`/admin/formateurs/${data.id}`);
 
-  return { erreur: null, ok: true };
+  return reussi('Fiche enregistrée.');
 }
 
 export async function supprimerFiche(donnees: FormData): Promise<void> {

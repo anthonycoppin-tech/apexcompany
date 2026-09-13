@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { PARAM } from '@/lib/messages/catalogue';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
   const destination = new URL('/espace/communaute', url.origin);
 
   if (!code) {
-    destination.searchParams.set('discord', 'annule');
+    destination.searchParams.set(PARAM, 'discord-annule');
     return NextResponse.redirect(destination);
   }
 
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
   const { error: erreurEchange } = await supabase.auth.exchangeCodeForSession(code);
 
   if (erreurEchange) {
-    destination.searchParams.set('discord', 'echec');
+    destination.searchParams.set(PARAM, 'discord-echec');
     return NextResponse.redirect(destination);
   }
 
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
     (identite?.identity_data?.sub as string | undefined);
 
   if (!user || !discordUserId) {
-    destination.searchParams.set('discord', 'echec');
+    destination.searchParams.set(PARAM, 'discord-echec');
     return NextResponse.redirect(destination);
   }
 
@@ -71,7 +72,7 @@ export async function GET(request: Request) {
   );
 
   if (erreurLien) {
-    destination.searchParams.set('discord', 'echec');
+    destination.searchParams.set(PARAM, 'discord-echec');
     return NextResponse.redirect(destination);
   }
 
@@ -94,11 +95,31 @@ export async function GET(request: Request) {
     // accordé ou déjà en file. Le worker est idempotent, mais une file qui
     // grossit à chaque clic rend son diagnostic illisible.
     if (!dejaEmpile?.length) {
-      await admin.from('discord_sync_queue').insert({
+      const { error: erreurFile } = await admin.from('discord_sync_queue').insert({
         user_id: user.id,
         action: 'grant',
         role_id: roleInvite,
       });
+
+      // **Cette erreur était jetée**, et elle laissait passer exactement le
+      // mensonge que la branche `else` ci-dessous avait été écrite pour
+      // supprimer : la liaison existe, le `grant` n'a jamais été empilé, et la
+      // page annonçait quand même « ton accès arrive dans la minute ». Le même
+      // écran, une branche plus bas. C'est ce qui a convaincu qu'un correctif
+      // par cas ne converge pas, et que la vérification devait descendre dans
+      // les données plutôt que rester dans le paramètre d'URL.
+      if (erreurFile) {
+        await admin.from('automation_logs').insert({
+          declencheur: 'discord.liaison',
+          entite_type: 'discord_links',
+          entite_id: user.id,
+          statut: 'echec',
+          details: {
+            raison: 'Mise en file du rôle invité impossible',
+            erreur: erreurFile.message,
+          },
+        });
+      }
     }
   } else {
     // La liaison a réussi, seule la configuration manque. Ne pas faire échouer
@@ -113,14 +134,19 @@ export async function GET(request: Request) {
       details: { raison: 'DISCORD_ROLE_INVITE_ID non configuré' },
     });
 
-    // Et le dire. Annoncer « ton accès arrive dans la minute » alors qu'on
-    // vient d'enregistrer un échec, c'est envoyer quelqu'un attendre un rôle
-    // que personne n'a demandé — et, comme la liaison existe désormais, il ne
-    // pourra même pas rejouer le parcours pour se rattraper.
-    destination.searchParams.set('discord', 'sans-role');
-    return NextResponse.redirect(destination);
+    // Rien de plus à dire ici : la page relira la file, n'y trouvera aucun
+    // `grant`, et dira d'elle-même que l'accès n'a pas pu être demandé.
+    // Annoncer « ton accès arrive dans la minute » après avoir enregistré un
+    // échec enverrait quelqu'un attendre un rôle que personne n'a demandé — et,
+    // la liaison existant désormais, il ne pourrait même pas rejouer le parcours
+    // pour se rattraper.
   }
 
-  destination.searchParams.set('discord', 'ok');
+  // **Un seul code pour les deux issues**, et c'est le point du système : la
+  // route n'a plus à dire si l'accès a été demandé, `/espace/communaute` le lit
+  // dans la file. Deux codes pour une même vérité, c'est deux chances qu'ils se
+  // contredisent — et c'est la route qui perdrait, puisqu'elle parle d'un
+  // instant que la page relit une seconde plus tard.
+  destination.searchParams.set(PARAM, 'discord-lie');
   return NextResponse.redirect(destination);
 }

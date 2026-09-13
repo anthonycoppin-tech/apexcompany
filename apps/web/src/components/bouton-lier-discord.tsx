@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 
+import { alerte, type Message } from '@/lib/messages/types';
 import { createClient } from '@/lib/supabase/client';
+
+import { MessageLigne } from './message';
 
 /**
  * « Connecter mon Discord » — la seule façon d'obtenir l'identifiant Discord
@@ -17,12 +20,12 @@ import { createClient } from '@/lib/supabase/client';
  * identifiant, pas de lire ses serveurs ni ses messages.
  */
 export function BoutonLierDiscord({ libelle = 'Connecter mon compte Discord' }) {
-  const [erreur, setErreur] = useState<string | null>(null);
+  const [message, setMessage] = useState<Message | null>(null);
   const [enCours, setEnCours] = useState(false);
 
   async function lier() {
     setEnCours(true);
-    setErreur(null);
+    setMessage(null);
 
     const supabase = createClient();
     const { error } = await supabase.auth.linkIdentity({
@@ -34,7 +37,7 @@ export function BoutonLierDiscord({ libelle = 'Connecter mon compte Discord' }) 
     });
 
     if (error) {
-      setErreur("La connexion à Discord n'a pas abouti. Réessaie dans un instant.");
+      setMessage(alerte("La connexion à Discord n'a pas abouti. Réessaie dans un instant."));
       setEnCours(false);
     }
   }
@@ -51,11 +54,7 @@ export function BoutonLierDiscord({ libelle = 'Connecter mon compte Discord' }) 
       >
         {enCours ? 'Redirection…' : libelle}
       </button>
-      {erreur && (
-        <p role="alert" className="text-sm text-alerte">
-          {erreur}
-        </p>
-      )}
+      <MessageLigne message={message} />
     </div>
   );
 }
