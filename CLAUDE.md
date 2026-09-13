@@ -461,6 +461,17 @@ faire perdre un accès client silencieusement.
 **`SUPABASE_SERVICE_ROLE_KEY` contourne la RLS.** Serveur uniquement. Jamais dans un
 composant client, jamais dans une variable préfixée `NEXT_PUBLIC_`.
 
+**Un paramètre d'URL transporte un accent, jamais une proposition.** Ce qu'un message affirme
+vient des données que la page a chargées, pas de la chaîne qu'on lui a passée — n'importe qui
+la tape à la main, et un favori la garde pour toujours. Le test avant d'ajouter un code à
+`lib/messages/catalogue.ts` : _si un inconnu tape cette URL sur une page où rien ne s'est
+passé, ce qu'il lit est-il encore vrai ?_ Si oui, c'est une constante. Sinon, c'est un code
+dépendant : il se construit à partir d'une `Preuve` (`lib/messages/preuves.ts`, type marqué,
+bornée à dix minutes) et **ne rend rien quand la preuve manque** — pas un message dégradé,
+pas de message. Et un message ne s'écrit jamais à la main : `MessageBloc` et `MessageLigne`
+posent le rôle ARIA à partir du ton, ce qui est la seule raison pour laquelle « Paiement
+reçu » ne peut plus s'afficher sans être annoncé.
+
 **L'argent est en centimes, en entier.** Jamais de flottant.
 
 **Les rôles vivent dans `user_roles`.** Jamais dans `profiles`, jamais dans les
