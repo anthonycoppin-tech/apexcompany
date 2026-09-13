@@ -60,6 +60,7 @@ const SECTIONS: Array<{ titre: string; liens: Array<{ href: string; libelle: str
   {
     titre: 'Technique',
     liens: [
+      { href: '/admin/aide', libelle: 'Aide' },
       { href: '/admin/logs', libelle: 'Automatisations' },
       { href: '/admin/utilisateurs', libelle: 'Comptes et rôles' },
       { href: '/admin/audit', libelle: 'Audit' },

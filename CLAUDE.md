@@ -394,6 +394,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   d'idempotence bâtie sur l'identifiant de la ligne — rembourser deux fois est le seul risque
   qui compte ici — et `enregistrer_remboursement()` referme la commande, l'inscription et le
   rôle Discord en une transaction.
+  **`/admin/aide`** porte les runbooks d'exploitation, rangés par **symptôme** et non par
+  mécanisme — on y arrive avec la phrase d'un client, pas avec le nom d'une fonction. Ce qui
+  peut être mesuré y est lu en base plutôt qu'affirmé : une aide qui écrirait « la
+  réconciliation tourne tous les jours » deviendrait fausse sans que personne ne le voie.
   **Reste un placeholder** : `/admin/emails`, qui attend qu'un envoi d'emails existe.
   **L'édition du catalogue est écrite** (`/admin/formations/[id]` et `/nouveau`), avec deux
   garde-fous : la cohérence type de produit / durée d'accès est vérifiée avant la base pour

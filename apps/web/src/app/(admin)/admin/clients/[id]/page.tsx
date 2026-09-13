@@ -7,6 +7,7 @@ import { EnTete, Pastille, Tableau, Vide, type Ton } from '@/components/admin';
 import { dateCourte, dateHeure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
+import { BoutonReattribuer } from '../bouton-reattribuer';
 import { FormulaireRemboursement } from './formulaire-remboursement';
 
 const ETATS_INSCRIPTION: Record<string, Ton> = {
@@ -122,6 +123,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <p className="mt-1 text-encre-doux">
               Dernière synchronisation : {dateHeure(discord.data.derniere_sync)}
             </p>
+            {/* Le geste à faire quand le client dit « j'ai payé et je n'ai pas
+                accès ». Voir /admin/aide pour l'ordre de vérification. */}
+            <BoutonReattribuer userId={id} />
           </div>
         ) : (
           // La première chose à vérifier quand un accès n'arrive pas.
