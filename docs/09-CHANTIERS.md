@@ -27,6 +27,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
 | Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
+| Pages légales — état honnête et inventaire        | pris | Anthony     | 13 sept. |
 
 **Pour le système de messages : ce qu'il y a à balayer.** Les écrans du contenu éditorial,
 livrés le 13 septembre, avaient besoin d'afficher des succès et des erreurs. Ils n'ont inventé
@@ -77,6 +78,26 @@ tient toujours : c'est ce qui aurait produit une quatrième mécanique.
 Trois familles à couvrir : le succès, l'erreur, et l'information. Et un cas limite à ne pas
 oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose de faux
 (« ton accès arrive dans la minute » après un échec enregistré) est pire que pas de message.
+
+### Pages légales — pris le 13 septembre
+
+**Ce n'est pas le sujet « écrire les six pages légales »**, qui reste bloqué et le restera :
+personne ici n'a l'identité de la société qui vend, ni le régime de TVA, ni le droit de
+rétractation applicable — et personne ici n'est juriste.
+
+C'est le sujet des **deux problèmes qui n'attendent, eux, aucune réponse du client** :
+
+1. Les six pages affichent « Placeholder — écran à construire. Voir docs/02-SITEMAP.md ».
+   C'est public, et `/confidentialite` est **liée depuis trois formulaires** : celui de
+   qualification, celui de souscription à l'abonnement, et le contact. La personne qui clique
+   pour savoir ce qu'on fait de ses données lit un chemin de dépôt interne.
+2. Le juriste demandera en premier l'**inventaire des traitements** — quelles données, chez
+   quels sous-traitants, combien de temps. Cet inventaire ne se demande à personne : il se
+   lit dans le schéma et dans le code. Tant qu'il n'est pas écrit, chaque relance coûte un
+   aller-retour.
+
+Donc : un état honnête sur les six pages, et l'inventaire factuel dans le back-office, à
+côté du guide de contenu. Rien d'inventé côté juridique.
 
 ## Fait
 
