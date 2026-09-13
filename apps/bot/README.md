@@ -321,10 +321,73 @@ Deux réserves de moindre importance, mais qui surprennent :
   au premier test et restera lié ; pour en refaire un autre, délier d'abord
   (`discord_links`) ou prendre un autre compte Discord.
 
+## La réconciliation
+
+```bash
+npm run discord:reconcile
+```
+
+L'attribution d'un rôle est un **événement ponctuel** : un `grant` empilé au
+paiement, un autre à la liaison du compte. Ces deux instants passent une fois et
+ne repassent jamais. La révocation a sa tâche quotidienne ; l'attribution
+n'avait rien. Quatre situations faisaient donc diverger la base et Discord, sans
+retour possible :
+
+1. le `grant` n'a jamais été empilé — une variable manquante, arrivé le
+   12 septembre ;
+2. il a été empilé puis **abandonné** : `MembreIntrouvable` abandonne sans
+   réessai, donc payer avant d'avoir rejoint le serveur suffit à tout perdre ;
+3. **le membre quitte le serveur et revient** — Discord efface ses rôles, notre
+   registre continue d'affirmer qu'il les a ;
+4. un modérateur retire un rôle à la main.
+
+Le worker arrêté, lui, n'est pas un cas perdu : la ligne attend dans la file et
+repart au redémarrage.
+
+**Elle compare à l'état réel de Discord**, un `GET` par compte lié. Comparer les
+inscriptions à `discord_links.roles_attribues` reviendrait à confronter notre
+croyance à elle-même, et le cas 3 y serait invisible par construction.
+
+**Elle n'accorde que ce qui manque, et ne retire rien.** Le retrait est le métier
+de `revoquer_acces_expires()`, qui décide sur la date de fin d'accès. Ici, une
+lecture incomplète coûterait son accès à un client qui paie.
+
+**Elle ne regarde que les rôles qu'elle gère** — `invité` et les
+`formations.discord_role_id`. Les rôles de modération, de couleur et de
+décoration ne la concernent pas. C'est la règle à ne jamais relâcher : un bot qui
+« remet l'état conforme » sans cette limite dépouille les modérateurs au premier
+passage.
+
+Elle est **idempotente** : un rôle déjà en file (`en_attente`, `en_cours`,
+`echoue`) n'est pas réempilé. En revanche `reussi` ne compte pas comme une
+raison de s'abstenir — un `grant` réussi hier et un rôle absent aujourd'hui,
+c'est précisément le membre qui est parti et revenu.
+
+Elle écrit dans `automation_logs` à chaque passage, y compris quand elle ne
+trouve rien : un journal vide ne distingue pas « tout est conforme » de « plus
+rien ne s'exécute ».
+
+**À planifier comme la révocation** — même question ouverte, même réponse
+attendue. En attendant, elle se lance à la main, et c'est le premier geste à
+faire quand quelqu'un dit « j'ai payé et je n'ai pas accès ».
+
+### Le coût, et sa limite
+
+Un appel par compte lié et par passage, avec 250 ms entre deux. Quelques
+centaines de clients, c'est quelques centaines d'appels quotidiens — sans commune
+mesure avec les limites de Discord.
+
+Au-delà, `GET /guilds/{id}/members?limit=1000` lit mille membres d'un coup, mais
+exige l'intent privilégié **« Server Members »** (Developer Portal → Bot). Vérifié
+le 13 septembre 2026 : sans lui, cette route répond **403 Missing Access**, tandis
+que la lecture d'un membre à la fois passe sans rien activer. D'où le choix
+actuel — rien à configurer, et le jour où le volume l'exige, un interrupteur.
+
 ## Développement
 
 ```bash
 npm run discord:check          # diagnostic, lecture seule
+npm run discord:reconcile      # rattrape les rôles manquants
 npm run dev --workspace=@apex/bot
 ```
 
@@ -332,11 +395,9 @@ npm run dev --workspace=@apex/bot
 
 - **Le passage en production** : la même mise en service sur le vrai serveur,
   puis un aller-retour de vérification. Sur le serveur de test, c'est fait.
-- **La réconciliation des rôles.** Rien ne rattrape un rôle qui n'a pas été
-  accordé : la révocation a sa tâche quotidienne, l'attribution n'a que le
-  `grant` empilé à l'instant du paiement ou de la liaison. Si cet instant se
-  passe mal — ce qui est arrivé le 12 septembre — la base dit « accès actif »
-  et Discord dit non, sans que rien ne le remarque (docs/09-CHANTIERS.md).
+- **Planifier la réconciliation.** Elle est écrite et vérifiée
+  (`npm run discord:reconcile`), mais rien ne l'appelle encore — même question
+  ouverte que le planificateur de `revoquer_acces_expires()`.
 - **Un rôle Discord par produit actif du catalogue.** Au 12 septembre 2026, la
   base hébergée porte encore les données de la révision 2 : « Fondations » est
   actif sans aucun rôle, et « Accélérateur » porte un identifiant de seed

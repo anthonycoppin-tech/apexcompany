@@ -50,6 +50,40 @@ async function appelDiscord(method: 'PUT' | 'DELETE', chemin: string, raison: st
   throw new Error(`Discord ${method} ${chemin} -> HTTP ${reponse.status} : ${corps}`);
 }
 
+/**
+ * Les rôles que le membre porte **réellement** sur le serveur, ou `null` s'il
+ * n'y est pas.
+ *
+ * C'est le seul moyen de voir qu'un accès a disparu : `discord_links.roles_attribues`
+ * ne dit pas ce que Discord sait, il dit ce que nous croyons avoir accordé. Un
+ * membre qui quitte le serveur perd ses rôles sans que rien ne l'écrive chez
+ * nous — et à son retour, notre registre affirme toujours qu'il les a.
+ *
+ * `null` plutôt qu'une exception pour l'absence : ne pas être sur le serveur
+ * est un état normal, pas une panne. C'est même le cas de tous ceux qui ont lié
+ * leur compte sans jamais rejoindre.
+ */
+export async function lireRolesDuMembre(discordUserId: string): Promise<string[] | null> {
+  const reponse = await fetch(`${API}/guilds/${env.discordGuildId}/members/${discordUserId}`, {
+    headers: { Authorization: `Bot ${env.discordBotToken}` },
+  });
+
+  if (reponse.status === 404) return null;
+
+  if (reponse.status === 429) {
+    const corps = (await reponse.json().catch(() => ({}))) as { retry_after?: number };
+    throw new LimiteDeDebit(Math.ceil((corps.retry_after ?? 5) * 1000));
+  }
+
+  if (!reponse.ok) {
+    const corps = await reponse.text().catch(() => '');
+    throw new Error(`Discord GET member -> HTTP ${reponse.status} : ${corps}`);
+  }
+
+  const membre = (await reponse.json()) as { roles?: string[] };
+  return membre.roles ?? [];
+}
+
 export async function accorderRole(discordUserId: string, roleId: string, raison: string) {
   await appelDiscord(
     'PUT',
