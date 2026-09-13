@@ -15,15 +15,25 @@ type Client = Awaited<ReturnType<typeof createClient>>;
 export async function comptesRattachables(
   supabase: Client,
 ): Promise<Array<{ id: string; libelle: string }>> {
-  const [{ data: attributions }, { data: profils }] = await Promise.all([
-    supabase.from('user_roles').select('user_id, role').in('role', ['formateur', 'admin', 'owner']),
-    supabase.from('profiles').select('id, prenom, nom, email'),
-  ]);
+  const { data: attributions } = await supabase
+    .from('user_roles')
+    .select('user_id, role')
+    .in('role', ['formateur', 'admin', 'owner']);
 
-  const internes = new Set((attributions ?? []).map((a) => a.user_id));
+  const internes = [...new Set((attributions ?? []).map((a) => a.user_id))];
+  if (internes.length === 0) return [];
+
+  // Les profils sont demandés **par identifiant**, pas filtrés après coup.
+  // Charger toute la table pour n'en garder qu'une poignée marche tant que la
+  // clientèle est petite, puis cesse de marcher sans rien dire : passé le
+  // plafond de lignes de PostgREST, un compte interne disparaît simplement du
+  // menu déroulant.
+  const { data: profils } = await supabase
+    .from('profiles')
+    .select('id, prenom, nom, email')
+    .in('id', internes);
 
   return (profils ?? [])
-    .filter((p) => internes.has(p.id))
     .map((p) => ({
       id: p.id,
       libelle: [p.prenom, p.nom].filter(Boolean).join(' ') || p.email,

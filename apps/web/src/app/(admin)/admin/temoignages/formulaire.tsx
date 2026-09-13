@@ -41,6 +41,7 @@ export function FormulaireTemoignage({
   // Le consentement pilote l'affichage de « publier » : on ne propose pas une
   // case que l'enregistrement refusera. La contrainte en base reste la garantie.
   const [consentement, setConsentement] = useState(temoignage?.consentement ?? false);
+  const [confirmeSuppression, setConfirmeSuppression] = useState(false);
 
   return (
     <div className="space-y-8">
@@ -173,18 +174,49 @@ export function FormulaireTemoignage({
       </form>
 
       {temoignage && (
-        <form action={supprimerTemoignage} className="max-w-2xl border-t border-filet pt-6">
-          <input type="hidden" name="id" value={temoignage.id} />
-          <BoutonAction type="submit" variante="secondaire">
-            Supprimer ce témoignage
-          </BoutonAction>
-          {/* Supprimer plutôt que dépublier : un retrait d'accord se respecte en
-              effaçant. Dépublier reste possible par la case ci-dessus. */}
-          <p className="mt-2 text-xs text-encre-faible">
-            À utiliser si la personne retire son accord. Pour seulement le retirer du site, décoche
-            « Publier ».
-          </p>
-        </form>
+        <div className="max-w-2xl border-t border-filet pt-6">
+          {/* En deux temps, et à distance du bouton « Enregistrer ».
+              La suppression est irréversible **et** efface la trace du
+              consentement : le déclencheur d'audit de cette table ne couvre que
+              les modifications, pas les suppressions. Un clic de trop ici, et
+              plus rien ne dit qu'on avait eu l'accord de la personne. */}
+          {!confirmeSuppression ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setConfirmeSuppression(true)}
+                className="text-sm text-encre-doux underline hover:text-alerte"
+              >
+                Supprimer ce témoignage
+              </button>
+              <p className="mt-2 text-xs text-encre-faible">
+                À utiliser si la personne retire son accord. Pour seulement le retirer du site,
+                décoche « Publier ».
+              </p>
+            </>
+          ) : (
+            <form action={supprimerTemoignage} className="space-y-3">
+              <input type="hidden" name="id" value={temoignage.id} />
+              <p className="text-sm leading-relaxed text-alerte">
+                Supprimer définitivement le témoignage de {temoignage.auteur} ? La trace du
+                consentement disparaît avec lui, et rien ne permettra plus d’établir qu’il avait été
+                obtenu.
+              </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <BoutonAction type="submit" variante="secondaire">
+                  Oui, supprimer
+                </BoutonAction>
+                <button
+                  type="button"
+                  onClick={() => setConfirmeSuppression(false)}
+                  className="text-sm text-encre-doux underline hover:text-encre"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       )}
     </div>
   );

@@ -345,10 +345,17 @@ export default async function Page() {
       {/* Juste avant l'appel à l'action : la preuve sociale se lit au moment où
           l'on décide, pas trois écrans plus haut. La section s'efface d'elle-même
           tant qu'aucun témoignage n'est publié. */}
-      <Temoignages temoignages={temoignages ?? []} />
+      <Temoignages temoignages={temoignages ?? []} fond="clair" />
 
       {/* ── Appel final ──────────────────────────────────────────────────── */}
-      <Section>
+      {/* Deux sections optionnelles le précèdent — les chiffres et les
+          témoignages. Son fond suit donc ce qui s'affiche réellement, sinon il
+          se retrouve collé à une section de même couleur dans un cas sur
+          quatre. Seul le cas « chiffres affichés, aucun témoignage » demande de
+          basculer. */}
+      <Section
+        fond={chiffresPublies.length > 0 && (temoignages ?? []).length === 0 ? 'clair' : 'surface'}
+      >
         <div className="mx-auto max-w-2xl space-y-6 text-center">
           <h2 className="text-3xl font-extrabold sm:text-4xl">
             Commencez par un point sur votre situation

@@ -246,13 +246,17 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
       {/* Les témoignages de CE programme, pas ceux du site : sur une fiche
           produit, l'avis d'un client d'un autre parcours ne prouve rien. */}
+      {/* `surface` parce que la section des objectifs, juste au-dessus, est en
+          fond clair. Quand les objectifs sont absents, celle-ci suit directement
+          l'en-tête, lui aussi en surface — le filet qui les sépare fait la
+          distinction, et c'était déjà le cas avant. */}
       <Temoignages
         temoignages={temoignages ?? []}
         titre="Ce qu’en disent celles et ceux qui l’ont suivi"
-        fond="clair"
+        fond="surface"
       />
 
-      <Section fond="surface">
+      <Section fond={(temoignages ?? []).length > 0 ? 'clair' : 'surface'}>
         <div className="mx-auto max-w-2xl space-y-6 text-center">
           <h2 className="text-3xl font-extrabold">Est-ce le bon programme pour vous ?</h2>
           <p className="text-lg text-encre-doux">

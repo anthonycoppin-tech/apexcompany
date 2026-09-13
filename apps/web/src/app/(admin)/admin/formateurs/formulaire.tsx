@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 
 import { BoutonAction, CHAMP } from '@/components/ui';
 
@@ -34,6 +34,7 @@ export function FormulaireFiche({
   comptes: Array<{ id: string; libelle: string }>;
 }) {
   const [etat, action, enCours] = useActionState(enregistrerFiche, ETAT_INITIAL);
+  const [confirmeSuppression, setConfirmeSuppression] = useState(false);
 
   return (
     <div className="space-y-8">
@@ -150,16 +151,45 @@ export function FormulaireFiche({
       </form>
 
       {fiche && (
-        <form action={supprimerFiche} className="max-w-2xl border-t border-filet pt-6">
-          <input type="hidden" name="id" value={fiche.id} />
-          <BoutonAction type="submit" variante="secondaire">
-            Supprimer cette fiche
-          </BoutonAction>
-          <p className="mt-2 text-xs text-encre-faible">
-            Supprime la fiche publique, pas le compte. Pour seulement la retirer du site, décoche
-            l’affichage.
-          </p>
-        </form>
+        <div className="max-w-2xl border-t border-filet pt-6">
+          {/* En deux temps, et à distance d'« Enregistrer » : une biographie
+              écrite à la main ne se retrouve pas si on l'efface par erreur. */}
+          {!confirmeSuppression ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setConfirmeSuppression(true)}
+                className="text-sm text-encre-doux underline hover:text-alerte"
+              >
+                Supprimer cette fiche
+              </button>
+              <p className="mt-2 text-xs text-encre-faible">
+                Supprime la fiche publique, pas le compte. Pour seulement la retirer du site,
+                décoche l’affichage.
+              </p>
+            </>
+          ) : (
+            <form action={supprimerFiche} className="space-y-3">
+              <input type="hidden" name="id" value={fiche.id} />
+              <p className="text-sm leading-relaxed text-alerte">
+                Supprimer définitivement la fiche de {fiche.nom} ? La biographie et les spécialités
+                seront perdues. Le compte, lui, n’est pas touché.
+              </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <BoutonAction type="submit" variante="secondaire">
+                  Oui, supprimer
+                </BoutonAction>
+                <button
+                  type="button"
+                  onClick={() => setConfirmeSuppression(false)}
+                  className="text-sm text-encre-doux underline hover:text-encre"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       )}
     </div>
   );
