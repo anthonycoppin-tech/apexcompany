@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { formaterMontant } from '@apex/db';
 
 import { DonneesStructurees } from '@/components/donnees-structurees';
+import { Temoignages } from '@/components/temoignages';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
 import { urlSite } from '@/lib/site';
 import { createClient } from '@/lib/supabase/server';
@@ -88,6 +89,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   // La RLS ne laisse voir que les produits actifs : un brouillon rend 404, ce
   // qui est le bon comportement — il n'est pas encore publié.
   if (!formation) notFound();
+
+  // Après le `notFound()` : inutile d'interroger les témoignages d'un produit
+  // qui n'existe pas, ou que la RLS vient de masquer.
+  const { data: temoignages } = await supabase
+    .from('temoignages')
+    .select('id, auteur, contexte, contenu, note')
+    .eq('formation_id', formation.id)
+    .order('ordre');
 
   const type = TYPES[formation.type_produit];
 
@@ -223,6 +232,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           </div>
         </Section>
       )}
+
+      {/* Les témoignages de CE programme, pas ceux du site : sur une fiche
+          produit, l'avis d'un client d'un autre parcours ne prouve rien. */}
+      <Temoignages
+        temoignages={temoignages ?? []}
+        titre="Ce qu’en disent celles et ceux qui l’ont suivi"
+        fond="clair"
+      />
 
       <Section fond="surface">
         <div className="mx-auto max-w-2xl space-y-6 text-center">

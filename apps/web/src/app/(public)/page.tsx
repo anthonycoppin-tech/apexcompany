@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { formaterMontant } from '@apex/db';
 
 import { DonneesStructurees } from '@/components/donnees-structurees';
+import { Temoignages } from '@/components/temoignages';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
 import { urlSite } from '@/lib/site';
 import { createClient } from '@/lib/supabase/server';
@@ -128,11 +129,20 @@ export default async function Page() {
 
   // La politique `formations_publiques_en_lecture` ne laisse passer que les
   // produits actifs : le brouillon reste invisible sans filtre à écrire ici.
-  const { data: formations } = await supabase
-    .from('formations')
-    .select('id, slug, titre, description, prix_cents, devise, type_produit, modalite')
-    .order('ordre')
-    .limit(3);
+  // Même chose pour les témoignages : `temoignages_publies_en_lecture` filtre
+  // sur `publie`, donc un brouillon n'a aucun moyen d'arriver jusqu'ici.
+  const [{ data: formations }, { data: temoignages }] = await Promise.all([
+    supabase
+      .from('formations')
+      .select('id, slug, titre, description, prix_cents, devise, type_produit, modalite')
+      .order('ordre')
+      .limit(3),
+    supabase
+      .from('temoignages')
+      .select('id, auteur, contexte, contenu, note')
+      .order('ordre')
+      .limit(3),
+  ]);
 
   return (
     <>
@@ -322,6 +332,12 @@ export default async function Page() {
           </dl>
         </Section>
       )}
+
+      {/* ── Témoignages ──────────────────────────────────────────────────── */}
+      {/* Juste avant l'appel à l'action : la preuve sociale se lit au moment où
+          l'on décide, pas trois écrans plus haut. La section s'efface d'elle-même
+          tant qu'aucun témoignage n'est publié. */}
+      <Temoignages temoignages={temoignages ?? []} />
 
       {/* ── Appel final ──────────────────────────────────────────────────── */}
       <Section>
