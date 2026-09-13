@@ -8,14 +8,19 @@ import { createClient } from '@/lib/supabase/server';
 /**
  * `/admin` — ce qu'on ouvre le matin.
  *
- * Trois blocs, dans cet ordre : **ce qui attend une personne**, puis **ce qui
- * va bien** (l'argent encaissé, les accès ouverts), puis **ce qui demande une
- * action**. Mélanger les deux derniers oblige à relire tous les chiffres pour
- * trouver celui qui cloche.
+ * Deux rangées de chiffres, dans cet ordre : **ce qui va bien** (l'argent
+ * encaissé, les accès ouverts) puis **ce qui demande une action**. Un tableau
+ * de bord qui mélange les deux oblige à relire tous les chiffres pour trouver
+ * celui qui cloche.
  *
- * Et un compteur, même bien rangé, ne dit ni à qui ni quoi faire : « incidents
- * techniques : 3 » finit par s'ignorer tout seul. D'où la file nommée en tête,
- * qui donne des personnes et un geste.
+ * Chaque tuile qui signale un problème mène à la liste correspondante : un
+ * chiffre qui interpelle sans lien à suivre fait perdre le temps qu'il
+ * prétendait faire gagner.
+ *
+ * **En bas**, deux blocs qu'on ne consulte pas tous les matins : « demande
+ * quelqu'un », qui nomme les personnes en attente d'un geste, et les derniers
+ * incidents techniques. Les deux disent la même chose à deux niveaux — l'un en
+ * clients, l'autre en journal — d'où leur voisinage.
  *
  * Chaque tuile qui signale un problème mène à la liste correspondante : un
  * chiffre qui interpelle sans lien à suivre fait perdre le temps qu'il
@@ -81,10 +86,6 @@ export default async function Page() {
         titre="Tableau de bord"
         description={`Situation au ${dateHeure(maintenant.toISOString())}`}
       />
-
-      {/* En tête, avant les compteurs : ce qui attend une personne passe avant
-          ce qui se contemple. */}
-      <DemandeQuelquun />
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-encre-doux">L’activité</h2>
@@ -161,6 +162,12 @@ export default async function Page() {
           <Vide>Aucun rendez-vous aujourd’hui.</Vide>
         )}
       </section>
+
+      {/* En bas, avec les incidents : ce n'est pas ce qu'on vient chercher le
+          matin. Les chiffres du haut se lisent tous les jours ; ceci se traite
+          à temps perdu, et se lit mieux à côté des incidents techniques, dont
+          c'est la version nominative. */}
+      <DemandeQuelquun />
 
       {nbIncidents > 0 && (
         <section className="space-y-3">
