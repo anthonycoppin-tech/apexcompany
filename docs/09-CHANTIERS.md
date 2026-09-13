@@ -27,6 +27,13 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
 | Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
+| Écrans du contenu éditorial                       | pris | Anthony     | 13 sept. |
+
+**Une couture entre deux chantiers pris en même temps.** Les écrans du contenu éditorial ont
+besoin d'afficher des succès et des erreurs — précisément ce que le système de messages doit
+unifier. Ils n'inventeront donc **aucune** convention : ils réutilisent le motif déjà présent
+dans le code (`role="status"` et `role="alert"` en ligne, comme `/espace/compte`). Une seule
+mécanique à reprendre le jour où le système de messages arrive, pas deux.
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
@@ -91,7 +98,6 @@ immédiatement.
 
 | Sujet                                                   | Pourquoi ça vaut le coup                                                                                                                                                                                                   |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Écrans du contenu éditorial                             | Débloqué : la migration est appliquée et `database.types.ts` connaît `temoignages` et `formateurs_fiches`. Rien ne manque pour commencer.                                                                                  |
 | Revérifier les gardes de layout avec de vraies sessions | Les écrans de `(espace)` et `(formateur)` sont passés au design system sans jamais être vus : ils sont derrière une garde de rôle et la base était injoignable. Depuis un poste qui l'atteint, c'est une heure de travail. |
 
 ## Bloqué, et par quoi
