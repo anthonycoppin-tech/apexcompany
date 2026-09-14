@@ -41,6 +41,18 @@ const TAILLES = {
   petite: 'text-xs',
 } as const;
 
+/**
+ * `inline-block`, et ce n'est pas cosmétique.
+ *
+ * Un `<span>` inline ignore les marges verticales. Posé seul dans une pile
+ * `space-y-*` — un formulaire de connexion, par exemple — le message se
+ * retrouvait donc collé au bouton qui le suit, sans qu'aucune classe
+ * d'espacement n'y change rien. `inline-block` les fait s'appliquer, et ne
+ * change rien au cas d'origine : dans une rangée flex à côté d'un bouton, les
+ * enfants sont blockifiés de toute façon.
+ */
+const ASSISE = 'inline-block';
+
 const LIGNE: Record<Ton, string> = {
   succes: 'text-succes font-medium',
   alerte: 'text-alerte',
@@ -91,7 +103,7 @@ export function MessageLigne({
   return (
     <span
       role={ROLES[message.ton]}
-      className={`${TAILLES[taille]} ${LIGNE[message.ton]} ${className}`}
+      className={`${ASSISE} ${TAILLES[taille]} ${LIGNE[message.ton]} ${className}`}
     >
       {message.texte}
     </span>

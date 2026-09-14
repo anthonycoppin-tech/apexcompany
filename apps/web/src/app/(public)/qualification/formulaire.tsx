@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react';
 
 import { BoutonAction, CHAMP, Carte } from '@/components/ui';
 import { ECRANS, MOINS_18 } from '@/lib/qualification/questionnaire';
-import { MessageLigne } from '@/components/message';
+import { MessageBloc, MessageLigne } from '@/components/message';
 import { REPOS, alerte, messageDe } from '@/lib/messages/types';
 
 import { soumettreQualification } from './actions';
@@ -25,18 +25,87 @@ export function FormulaireQualification({ src }: { src?: string }) {
   const [manque, setManque] = useState<string | null>(null);
   const [refuseMineur, setRefuseMineur] = useState(false);
 
+  // **Un échec de soumission parle de l'instant où l'on a soumis.**
+  // `useActionState` garde son état tant qu'on ne resoumet pas : le « Une
+  // réponse manque : … » renvoyé par le serveur restait donc affiché pendant
+  // qu'on corrigeait, et suivait d'un écran à l'autre. Constaté à l'écran le
+  // 14 septembre — le message accueillait le dernier écran avant même qu'on y
+  // ait rien saisi. C'est le même défaut que ceux du système de messages : une
+  // phrase qui a été vraie et qui ne l'est plus.
+  const [perime, setPerime] = useState(false);
+
+  // Le consentement est vérifié **dans le navigateur**, et pas seulement au
+  // serveur. L'action le refuse toujours — c'est une API publique — mais lui
+  // envoyer un formulaire qu'on sait incomplet ne sert à rien et coûte cher :
+  // c'est l'aller-retour qui déclenchait la réinitialisation ci-dessous.
+  const [consentement, setConsentement] = useState(false);
+  const [manqueConsentement, setManqueConsentement] = useState(false);
+
+  // **React 19 réinitialise le formulaire quand une action se termine.** Nos
+  // boutons radio sont contrôlés par `reponses`, mais React ne réécrit
+  // `checked` dans le DOM que si la valeur a changé : après un échec, les
+  // réponses restaient donc en mémoire et disparaissaient de l'écran. Il
+  // fallait tout recliquer — et si on ne le faisait pas, la soumission suivante
+  // repartait avec des champs vides, ce qui faisait répondre au serveur sur la
+  // première question de l'écran.
+  //
+  // Remonter les champs après l'action les réaligne sur l'état, qui est la
+  // seule source de vérité de ce formulaire.
+  // L'ajustement se fait **au rendu**, pas dans un effet : `useActionState`
+  // renvoie un nouvel objet à chaque action terminée, il suffit donc de
+  // comparer. C'est le motif que React documente pour réagir à un changement,
+  // et il évite le rendu en cascade d'un `setState` dans un `useEffect`.
+  const [precedent, setPrecedent] = useState(etat);
+  const [remontage, setRemontage] = useState(0);
+
+  if (precedent !== etat) {
+    setPrecedent(etat);
+    setRemontage((n) => n + 1);
+  }
+
   const ecran = ECRANS[index];
   const dernier = index === ECRANS.length - 1;
+
+  // Le récapitulatif posé à côté du bouton : c'est là qu'on a cliqué, donc là
+  // qu'on attend une réponse. Il nomme la question plutôt que de dire « des
+  // champs sont vides », ce qui oblige à les chercher.
+  const questionManquante = ecran.questions.find((q) => q.champ === manque);
+
+  const messageBloquant = manqueConsentement
+    ? alerte('Coche la case : sans ton accord, nous ne pouvons pas créer ton compte.')
+    : questionManquante
+      ? alerte(`Il manque une réponse : « ${questionManquante.libelle} »`)
+      : null;
 
   function repondre(champ: string, valeur: string) {
     setReponses((r) => ({ ...r, [champ]: valeur }));
     setManque(null);
+    setPerime(true);
+  }
+
+  // `manque` désigne une question de l'écran courant : il n'a aucun sens sur le
+  // suivant, et le laisser traverser, c'est afficher un reproche sur un écran
+  // qu'on vient d'ouvrir.
+  function allerA(i: number) {
+    setIndex(i);
+    setManque(null);
+    setPerime(true);
   }
 
   function suivant() {
     for (const question of ecran.questions) {
       if (!reponses[question.champ]?.trim()) {
         setManque(question.champ);
+
+        // **Sans ceci, « Continuer » n'a l'air de rien faire.** Le message
+        // s'affiche sous la question concernée, qui peut être hors de l'écran
+        // quand on clique depuis le bas de la page : on reste devant un bouton
+        // qui semble cassé. Déplacer le focus règle les deux à la fois — la
+        // page défile jusqu'au champ, et un lecteur d'écran l'annonce au lieu
+        // de laisser croire que rien ne s'est passé.
+        const champ = document.querySelector<HTMLElement>(`[name="${question.champ}"]`);
+        champ?.focus({ preventScroll: true });
+        champ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
         return;
       }
     }
@@ -49,7 +118,7 @@ export function FormulaireQualification({ src }: { src?: string }) {
       return;
     }
 
-    setIndex((i) => Math.min(i + 1, ECRANS.length - 1));
+    allerA(Math.min(index + 1, ECRANS.length - 1));
   }
 
   if (refuseMineur) {
@@ -64,7 +133,30 @@ export function FormulaireQualification({ src }: { src?: string }) {
   }
 
   return (
-    <form action={action} className="space-y-8">
+    <form
+      action={action}
+      onSubmit={(e) => {
+        // `preventDefault` annule bien l'action serveur d'un `<form action>` :
+        // rien ne part, donc rien n'est réinitialisé, donc rien n'est effacé.
+        if (!consentement) {
+          e.preventDefault();
+          setManqueConsentement(true);
+          return;
+        }
+        setPerime(false);
+      }}
+      // **Entrée ne doit pas soumettre un formulaire à moitié rempli.** Le
+      // dernier écran porte le seul bouton de soumission, donc une touche
+      // Entrée frappée n'importe où y part au serveur — et revient avec un
+      // reproche sur une question qu'on n'a pas encore atteinte.
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !dernier && e.target instanceof HTMLInputElement) {
+          e.preventDefault();
+          suivant();
+        }
+      }}
+      className="space-y-8"
+    >
       <input type="hidden" name="src" value={src ?? ''} />
 
       <div className="space-y-3">
@@ -93,7 +185,7 @@ export function FormulaireQualification({ src }: { src?: string }) {
       </div>
 
       {ECRANS.map((e, i) => (
-        <div key={e.id} className={i === index ? 'space-y-6' : 'hidden'}>
+        <div key={`${e.id}-${remontage}`} className={i === index ? 'space-y-6' : 'hidden'}>
           {e.questions.map((question) => (
             <fieldset key={question.champ} className="space-y-3">
               <legend className="font-medium">{question.libelle}</legend>
@@ -146,7 +238,17 @@ export function FormulaireQualification({ src }: { src?: string }) {
       {dernier && (
         <label className="flex cursor-pointer items-start gap-3 rounded-douce border border-filet bg-surface p-4 text-sm leading-relaxed">
           {/* Jamais pré-cochée : une case déjà remplie n'est pas un consentement. */}
-          <input type="checkbox" name="consentement" className="mt-1 accent-accent" />
+          <input
+            key={`consentement-${remontage}`}
+            type="checkbox"
+            name="consentement"
+            checked={consentement}
+            onChange={(ev) => {
+              setConsentement(ev.target.checked);
+              setManqueConsentement(false);
+            }}
+            className="mt-1 accent-accent"
+          />
           <span>
             J’accepte que mes réponses soient utilisées pour préparer mon audit et créer mon compte,
             dans les conditions décrites par la{' '}
@@ -158,9 +260,9 @@ export function FormulaireQualification({ src }: { src?: string }) {
         </label>
       )}
 
-      <MessageLigne message={messageDe(etat)} />
+      <MessageBloc message={perime ? null : messageDe(etat)} />
 
-      <div className="flex items-center gap-4 border-t border-filet pt-6">
+      <div className="flex flex-wrap items-center gap-4 border-t border-filet pt-6">
         {dernier ? (
           <BoutonAction type="submit" disabled={enCours}>
             {enCours ? 'Envoi…' : 'Voir les créneaux d’audit'}
@@ -176,12 +278,14 @@ export function FormulaireQualification({ src }: { src?: string }) {
         {index > 0 && (
           <button
             type="button"
-            onClick={() => setIndex((i) => i - 1)}
+            onClick={() => allerA(index - 1)}
             className="text-sm text-encre-doux underline hover:text-encre"
           >
             Retour
           </button>
         )}
+
+        <MessageLigne message={messageBloquant} />
       </div>
     </form>
   );

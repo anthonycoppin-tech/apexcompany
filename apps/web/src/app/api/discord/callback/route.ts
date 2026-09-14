@@ -20,6 +20,33 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role';
  * jeton, ni stockage de `refresh_token`. Supabase attache l'identité au compte
  * existant, et il ne reste qu'à en projeter l'identifiant dans notre table.
  */
+/**
+ * Le pseudo Discord, tel qu'il s'affiche dans l'espace client.
+ *
+ * **`user_name` n'existe pas dans ce que renvoie Discord** — on lisait donc une
+ * clé toujours absente, et `discord_username` restait `null` pour tous les
+ * comptes liés pour de vrai. Relevé sur une identité réelle, Discord fournit
+ * `full_name` (le pseudo unique, « oldbroth3rz »), `custom_claims.global_name`
+ * (le nom affiché) et `name` (le pseudo suivi d'un discriminant hérité, « #0 »).
+ *
+ * Le pseudo unique passe en premier : c'est lui qui identifie le compte sans
+ * ambiguïté quand quelqu'un se demande lequel il a relié. Le nom affiché, lui,
+ * peut être porté par plusieurs personnes.
+ */
+function nomDiscord(donnees: Record<string, unknown> | undefined): string | null {
+  const claims = donnees?.custom_claims as { global_name?: string } | undefined;
+
+  const candidat =
+    (donnees?.full_name as string | undefined) ??
+    (donnees?.user_name as string | undefined) ??
+    claims?.global_name ??
+    (donnees?.name as string | undefined);
+
+  // « oldbroth3rz#0 » : le discriminant a disparu des comptes Discord, mais le
+  // zéro traîne encore dans `name`. L'afficher ferait douter du bon compte.
+  return candidat ? candidat.replace(/#0$/, '') : null;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
@@ -65,7 +92,7 @@ export async function GET(request: Request) {
     {
       user_id: user.id,
       discord_user_id: discordUserId,
-      discord_username: (identite?.identity_data?.user_name as string | undefined) ?? null,
+      discord_username: nomDiscord(identite?.identity_data),
       derniere_sync: new Date().toISOString(),
     },
     { onConflict: 'user_id' },

@@ -38,8 +38,13 @@ export const PARAM = 'm';
 /** Vraies même forgées. */
 const CONSTANTES: Record<string, Message> = {
   'paiement-annule': info('Paiement interrompu — rien n’a été débité.'),
-  'discord-echec': info('La connexion à Discord n’a pas abouti. Réessaie, rien n’a été perdu.'),
-  'discord-annule': info('Connexion à Discord annulée.'),
+  // `alerte`, pas `info` : c'est un échec, et le ton décide du rôle ARIA. En
+  // `info` il s'affichait en gris et n'était annoncé que poliment, alors que la
+  // liaison — sans laquelle aucun accès n'arrive — vient d'échouer.
+  'discord-echec': alerte('La connexion à Discord n’a pas abouti. Réessaie, rien n’a été perdu.'),
+  // « Rien n'a changé » reste vrai même forgé, y compris pour qui n'a jamais
+  // rien lié : c'est ce qui autorise cette phrase dans une constante.
+  'discord-annule': info('Connexion à Discord annulée. Rien n’a changé.'),
 };
 
 /**
@@ -106,6 +111,43 @@ export function messagePaiement(
   }
 
   return constante(code);
+}
+
+/**
+ * Les erreurs du fournisseur d'identité, qui arrivent dans le **fragment**.
+ *
+ * `#error=server_error&error_code=identity_already_exists` : Supabase range
+ * l'échec derrière un `#`, et un fragment n'est **jamais envoyé au serveur**.
+ * Notre route de rappel ne voit donc ni `code` ni erreur, et concluait « pas de
+ * code, donc la personne a annulé » — alors que Discord venait de refuser pour
+ * une raison précise et actionnable. Seul le navigateur peut lire ça, d'où la
+ * lecture côté client dans `MessageURL`.
+ *
+ * **Ce sont des constantes**, et elles passent le test : forgées, elles ne
+ * disent rien de faux sur le compte de qui les lit. Elles décrivent une
+ * tentative de liaison — comme `paiement-annule` décrit une tentative de
+ * paiement —, pas un état du compte. Sans tentative, la phrase est vide, pas
+ * mensongère.
+ */
+const FOURNISSEUR: Record<string, Message> = {
+  identity_already_exists: alerte(
+    'Ce compte Discord est déjà relié à un autre compte du site. Relie un autre compte Discord, ou écris-nous pour détacher l’ancien.',
+  ),
+  access_denied: info('Connexion à Discord annulée. Rien n’a changé.'),
+};
+
+export function messageFournisseur(
+  codeErreur: string | null,
+  erreur: string | null,
+): Message | null {
+  if (codeErreur && FOURNISSEUR[codeErreur]) return FOURNISSEUR[codeErreur];
+
+  // Une erreur qu'on n'a pas prévue reste une erreur : on ne la fait pas passer
+  // pour une annulation, et on n'affiche pas son texte — il vient de Discord,
+  // il est en anglais et il parle de leur implémentation.
+  return erreur || codeErreur
+    ? alerte('La connexion à Discord n’a pas abouti. Réessaie, rien n’a été perdu.')
+    : null;
 }
 
 /** Le retour du tunnel de qualification, sur `/reserver`. */

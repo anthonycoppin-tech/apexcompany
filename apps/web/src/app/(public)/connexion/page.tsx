@@ -20,6 +20,30 @@ import { createClient } from '@/lib/supabase/client';
  * ouverte. La règle vit dans `destinationApresConnexion()`, partagée pour que
  * le header et cette page ne puissent pas diverger.
  */
+/**
+ * Les échecs d'authentification, dits en français.
+ *
+ * **`error.message` ne s'affiche jamais** : GoTrue répond en anglais (« Invalid
+ * login credentials ») sur un site qui est en français de bout en bout, et son
+ * texte parle de son implémentation, pas de ce que la personne doit faire. On
+ * traduit donc `error.code`, qui est stable, et on retombe sur une phrase
+ * générique pour ce qu'on n'a pas prévu.
+ *
+ * `invalid_credentials` ne distingue pas l'email inconnu du mot de passe faux,
+ * et c'est voulu : dire « ce compte n'existe pas » révèle qui est client.
+ */
+const MESSAGES_AUTH: Record<string, string> = {
+  invalid_credentials: 'Email ou mot de passe incorrect.',
+  email_not_confirmed:
+    'Votre adresse email n’est pas encore vérifiée. Ouvrez le lien que nous vous avons envoyé, puis réessayez.',
+  over_request_rate_limit: 'Trop de tentatives. Réessayez dans quelques minutes.',
+  user_banned: 'Ce compte est suspendu. Écrivez-nous depuis la page contact.',
+  validation_failed: 'Renseignez votre adresse email et votre mot de passe.',
+};
+
+const messageAuth = (code: string | undefined): string =>
+  (code && MESSAGES_AUTH[code]) || 'La connexion a échoué. Réessayez dans un instant.';
+
 export default function ConnexionPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -64,7 +88,7 @@ export default function ConnexionPage() {
 
     if (error) {
       setEnCours(false);
-      setMessage(alerte(error.message));
+      setMessage(alerte(messageAuth(error.code)));
       return;
     }
 
