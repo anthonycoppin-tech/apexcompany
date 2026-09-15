@@ -13,7 +13,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(7);
+select plan(11);
 
 -- ── Le visiteur anonyme ────────────────────────────────────────────────────
 --
@@ -70,6 +70,49 @@ select lives_ok(
   $$insert into public.temoignages (auteur, contenu, consentement, publie)
     values ('Avec accord', 'Doit passer.', true, true)$$,
   'le consentement obtenu lève le verrou'
+);
+
+-- ── La suppression laisse une trace ────────────────────────────────────────
+--
+-- Un témoignage porte le nom d'une personne réelle et ses mots, publiés avec
+-- son accord. Le supprimer effaçait jusqu'ici la seule trace de cet accord —
+-- exactement celle qu'on veut pouvoir produire le jour où cette personne
+-- conteste avoir consenti, c'est-à-dire le jour où la ligne n'existe plus.
+
+select lives_ok(
+  $$delete from public.temoignages where auteur = 'Avec accord'$$,
+  'le staff peut supprimer un témoignage'
+);
+
+reset role;
+
+select is(
+  (select count(*)::int from public.audit_logs
+    where table_cible = 'temoignages' and action = 'DELETE'),
+  1,
+  'la suppression dun témoignage est tracée'
+);
+
+select isnt(
+  (select avant from public.audit_logs
+    where table_cible = 'temoignages' and action = 'DELETE' limit 1),
+  null,
+  'la trace garde lenregistrement supprimé, consentement compris'
+);
+
+-- Les trois tables de contenu publié partagent le même trou d'origine : leurs
+-- déclencheurs ne couvraient que la modification. Vérifier la déclaration les
+-- couvre toutes les trois sans avoir à contourner les clés étrangères du
+-- catalogue, qu'une suppression réelle de `formations` heurterait.
+
+select is(
+  (select count(*)::int from information_schema.triggers
+    where trigger_name in (
+      'audit_temoignages', 'audit_formateurs_fiches', 'audit_formations'
+    )
+    and event_manipulation = 'DELETE'),
+  3,
+  'les trois déclencheurs daudit du contenu publié couvrent la suppression'
 );
 
 select * from finish();

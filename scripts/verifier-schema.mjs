@@ -392,6 +392,40 @@ async function main() {
   }
   verifier('le consentement obtenu lève le verrou', publicationAvecAccord, true);
 
+  // La suppression du contenu publié doit laisser une trace. Un témoignage
+  // porte le nom dune personne réelle et ses mots : leffacer effaçait aussi la
+  // seule preuve de son accord — celle quon veut produire le jour où elle
+  // conteste, cest-à-dire le jour où la ligne nexiste plus.
+  await db.exec(`delete from public.temoignages where auteur = 'Avec accord';`);
+  verifier(
+    'la suppression dun témoignage est tracée',
+    await compter(`public.audit_logs where table_cible = 'temoignages' and action = 'DELETE'`),
+    1,
+  );
+
+  const traceSuppression = (
+    await db.query(`select avant from public.audit_logs
+                    where table_cible = 'temoignages' and action = 'DELETE' limit 1`)
+  ).rows[0]?.avant;
+  verifier(
+    'la trace garde lenregistrement supprimé, consentement compris',
+    traceSuppression?.consentement,
+    true,
+  );
+
+  // Les trois tables de contenu publié partageaient le même trou dorigine :
+  // leurs déclencheurs ne couvraient que la modification. Vérifier la
+  // déclaration les couvre toutes les trois sans avoir à contourner les clés
+  // étrangères du catalogue, quune suppression réelle de formations heurterait.
+  verifier(
+    'les trois déclencheurs daudit du contenu publié couvrent la suppression',
+    await compter(`information_schema.triggers
+                   where trigger_name in
+                     ('audit_temoignages', 'audit_formateurs_fiches', 'audit_formations')
+                     and event_manipulation = 'DELETE'`),
+    3,
+  );
+
   // La cohérence du type de produit, écrite en contrainte plutôt quen usage.
   let dureeIncoherente = false;
   try {
