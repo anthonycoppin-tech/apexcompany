@@ -27,6 +27,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
 | Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
+| Recette à l’écran des écrans jamais vus           | pris | Anthony     | 15 sept. |
 
 **Pour le système de messages : ce qu'il y a à balayer.** Les écrans du contenu éditorial,
 livrés le 13 septembre, avaient besoin d'afficher des succès et des erreurs. Ils n'ont inventé
@@ -78,6 +79,26 @@ Trois familles à couvrir : le succès, l'erreur, et l'information. Et un cas li
 oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose de faux
 (« ton accès arrive dans la minute » après un échec enregistré) est pire que pas de message.
 
+### Recette à l’écran — pris le 15 septembre
+
+**Ce qui est en cause.** Une partie des écrans livrés depuis le 9 septembre n’a **jamais été
+affichée** : les dix-huit fichiers de `(espace)` et `(formateur)` passés au design system,
+puis `/admin/contenu` et `/admin/legal`. Ils compilent et sont typés — c’est tout ce qu’on
+peut en dire. Ils ont été écrits depuis un environnement qui n’atteint pas `supabase.co`, et
+ils sont derrière une garde de rôle : il n’y avait aucun moyen de les voir.
+
+**Pourquoi ça vaut le déplacement.** La même recette passée sur le système de messages a
+produit « Sept défauts que seule la recette à l’écran pouvait montrer ». Un écran qui compile
+n’est pas un écran qui marche, et les gardes de layout n’ont pas été revérifiées avec de
+vraies sessions depuis le resserrage de `/admin` et la création de `(formateur)`.
+
+**Le poste fixe atteint la base** (vérifié le 15 septembre), ce qui en fait le seul endroit
+d’où ce travail est possible aujourd’hui.
+
+**Périmètre** : afficher chaque écran avec une vraie session de chaque rôle, vérifier que les
+gardes laissent passer et refusent qui il faut, et corriger ce qui se voit. Les défauts
+trouvés sont corrigés dans la foulée s’ils sont petits, notés ici s’ils ouvrent un sujet.
+
 ## Fait
 
 | Sujet                                        | Quand    | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -101,7 +122,6 @@ immédiatement.
 
 | Sujet                                                    | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                                                                     |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Revérifier les gardes de layout avec de vraies sessions  | Les écrans de `(espace)` et `(formateur)` sont passés au design system sans jamais être vus : ils sont derrière une garde de rôle et la base était injoignable. Depuis un poste qui l'atteint, c'est une heure de travail.                                                                                                                                                   |
 | Auditer la **suppression** des témoignages et des fiches | `audit_temoignages` et `audit_formateurs_fiches` sont `after update` seulement. Supprimer un témoignage efface donc la seule trace de son consentement, sans rien laisser derrière — et c'est justement la trace qu'on voudrait produire si la personne conteste. Une migration, rien que le déclencheur, sans régénération de types. À faire par qui peut lancer `db:push`. |
 
 ## Bloqué, et par quoi
