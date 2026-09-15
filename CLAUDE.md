@@ -19,6 +19,86 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
+## Point d'étape — 15 septembre 2026
+
+**Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
+contredit pas.
+
+### Deux choses à savoir avant de toucher quoi que ce soit
+
+**1. Les comptes formateur du seed ont été renommés sur la base hébergée.** Si tu te connectes
+avec `coach.a@apex.test` ou `coach.b@apex.test`, ça ne marche plus : c'est désormais
+`formateur.a@apex.test` et `formateur.b@apex.test`, mot de passe inchangé (`password123`).
+UUID, rôles et données liées n'ont pas bougé — seul l'email a changé, et `profiles.email` avec
+lui.
+
+Pourquoi ils étaient faux : ces comptes viennent du **seed**, pas d'une migration. Le renommage
+`coach` → `formateur` du 8 septembre a donc corrigé l'énumération, les politiques RLS et
+`user_roles`, mais pas `auth.users`. Personne ne pouvait se connecter en formateur avec les
+identifiants documentés, et la CI ne le voyait pas — elle avait été alignée sur le seed le
+9 septembre, la base hébergée jamais.
+
+**La règle générale vaut d'être retenue : une migration corrige le schéma, jamais les données
+du seed déjà posées sur la base hébergée.**
+
+**2. Une migration attend un `db:push`.** `20260915100000_a_audit_suppression.sql` est dans le
+dépôt et validée par `db:check` (PGlite), mais **elle n'est pas appliquée sur la base
+hébergée** — volontairement, parce que `db:push` écrit sur la base partagée et que la règle est
+de prévenir avant. Tant qu'elle n'est pas poussée, le dépôt et la base divergent d'un
+déclencheur. Elle ne change aucun type : pas de `db:types:linked` à relancer derrière.
+
+### Ce qui a été livré
+
+- **Recette à l'écran.** Les 56 écrans passés avec une vraie session de chaque rôle, depuis un
+  poste qui atteint `supabase.co`. **Les gardes de layout sont vérifiées et justes** — c'est la
+  case restée ouverte depuis le 8 septembre, elle est fermée. `admin` est bien refusé sur
+  `/admin/audit` et `/admin/parametres` pendant qu'`owner` passe ; `/espace` refuse le staff ;
+  `/formateur` refuse tout le monde sauf un formateur. Aucun écran ne plante, et les états vides
+  sont rédigés partout, y compris sur les écrans de `(espace)`, `(formateur)`, `/admin/contenu`
+  et `/admin/legal` qui n'avaient jamais été affichés.
+- **`/evenements` ne ment plus.** Elle publiait « Placeholder — écran à construire. Voir
+  docs/02-SITEMAP.md » à tout visiteur. C'est le défaut corrigé le 13 septembre sur les six
+  pages légales, resté là parce que cette page n'est pas juridique — alors qu'elle est publique
+  exactement de la même façon. Elle dit maintenant ce qu'elle contiendra, sans rien inventer
+  au-delà de ce que `02-SITEMAP.md` tranche déjà, et se retire de l'indexation.
+- **Supprimer du contenu publié laisse une trace.** `trace_audit()` savait déjà tout faire pour
+  un DELETE ; seuls les déclencheurs ne l'appelaient pas. Un témoignage porte le nom d'une
+  personne réelle et ses mots, publiés avec son accord : le supprimer effaçait la seule preuve
+  de cet accord — celle qu'on veut produire le jour où elle conteste, c'est-à-dire le jour où la
+  ligne n'existe plus. `formations` est dans la même migration, même trou hérité de
+  `audit_offres`. `audit_refunds` reste dehors, et la question qui le précède est notée dans
+  `docs/09-CHANTIERS.md`.
+
+### Ce que la recette a surtout montré, et qui n'est pas tranché
+
+**Personne ne peut voir un écran plein.** La base de dev partagée porte encore les données de
+la révision 2, et c'est plus large que le catalogue : `inscriptions.formateur_id` est NULL sur
+les deux inscriptions, il n'y a aucune proposition, aucun témoignage et aucune fiche formateur.
+Le seed du dépôt remplit tout cela (`seed.sql` lignes 282 et 316) — il n'a jamais été rejoué
+depuis la révision 3.
+
+Les quatre écrans formateur sont donc vides parce qu'aucun formateur n'a de client, pas parce
+qu'ils sont cassés. Idem pour les écrans du contenu éditorial livrés le 13 septembre.
+
+**Ça ne se décide pas seul** : rejouer le seed écrase ce qui a été saisi à la main sur une base
+que deux personnes partagent. C'est le conflit de `07-REPARTITION.md`, et l'argument le plus
+concret entendu jusqu'ici pour le branching du plan Pro.
+
+### Comment refaire la recette
+
+Il n'y a pas de navigateur installé sur les postes, et le proxy d'entreprise rend un
+téléchargement de Chromium incertain. La recette a donc été faite en HTTP : les cookies de
+session sont produits par `@supabase/ssr` lui-même — un `createServerClient` avec un magasin de
+cookies en mémoire, un `signInWithPassword`, puis on relit le magasin — plutôt que forgés à la
+main, ce qui les rend exacts par construction. Ensuite un `fetch` par route, en
+`redirect: 'manual'` pour lire les gardes, et une extraction du texte visible pour juger le
+rendu.
+
+**Un piège à connaître si tu refais ça** : React insère des commentaires entre les segments de
+texte en SSR. Une extraction naïve qui remplace les balises par des espaces fait apparaître de
+faux « mots manquants » — un `Compte connecté{nom}.` correct se lit « Compte connecté . » et
+ressemble à un bug qui n'existe pas.
+
 ## Point d'étape — 13 septembre 2026
 
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
@@ -458,9 +538,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
       **partagée avec l'autre développeur** — toujours prévenir avant `npm run db:push`.
 - [~] Scaffold transverse : Next.js, route groups, clients Supabase, gardes de rôle —
   vérifié avec de vraies sessions, et remis à l'arborescence de la révision 3. **Les pages ne
-  sont plus des placeholders**, hormis celles listées comme telles ci-dessous. Les gardes de
-  layout n'ont **pas** été revérifiées avec de vraies sessions depuis le resserrage de
-  `/admin` et la création de `(formateur)` : à faire.
+  sont plus des placeholders**, hormis celles listées comme telles ci-dessous. **Les gardes de
+  layout ont été revérifiées le 15 septembre**, avec une vraie session de chaque rôle et
+  depuis un poste qui atteint la base : elles sont justes, resserrage de `/admin` et
+  `(formateur)` compris.
 - [x] **1 bis — Migrations de la révision 3** : sept migrations `20260908*_a_*` — renommages
       `offres` → `formations` et `coach` → `formateur`, suppression des cohortes / sessions /
       présences / replays / `coaching_sessions` / `payment_schedules`, `type_produit`,
