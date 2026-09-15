@@ -27,6 +27,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
 | Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
+| Audit de la suppression du contenu éditorial      | pris | Anthony     | 15 sept. |
 
 **Pour le système de messages : ce qu'il y a à balayer.** Les écrans du contenu éditorial,
 livrés le 13 septembre, avaient besoin d'afficher des succès et des erreurs. Ils n'ont inventé
@@ -100,9 +101,8 @@ oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose 
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                                                    | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                                                                     |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auditer la **suppression** des témoignages et des fiches | `audit_temoignages` et `audit_formateurs_fiches` sont `after update` seulement. Supprimer un témoignage efface donc la seule trace de son consentement, sans rien laisser derrière — et c'est justement la trace qu'on voudrait produire si la personne conteste. Une migration, rien que le déclencheur, sans régénération de types. À faire par qui peut lancer `db:push`. |
+| Sujet | Pourquoi ça vaut le coup |
+| ----- | ------------------------ |
 
 ## Bloqué, et par quoi
 
