@@ -174,6 +174,17 @@ Relevées en passant, vraies, et qui n'ont encore déclenché aucune décision.
   **La leçon est générale** : une migration corrige le schéma, jamais les données du seed déjà
   posées sur la base hébergée.
 
+- **`audit_refunds` ne trace pas la suppression, et personne n'a tranché si c'est un
+  problème.** Relevé le 15 septembre en corrigeant le même trou sur le contenu publié. Le
+  déclencheur est en `after insert or update` : supprimer une ligne de `refunds` effacerait la
+  trace d'un mouvement d'argent. Il a été laissé dehors volontairement — l'argent a ses propres
+  règles dans ce dépôt, et y toucher en passant, dans une migration qui parle de témoignages,
+  n'est pas le bon geste. Le correctif serait le même one-liner.
+
+  **Ce qu'il faut décider avant** : est-ce qu'une ligne de `refunds` est censée pouvoir être
+  supprimée un jour ? Si la réponse est non, ce n'est pas un déclencheur qu'il faut ajouter mais
+  une interdiction, comme celle qui protège déjà les factures émises.
+
 - **Le rôle de « Fondations » s'appelle `Fondation` au singulier sur le serveur de test.**
   Sans conséquence technique — le code ne compare que des identifiants — mais à corriger
   avant de reproduire la structure en production, sous peine de la recopier.
