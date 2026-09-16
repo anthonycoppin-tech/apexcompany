@@ -48,7 +48,7 @@ export const TRAITEMENTS: Traitement[] = [
     ],
     origine: 'Soumission du formulaire /qualification, en une seule écriture à la fin.',
     aTrancher:
-      'Durée de conservation d’un prospect qui n’achète jamais. Rien ne les purge aujourd’hui.',
+      'Un prospect qui n’achète pas est supprimé trois ans après son dernier contact (recommandation CNIL, tranché le 16 septembre) — compte, réponses, rendez-vous et consentements. Reste à planifier la tâche, et à faire valider la durée par le juriste.',
   },
   {
     table: 'profiles',

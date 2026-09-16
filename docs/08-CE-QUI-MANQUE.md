@@ -168,7 +168,7 @@ entité, **NEURO TRADE APEX LLC**.
 | Adresse de contact, et adresse dédiée aux demandes RGPD         | Obligatoire, et attendue sur la page de contact            |
 | Médiateur de la consommation retenu                             | Obligatoire pour qui vend à des consommateurs français     |
 | Régime de TVA retenu                                            | Voir ci-dessous                                            |
-| Trois ans pour un prospect inactif (CNIL) : le juriste valide ? | Tranché par défaut le 16/09 ; la purge reste à écrire      |
+| Trois ans pour un prospect inactif (CNIL) : le juriste valide ? | Tranché par défaut le 16/09 ; la purge est écrite (16/09)  |
 
 ### Trois points pour un conseil, pas pour les développeurs
 

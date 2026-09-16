@@ -58,6 +58,7 @@ create table if not exists auth.users (
   raw_user_meta_data jsonb,
   created_at timestamptz,
   updated_at timestamptz,
+  last_sign_in_at timestamptz,
   -- Présentes ici pour que le seed s'exécute à l'identique de la vraie base ;
   -- PGlite ne fait pas tourner GoTrue et ne peut donc pas détecter par
   -- lui-même que ces colonnes doivent être '' plutôt que NULL (voir seed.sql).
@@ -625,6 +626,86 @@ async function main() {
     (await compter('public.discord_sync_queue')) - fileAvantR,
     1,
   );
+
+  // ── Purge des prospects inactifs ─────────────────────────────────────────
+  // Le jeu d'essai vit dans le fichier pgTAP, pour n'exister qu'une fois.
+  console.log('\nPurge des prospects inactifs\n');
+  await enTantQuAdministrateur();
+
+  const testPurge = await readFile(
+    join(racine, 'supabase', 'tests', '05_purge_prospects.test.sql'),
+    'utf8',
+  );
+  const debutJeu = testPurge.indexOf('create function pg_temp.vieux_compte(');
+  const finJeu = testPurge.indexOf('-- ── La simulation ne supprime rien');
+  if (debutJeu < 0 || finJeu < debutJeu) {
+    throw new Error('Repères du jeu d’essai introuvables dans 05_purge_prospects.test.sql');
+  }
+  await db.exec(testPurge.slice(debutJeu, finJeu));
+
+  const purge = async (simulation) => {
+    const r = (await db.query(`select public.purger_prospects_inactifs(${simulation}) as r`))
+      .rows[0].r;
+    return `${r.comptes}/${r.leads}/${r.rendez_vous}/${r.consentements}`;
+  };
+  const existe = (table, id) => compter(`${table} where id = '${id}'`);
+
+  verifier(
+    'la simulation annonce 1 compte, 3 leads, 1 rendez-vous, 2 consentements',
+    await purge(true),
+    '1/3/1/2',
+  );
+  verifier(
+    'et ne supprime rien',
+    await existe('auth.users', '0e000000-0000-0000-0000-000000000001'),
+    1,
+  );
+  verifier('la purge supprime exactement ce qui était annoncé', await purge(false), '1/3/1/2');
+  verifier(
+    'le compte inactif a disparu, profil compris',
+    await existe('public.profiles', '0e000000-0000-0000-0000-000000000001'),
+    0,
+  );
+  verifier(
+    'ses réponses au formulaire sont parties avec lui',
+    await compter(`public.lead_events where lead_id = '0f000000-0000-0000-0000-000000000001'`),
+    0,
+  );
+  verifier(
+    'connexion récente, commande annulée, formateur, rendez-vous à venir : tous gardés',
+    await compter(`auth.users where id in (
+      '0e000000-0000-0000-0000-000000000002', '0e000000-0000-0000-0000-000000000003',
+      '0e000000-0000-0000-0000-000000000004', '0e000000-0000-0000-0000-000000000005')`),
+    4,
+  );
+  verifier(
+    'un lead gagné n’est jamais purgé',
+    await existe('public.leads', '0f000000-0000-0000-0000-000000000007'),
+    1,
+  );
+  verifier(
+    'un consentement dont l’adresse appartient encore à un client est conservé',
+    await compter(`public.consents where email = 'client.a@apex.test'`),
+    1,
+  );
+  verifier(
+    'la trace laissée ne contient aucune donnée personnelle',
+    JSON.stringify(
+      (
+        await db.query(`select apres from public.audit_logs
+          where action = 'PURGE' and enregistrement_id = '0e000000-0000-0000-0000-000000000001'`)
+      ).rows[0]?.apres,
+    ),
+    '{"motif":"prospect inactif depuis trois ans"}',
+  );
+  verifier(
+    'les prospects récents du seed sont intacts',
+    await compter(`public.leads where id::text like 'b0000000-%'`),
+    5,
+  );
+  verifier('un second passage ne trouve plus rien', await purge(false), '0/0/0/0');
+  // Le droit d'exécution n'est pas vérifiable ici : GRANTS rouvre toutes les
+  // fonctions à `authenticated`. Il l'est en pgTAP.
 
   // ── Filet : aucune table sans RLS ────────────────────────────────────────
   console.log('\nCouverture RLS\n');
