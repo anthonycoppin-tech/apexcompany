@@ -39,8 +39,8 @@ export default async function Page({
       <div className="space-y-3">
         <h1 className="text-3xl font-extrabold">Communauté Discord</h1>
         <p className="leading-relaxed text-encre-doux">
-          Tout le contenu vit sur Discord : les échanges, les lives et les replays. Ton accès y est
-          attribué automatiquement, et retiré à la fin de ton accès.
+          Tout le contenu vit sur Discord : les échanges, les lives et les replays. Votre accès y
+          est attribué automatiquement, et retiré à la fin de votre accès.
         </p>
       </div>
 
@@ -64,7 +64,7 @@ export default async function Page({
       ) : (
         <Carte className="space-y-4">
           <p className="leading-relaxed text-encre-doux">
-            Aucun compte Discord connecté pour l’instant. Sans lui, ton accès ne peut pas être
+            Aucun compte Discord connecté pour l’instant. Sans lui, votre accès ne peut pas être
             attribué.
           </p>
           <BoutonLierDiscord />

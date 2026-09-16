@@ -35,7 +35,7 @@ export async function ouvrirPaiement(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return echoue('Session expirée. Reconnecte-toi pour continuer.');
+  if (!user) return echoue('Session expirée. Reconnectez-vous pour continuer.');
 
   const { data: proposition } = await supabase
     .from('propositions')
@@ -46,17 +46,17 @@ export async function ouvrirPaiement(
     .maybeSingle();
 
   if (!proposition || !proposition.formations) {
-    return echoue('Cette proposition n’existe pas ou ne t’est pas destinée.');
+    return echoue('Cette proposition n’existe pas ou ne vous est pas destinée.');
   }
 
   if (proposition.statut !== 'envoyee') {
     return echoue(
-      'Cette proposition n’est plus valable. Ton formateur peut en émettre une nouvelle.',
+      'Cette proposition n’est plus valable. Votre formateur peut en émettre une nouvelle.',
     );
   }
 
   if (proposition.expire_le && new Date(proposition.expire_le) < new Date()) {
-    return echoue('Cette proposition a expiré. Ton formateur peut en émettre une nouvelle.');
+    return echoue('Cette proposition a expiré. Votre formateur peut en émettre une nouvelle.');
   }
 
   // ── L'email doit être vérifié avant de payer ─────────────────────────────
@@ -65,7 +65,7 @@ export async function ouvrirPaiement(
   // vérifiée est une facture qu'on ne peut pas prouver avoir envoyée.
   if (!user.email_confirmed_at) {
     return echoue(
-      'Vérifie d’abord ton adresse email : nous t’avons envoyé un lien à la création de ton compte. C’est ce qui garantit que ta facture arrive bien chez toi.',
+      'Vérifiez d’abord votre adresse email : nous vous avons envoyé un lien à la création de votre compte. C’est ce qui garantit que votre facture arrive bien chez vous.',
     );
   }
 

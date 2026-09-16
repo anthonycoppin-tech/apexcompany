@@ -56,8 +56,8 @@ export default async function Page() {
         ) : (
           <Carte>
             <p className="leading-relaxed text-encre-doux">
-              Aucun rendez-vous à venir. Après ton achat, les séances s’organisent directement avec
-              ton formateur.
+              Aucun rendez-vous à venir. Après votre achat, les séances s’organisent directement
+              avec votre formateur.
             </p>
           </Carte>
         )}

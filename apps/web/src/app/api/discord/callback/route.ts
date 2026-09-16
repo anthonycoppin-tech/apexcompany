@@ -131,7 +131,7 @@ export async function GET(request: Request) {
       // **Cette erreur était jetée**, et elle laissait passer exactement le
       // mensonge que la branche `else` ci-dessous avait été écrite pour
       // supprimer : la liaison existe, le `grant` n'a jamais été empilé, et la
-      // page annonçait quand même « ton accès arrive dans la minute ». Le même
+      // page annonçait quand même « votre accès arrive dans la minute ». Le même
       // écran, une branche plus bas. C'est ce qui a convaincu qu'un correctif
       // par cas ne converge pas, et que la vérification devait descendre dans
       // les données plutôt que rester dans le paramètre d'URL.
@@ -163,7 +163,7 @@ export async function GET(request: Request) {
 
     // Rien de plus à dire ici : la page relira la file, n'y trouvera aucun
     // `grant`, et dira d'elle-même que l'accès n'a pas pu être demandé.
-    // Annoncer « ton accès arrive dans la minute » après avoir enregistré un
+    // Annoncer « votre accès arrive dans la minute » après avoir enregistré un
     // échec enverrait quelqu'un attendre un rôle que personne n'a demandé — et,
     // la liaison existant désormais, il ne pourrait même pas rejouer le parcours
     // pour se rattraper.

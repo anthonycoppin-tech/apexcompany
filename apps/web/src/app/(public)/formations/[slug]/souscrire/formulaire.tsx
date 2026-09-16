@@ -53,7 +53,7 @@ export function FormulaireSouscription({
               className="w-full rounded-douce border border-filet-fort p-2.5"
             />
             <span className="block text-xs text-encre-doux">
-              Elle porte l’identité de ton compte et reçoit tes factures.
+              Elle porte l’identité de votre compte et reçoit vos factures.
             </span>
           </label>
 
@@ -95,7 +95,7 @@ export function FormulaireSouscription({
       </button>
 
       <p className="text-center text-xs text-encre-doux">
-        Paiement sécurisé par Stripe. Résiliable à tout moment depuis ton espace.
+        Paiement sécurisé par Stripe. Résiliable à tout moment depuis votre espace.
       </p>
     </form>
   );

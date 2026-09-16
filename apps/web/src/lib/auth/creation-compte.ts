@@ -62,8 +62,8 @@ export async function creerCompteEtSession({
       ok: false,
       compteExiste: existe,
       erreur: existe
-        ? 'Un compte existe déjà avec cette adresse. Connecte-toi pour continuer.'
-        : 'La création du compte a échoué. Réessaie dans un instant.',
+        ? 'Un compte existe déjà avec cette adresse. Connectez-vous pour continuer.'
+        : 'La création du compte a échoué. Réessayez dans un instant.',
     };
   }
 

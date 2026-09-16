@@ -29,7 +29,9 @@ export function BoutonResilier({
   if (etat.statut === 'succes') {
     return (
       <MessageLigne
-        message={info(`Résiliation enregistrée. Ton accès reste ouvert jusqu’au ${finDePeriode}.`)}
+        message={info(
+          `Résiliation enregistrée. Votre accès reste ouvert jusqu’au ${finDePeriode}.`,
+        )}
       />
     );
   }
@@ -50,8 +52,8 @@ export function BoutonResilier({
     <form action={action} className="space-y-3 border-t border-filet pt-4">
       <input type="hidden" name="subscription_id" value={subscriptionId} />
       <p className="text-sm leading-relaxed text-encre-doux">
-        Ton accès reste ouvert jusqu’au {finDePeriode}, puis il se ferme. Aucun prélèvement ne sera
-        fait ensuite.
+        Votre accès reste ouvert jusqu’au {finDePeriode}, puis il se ferme. Aucun prélèvement ne
+        sera fait ensuite.
       </p>
       <div className="flex flex-wrap items-center gap-4">
         {/* La confirmation reste en bouton secondaire : on n'encourage pas la

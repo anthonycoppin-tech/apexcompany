@@ -106,7 +106,7 @@ export async function soumettreQualification(
 
   if (sessionEnCours.user) {
     return echoue(
-      'Tu es déjà connecté. Déconnecte-toi d’abord si tu veux remplir ce formulaire pour quelqu’un d’autre.',
+      'Vous êtes déjà connecté. Déconnectez-vous d’abord si vous voulez remplir ce formulaire pour quelqu’un d’autre.',
     );
   }
 
@@ -172,7 +172,7 @@ export async function soumettreQualification(
     .single();
 
   if (erreurLead || !lead) {
-    return echoue("L'enregistrement a échoué. Réessaie dans un instant.");
+    return echoue("L'enregistrement a échoué. Réessayez dans un instant.");
   }
 
   // ── 3. La soumission complète, telle quelle ──────────────────────────────

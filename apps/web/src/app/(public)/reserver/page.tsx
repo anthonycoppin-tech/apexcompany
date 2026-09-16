@@ -41,16 +41,16 @@ export default async function Page({
   return (
     <Conteneur largeur="moyenne" className="space-y-10 py-16 sm:py-24">
       <div className="space-y-3">
-        <h1 className="text-3xl font-extrabold sm:text-4xl">Réserve ton audit stratégique</h1>
+        <h1 className="text-3xl font-extrabold sm:text-4xl">Réservez votre audit stratégique</h1>
         <p className="text-lg leading-relaxed text-encre-doux">
-          Un point sur ta situation, pas une présentation de produit. Choisis le créneau qui
-          t’arrange.
+          Un point sur votre situation, pas une présentation de produit. Choisissez le créneau qui
+          vous arrange.
         </p>
       </div>
 
       {/* L'orphelin du tunnel : `/qualification` redirigeait ici avec un
           `?inscription=ok` que cette page n'a jamais lu. Le seul retour qui
-          dit « ton compte est créé » tombait dans le vide depuis le début. */}
+          dit « votre compte est créé » tombait dans le vide depuis le début. */}
       <MessageURL message={messageCompte(parametres[PARAM], preuve)} />
 
       {lienCal ? (
@@ -72,10 +72,10 @@ export default async function Page({
 
       {user && (
         <section className="space-y-3 border-t border-filet pt-8">
-          <h2 className="text-xl font-bold">Rejoins la communauté</h2>
+          <h2 className="text-xl font-bold">Rejoignez la communauté</h2>
           <p className="leading-relaxed text-encre-doux">
-            Connecte ton compte Discord pour recevoir ton accès invité. C’est là que tout se passe :
-            les échanges, les lives et les replays.
+            Connectez votre compte Discord pour recevoir votre accès invité. C’est là que tout se
+            passe : les échanges, les lives et les replays.
           </p>
           <BoutonLierDiscord />
         </section>

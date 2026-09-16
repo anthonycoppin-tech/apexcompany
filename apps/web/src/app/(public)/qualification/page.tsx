@@ -8,7 +8,8 @@ import { FormulaireQualification } from './formulaire';
 
 export const metadata = {
   title: 'Audit stratégique — 2 minutes pour faire le point',
-  description: 'Quelques questions sur ta situation, puis le créneau de ton audit stratégique.',
+  description:
+    'Quelques questions sur votre situation, puis le créneau de votre audit stratégique.',
 };
 
 /**

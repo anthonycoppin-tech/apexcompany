@@ -33,7 +33,7 @@ export function FormulaireCompte({
         <input name="nom" defaultValue={nom ?? ''} className={CHAMP} />
         {/* Le formulaire d'entrée ne le demande pas ; la facturation, si. */}
         <span className="block text-xs text-encre-faible">
-          Nécessaire pour établir tes factures.
+          Nécessaire pour établir vos factures.
         </span>
       </label>
 
@@ -48,7 +48,7 @@ export function FormulaireCompte({
           {email}
         </p>
         <span className="block text-xs text-encre-faible">
-          L’email porte l’identité de ton compte : écris-nous pour le changer.
+          L’email porte l’identité de votre compte : écrivez-nous pour le changer.
         </span>
       </div>
 

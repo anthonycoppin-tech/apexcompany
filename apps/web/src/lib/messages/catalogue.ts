@@ -8,7 +8,7 @@ import type { EtatCompte, EtatDiscord, EtatPaiement, Preuve } from './preuves';
  * conventions coexistaient — `?discord=`, `?paiement=`, `?verifier=`,
  * `?inscription=` — et la quatrième était morte : `/qualification` redirigeait
  * vers `/reserver?inscription=ok`, que `/reserver` n'a jamais lu. Le seul retour
- * du tunnel qui dit « ton compte est créé » tombait dans le vide.
+ * du tunnel qui dit « votre compte est créé » tombait dans le vide.
  *
  * **Un code inconnu ne rend rien, et le contenu de l'URL n'est jamais affiché.**
  * Le paramètre sert d'index dans ce fichier, pas de source de texte.
@@ -41,7 +41,7 @@ const CONSTANTES: Record<string, Message> = {
   // `alerte`, pas `info` : c'est un échec, et le ton décide du rôle ARIA. En
   // `info` il s'affichait en gris et n'était annoncé que poliment, alors que la
   // liaison — sans laquelle aucun accès n'arrive — vient d'échouer.
-  'discord-echec': alerte('La connexion à Discord n’a pas abouti. Réessaie, rien n’a été perdu.'),
+  'discord-echec': alerte('La connexion à Discord n’a pas abouti. Réessayez, rien n’a été perdu.'),
   // « Rien n'a changé » reste vrai même forgé, y compris pour qui n'a jamais
   // rien lié : c'est ce qui autorise cette phrase dans une constante.
   'discord-annule': info('Connexion à Discord annulée. Rien n’a changé.'),
@@ -65,9 +65,9 @@ const constante = messageConstant;
  * après. C'est `roleEnFile` qui tranche désormais, et la route ne dit plus que
  * ce qu'elle sait, à savoir qu'une liaison vient d'avoir lieu.
  *
- * **Les deux phrases partagent la même prémisse** — « ton compte Discord est
+ * **Les deux phrases partagent la même prémisse** — « votre compte Discord est
  * connecté » — et c'est ce qui manquait à la première version : on ne vérifiait
- * que la subordonnée (« ton accès arrive »), si bien que l'URL forgée basculait
+ * que la subordonnée (« votre accès arrive »), si bien que l'URL forgée basculait
  * simplement sur l'autre branche et mentait quand même, un cran plus bas.
  * `lieRecemment` garde la principale ; sans elle, aucune des deux ne s'affiche.
  */
@@ -79,9 +79,9 @@ export function messageDiscord(
     if (!preuve.lieRecemment) return null;
 
     return preuve.roleEnFile
-      ? succes('Ton compte Discord est connecté. Ton accès arrive dans la minute.')
+      ? succes('Votre compte Discord est connecté. Votre accès arrive dans la minute.')
       : alerte(
-          'Ton compte Discord est connecté, mais ton accès n’a pas pu être demandé. L’équipe est prévenue — inutile de réessayer.',
+          'Votre compte Discord est connecté, mais votre accès n’a pas pu être demandé. L’équipe est prévenue — inutile de réessayer.',
         );
   }
 
@@ -106,7 +106,7 @@ export function messagePaiement(
 ): Message | null {
   if (code === 'paiement-recu') {
     return preuve.paiementRecent
-      ? succes('Paiement reçu. Ton accès s’ouvre sur Discord dans la minute qui suit.')
+      ? succes('Paiement reçu. Votre accès s’ouvre sur Discord dans la minute qui suit.')
       : null;
   }
 
@@ -131,7 +131,7 @@ export function messagePaiement(
  */
 const FOURNISSEUR: Record<string, Message> = {
   identity_already_exists: alerte(
-    'Ce compte Discord est déjà relié à un autre compte du site. Relie un autre compte Discord, ou écris-nous pour détacher l’ancien.',
+    'Ce compte Discord est déjà relié à un autre compte du site. Reliez un autre compte Discord, ou écrivez-nous pour détacher l’ancien.',
   ),
   access_denied: info('Connexion à Discord annulée. Rien n’a changé.'),
 };
@@ -146,7 +146,7 @@ export function messageFournisseur(
   // pour une annulation, et on n'affiche pas son texte — il vient de Discord,
   // il est en anglais et il parle de leur implémentation.
   return erreur || codeErreur
-    ? alerte('La connexion à Discord n’a pas abouti. Réessaie, rien n’a été perdu.')
+    ? alerte('La connexion à Discord n’a pas abouti. Réessayez, rien n’a été perdu.')
     : null;
 }
 
@@ -157,7 +157,7 @@ export function messageCompte(
 ): Message | null {
   if (code === 'compte-cree') {
     return preuve.compteCreeRecemment
-      ? succes('Ton compte est créé. Choisis maintenant le créneau de ton audit.')
+      ? succes('Votre compte est créé. Choisissez maintenant le créneau de votre audit.')
       : null;
   }
 
