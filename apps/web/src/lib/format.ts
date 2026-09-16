@@ -35,13 +35,32 @@ export function dateCourte(valeur: string | null | undefined): string {
   return new Date(valeur).toLocaleDateString('fr-FR', { timeZone: FUSEAU, dateStyle: 'medium' });
 }
 
-/** Bornes du jour courant, pour « mes rendez-vous d'aujourd'hui ». */
-export function bornesDuJour(): { debut: string; fin: string } {
-  const maintenant = new Date();
-  const debut = new Date(maintenant);
-  debut.setHours(0, 0, 0, 0);
-  const fin = new Date(debut);
-  fin.setDate(fin.getDate() + 1);
+/** Écart entre l'heure de Paris et UTC à cet instant, en millisecondes. */
+function decalageParis(instant: Date): number {
+  const lu = (timeZone: string) =>
+    new Date(instant.toLocaleString('en-US', { timeZone })).getTime();
+  return lu(FUSEAU) - lu('UTC');
+}
 
-  return { debut: debut.toISOString(), fin: fin.toISOString() };
+/**
+ * Bornes du jour courant **à Paris**, pour « mes rendez-vous d'aujourd'hui ».
+ *
+ * `setHours(0)` prendrait minuit à l'heure du serveur : en UTC, le « jour »
+ * commencerait à 1 h ou 2 h du matin, et un audit de 0 h 30 tomberait dans la
+ * veille. Changement d'heure compris, puisque le décalage est relu pour chaque
+ * borne.
+ */
+export function bornesDuJour(maintenant = new Date()): { debut: string; fin: string } {
+  const jour = new Intl.DateTimeFormat('en-CA', { timeZone: FUSEAU }).format(maintenant);
+  const minuit = (iso: string) => {
+    const utc = new Date(`${iso}T00:00:00Z`);
+    return new Date(utc.getTime() - decalageParis(utc));
+  };
+  const lendemain = new Date(`${jour}T12:00:00Z`);
+  lendemain.setUTCDate(lendemain.getUTCDate() + 1);
+
+  return {
+    debut: minuit(jour).toISOString(),
+    fin: minuit(lendemain.toISOString().slice(0, 10)).toISOString(),
+  };
 }
