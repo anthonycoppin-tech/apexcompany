@@ -39,6 +39,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
 | Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
+| Purge des prospects inactifs                      | pris | Anthony     | 16 sept. |
 
 **Pour le système de messages : ce qu'il y a à balayer.** Les écrans du contenu éditorial,
 livrés le 13 septembre, avaient besoin d'afficher des succès et des erreurs. Ils n'ont inventé
@@ -117,7 +118,6 @@ immédiatement.
 | Sujet                             | Pourquoi ça vaut le coup                                                                                                                                                                                             |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Harmoniser le site au vouvoiement | Le public vouvoie, le tunnel et l'espace client tutoient (« Réserve ton audit »). Le back-office n'est pas concerné. **Après la fusion de `claude/systeme-de-messages`**, qui réécrit les messages des mêmes écrans. |
-| Purge des prospects inactifs      | Rien ne supprime un prospect qui n'achète jamais. Durée tranchée : trois ans après son dernier contact. Même planificateur que la révocation.                                                                        |
 
 ## Bloqué, et par quoi
 
