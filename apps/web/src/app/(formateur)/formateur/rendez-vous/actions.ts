@@ -47,7 +47,7 @@ export async function consignerIssue(
     .eq('id', id);
 
   if (error) {
-    return echoue("L'enregistrement a échoué. Réessaie dans un instant.");
+    return echoue("L'enregistrement a échoué. Réessayez dans un instant.");
   }
 
   revalidatePath('/formateur/rendez-vous');

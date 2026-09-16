@@ -70,8 +70,8 @@ export default async function Page() {
 
                   {a.statut === 'impayee' && (
                     <p className="text-sm leading-relaxed text-encre-doux">
-                      Le dernier prélèvement n’est pas passé. Ton accès reste ouvert — vérifie ton
-                      moyen de paiement.
+                      Le dernier prélèvement n’est pas passé. Votre accès reste ouvert — vérifiez
+                      votre moyen de paiement.
                     </p>
                   )}
 

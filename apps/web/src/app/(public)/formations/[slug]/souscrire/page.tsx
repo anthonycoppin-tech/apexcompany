@@ -92,12 +92,12 @@ export default async function Page({
           {emailAVerifier ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <h2 className="font-semibold">Vérifie ton adresse email</h2>
+                <h2 className="font-semibold">Vérifiez votre adresse email</h2>
                 <p className="text-sm leading-relaxed text-encre-doux">
-                  Ton compte est créé. Nous t’avons envoyé un lien de vérification à{' '}
-                  <span className="font-medium text-encre">{user?.email}</span>. Clique dessus, puis
-                  reviens sur cette page pour finaliser ta souscription — c’est la garantie que tes
-                  factures arrivent bien chez toi.
+                  Votre compte est créé. Nous vous avons envoyé un lien de vérification à{' '}
+                  <span className="font-medium text-encre">{user?.email}</span>. Cliquez dessus,
+                  puis revenez sur cette page pour finaliser votre souscription — c’est la garantie
+                  que vos factures vous parviennent bien.
                 </p>
               </div>
               <BoutonRenvoyer />
@@ -112,10 +112,10 @@ export default async function Page({
         </Carte>
 
         <div className="space-y-2 text-sm text-encre-doux">
-          <p className="font-medium text-encre">Ce que tu obtiens tout de suite</p>
+          <p className="font-medium text-encre">Ce que vous obtenez tout de suite</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>L’accès au salon Discord du programme, attribué dès l’encaissement.</li>
-            <li>Ta facture, disponible dans ton espace.</li>
+            <li>Votre facture, disponible dans votre espace.</li>
             <li>La résiliation en deux clics, sans avoir à écrire à qui que ce soit.</li>
           </ul>
         </div>

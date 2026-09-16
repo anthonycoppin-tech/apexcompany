@@ -88,7 +88,7 @@ export default async function Page({
           {formation.type_produit === 'accompagnement' && formation.duree_acces_jours
             ? `Accès pendant ${formation.duree_acces_jours} jours.`
             : formation.type_produit === 'abonnement'
-              ? 'Accès tant que l’abonnement est actif. Résiliable depuis ton espace.'
+              ? 'Accès tant que l’abonnement est actif. Résiliable depuis votre espace.'
               : 'Accès illimité, sans date de fin.'}
         </p>
 
@@ -103,11 +103,11 @@ export default async function Page({
         <BoutonPayer propositionId={proposition.id} />
       ) : proposition.statut === 'acceptee' ? (
         <p className="rounded-douce border border-succes bg-surface p-4 text-sm leading-relaxed text-succes">
-          Proposition acceptée — ton accès est ouvert. Retrouve-le dans ton espace.
+          Proposition acceptée — votre accès est ouvert. Retrouvez-le dans votre espace.
         </p>
       ) : (
         <p className="rounded-douce border border-filet-fort bg-surface p-4 text-sm leading-relaxed text-encre-doux">
-          Cette proposition n’est plus valable. Ton formateur peut t’en émettre une nouvelle.
+          Cette proposition n’est plus valable. Votre formateur peut vous en émettre une nouvelle.
         </p>
       )}
     </div>

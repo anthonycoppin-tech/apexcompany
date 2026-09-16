@@ -72,7 +72,7 @@ export function FormulaireQualification({ src }: { src?: string }) {
   const questionManquante = ecran.questions.find((q) => q.champ === manque);
 
   const messageBloquant = manqueConsentement
-    ? alerte('Coche la case : sans ton accord, nous ne pouvons pas créer ton compte.')
+    ? alerte('Cochez la case : sans votre accord, nous ne pouvons pas créer votre compte.')
     : questionManquante
       ? alerte(`Il manque une réponse : « ${questionManquante.libelle} »`)
       : null;

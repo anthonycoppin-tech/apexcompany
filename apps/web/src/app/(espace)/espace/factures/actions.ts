@@ -39,7 +39,7 @@ export async function resilierAbonnement(
     .maybeSingle();
 
   if (!abonnement) {
-    return echoue('Cet abonnement n’existe pas ou ne t’appartient pas.');
+    return echoue('Cet abonnement n’existe pas ou ne vous appartient pas.');
   }
 
   if (abonnement.statut === 'resiliee' || abonnement.statut === 'terminee') {
@@ -51,7 +51,7 @@ export async function resilierAbonnement(
       cancel_at_period_end: true,
     });
   } catch {
-    return echoue('La résiliation n’a pas pu être enregistrée. Réessaie dans un instant.');
+    return echoue('La résiliation n’a pas pu être enregistrée. Réessayez dans un instant.');
   }
 
   // Écrit avec la clé de service : `subscriptions` est en lecture seule pour le

@@ -204,7 +204,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                   Souscrire maintenant
                 </Bouton>
                 <p className="text-center text-xs text-encre-doux">
-                  Sans rendez-vous. Résiliable à tout moment depuis ton espace.
+                  Sans rendez-vous. Résiliable à tout moment depuis votre espace.
                 </p>
               </div>
             ) : (

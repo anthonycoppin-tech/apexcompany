@@ -36,7 +36,7 @@ export async function mettreAJourCompte(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return echoue('Session expirée. Reconnecte-toi pour continuer.');
+  if (!user) return echoue('Session expirée. Reconnectez-vous pour continuer.');
 
   const { error } = await supabase
     .from('profiles')
@@ -44,7 +44,7 @@ export async function mettreAJourCompte(
     .eq('id', user.id);
 
   if (error) {
-    return echoue("L'enregistrement a échoué. Réessaie dans un instant.");
+    return echoue("L'enregistrement a échoué. Réessayez dans un instant.");
   }
 
   revalidatePath('/espace/compte');

@@ -37,7 +37,7 @@ export function BoutonLierDiscord({ libelle = 'Connecter mon compte Discord' }) 
     });
 
     if (error) {
-      setMessage(alerte("La connexion à Discord n'a pas abouti. Réessaie dans un instant."));
+      setMessage(alerte("La connexion à Discord n'a pas abouti. Réessayez dans un instant."));
       setEnCours(false);
     }
   }

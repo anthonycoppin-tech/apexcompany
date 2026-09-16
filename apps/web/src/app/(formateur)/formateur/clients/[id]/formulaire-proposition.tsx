@@ -116,7 +116,7 @@ export function FormulaireProposition({
           <span className="block text-xs text-encre-faible">
             {choisie
               ? `Tarif catalogue : ${formaterMontant(choisie.prix_cents, choisie.devise)}. Laisser vide pour l’appliquer.`
-              : 'Choisis d’abord un produit.'}
+              : 'Choisissez d’abord un produit.'}
           </span>
         </label>
 

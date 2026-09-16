@@ -19,7 +19,7 @@ export function BoutonPayer({ propositionId }: { propositionId: string }) {
       </BoutonAction>
       <MessageLigne message={messageDe(etat)} />
       <p className="text-xs text-encre-faible">
-        Paiement sécurisé par Stripe. Ton accès s’ouvre dès l’encaissement.
+        Paiement sécurisé par Stripe. Votre accès s’ouvre dès l’encaissement.
       </p>
     </form>
   );

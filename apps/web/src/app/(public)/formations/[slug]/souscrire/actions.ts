@@ -76,7 +76,7 @@ export async function souscrire(_precedent: EtatAction, donnees: FormData): Prom
     const prenom = lu('prenom');
     email = lu('email').toLowerCase();
 
-    if (!prenom) return echoue('Ton prénom est nécessaire.');
+    if (!prenom) return echoue('Votre prénom est nécessaire.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return echoue('Cette adresse email n’est pas valide.');
     }
@@ -167,13 +167,13 @@ export async function renvoyerVerification(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email) return echoue('Session expirée. Reconnecte-toi pour continuer.');
+  if (!user?.email) return echoue('Session expirée. Reconnectez-vous pour continuer.');
 
   const { error } = await supabase.auth.resend({ type: 'signup', email: user.email });
 
   if (error) {
-    return echoue('L’envoi a échoué. Réessaie dans un instant.');
+    return echoue('L’envoi a échoué. Réessayez dans un instant.');
   }
 
-  return reussi('Email renvoyé. Vérifie ta boîte de réception.');
+  return reussi('Email renvoyé. Vérifiez votre boîte de réception.');
 }

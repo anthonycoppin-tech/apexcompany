@@ -81,7 +81,7 @@ export async function ouvrirCheckout({
     });
 
     if (!session.url) {
-      return { erreur: 'Le paiement n’a pas pu être ouvert. Réessaie dans un instant.' };
+      return { erreur: 'Le paiement n’a pas pu être ouvert. Réessayez dans un instant.' };
     }
 
     // Écrit avec la clé de service : la RLS ferme `orders` en écriture à tout
@@ -101,6 +101,6 @@ export async function ouvrirCheckout({
 
     return { url: session.url };
   } catch {
-    return { erreur: 'Le paiement n’a pas pu être ouvert. Réessaie dans un instant.' };
+    return { erreur: 'Le paiement n’a pas pu être ouvert. Réessayez dans un instant.' };
   }
 }

@@ -793,8 +793,8 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   formateur, emails). Mindeo, la référence citée par le client, vouvoie ; on vend des
   accompagnements chers sur un sujet d'argent, avec un vendeur à l'étranger, et c'est la
   confiance qui convertit. Discord reste libre de tutoyer, c'est l'usage d'une communauté.
-  Le back-office, qui ne s'adresse qu'à l'équipe, n'est pas concerné. L'harmonisation est un
-  chantier de `docs/09-CHANTIERS.md`.
+  Le back-office, qui ne s'adresse qu'à l'équipe, n'est pas concerné. **Fait le 16 septembre** :
+  tout nouveau texte visible par un client se vouvoie.
 - **Second prestataire de paiement (PayPal)** — **tranché le 16 septembre 2026 : pas en v1.**
   Stripe seul. Le schéma garde la place de PayPal ; les variables `PAYPAL_*` restent vides.
 - **Salons Discord** — **tranché le 16 septembre 2026 par défaut, sauf objection du client** :

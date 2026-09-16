@@ -41,7 +41,7 @@ const CONSTANTES: Record<string, Message> = {
   // `alerte`, pas `info` : c'est un échec, et le ton décide du rôle ARIA. En
   // `info` il s'affichait en gris et n'était annoncé que poliment, alors que la
   // liaison — sans laquelle aucun accès n'arrive — vient d'échouer.
-  'discord-echec': alerte('La connexion à Discord n’a pas abouti. Réessaie, rien n’a été perdu.'),
+  'discord-echec': alerte('La connexion à Discord n’a pas abouti. Réessayez, rien n’a été perdu.'),
   // « Rien n'a changé » reste vrai même forgé, y compris pour qui n'a jamais
   // rien lié : c'est ce qui autorise cette phrase dans une constante.
   'discord-annule': info('Connexion à Discord annulée. Rien n’a changé.'),
@@ -79,9 +79,9 @@ export function messageDiscord(
     if (!preuve.lieRecemment) return null;
 
     return preuve.roleEnFile
-      ? succes('Ton compte Discord est connecté. Ton accès arrive dans la minute.')
+      ? succes('Votre compte Discord est connecté. Votre accès arrive dans la minute.')
       : alerte(
-          'Ton compte Discord est connecté, mais ton accès n’a pas pu être demandé. L’équipe est prévenue — inutile de réessayer.',
+          'Votre compte Discord est connecté, mais votre accès n’a pas pu être demandé. L’équipe est prévenue — inutile de réessayer.',
         );
   }
 
@@ -106,7 +106,7 @@ export function messagePaiement(
 ): Message | null {
   if (code === 'paiement-recu') {
     return preuve.paiementRecent
-      ? succes('Paiement reçu. Ton accès s’ouvre sur Discord dans la minute qui suit.')
+      ? succes('Paiement reçu. Votre accès s’ouvre sur Discord dans la minute qui suit.')
       : null;
   }
 
@@ -146,7 +146,7 @@ export function messageFournisseur(
   // pour une annulation, et on n'affiche pas son texte — il vient de Discord,
   // il est en anglais et il parle de leur implémentation.
   return erreur || codeErreur
-    ? alerte('La connexion à Discord n’a pas abouti. Réessaie, rien n’a été perdu.')
+    ? alerte('La connexion à Discord n’a pas abouti. Réessayez, rien n’a été perdu.')
     : null;
 }
 
@@ -157,7 +157,7 @@ export function messageCompte(
 ): Message | null {
   if (code === 'compte-cree') {
     return preuve.compteCreeRecemment
-      ? succes('Ton compte est créé. Choisis maintenant le créneau de ton audit.')
+      ? succes('Votre compte est créé. Choisissez maintenant le créneau de votre audit.')
       : null;
   }
 

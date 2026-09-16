@@ -62,7 +62,7 @@ export default async function Page({
           cette page qui attende une décision, et elle expire. */}
       {proposition.data && (
         <Carte className="space-y-3 border-accent bg-accent-doux">
-          <h2 className="text-lg font-bold">Une proposition t’attend</h2>
+          <h2 className="text-lg font-bold">Une proposition vous attend</h2>
           <p className="text-encre-doux">
             {proposition.data.formations?.titre}
             {proposition.data.expire_le
@@ -109,8 +109,8 @@ export default async function Page({
               <p className="font-medium">{dateHeure(rdv.data.debut)}</p>
             ) : (
               <p className="leading-relaxed text-encre-doux">
-                Aucun rendez-vous à venir. Les séances qui suivent ton achat s’organisent
-                directement avec ton formateur, sur Discord.
+                Aucun rendez-vous à venir. Les séances qui suivent votre achat s’organisent
+                directement avec votre formateur, sur Discord.
               </p>
             )}
           </Carte>
@@ -128,9 +128,9 @@ export default async function Page({
             ) : (
               <p className="leading-relaxed">
                 <Link href="/espace/communaute" className="font-semibold text-accent underline">
-                  Connecte ton compte Discord
+                  Connectez votre compte Discord
                 </Link>{' '}
-                — sans lui, ton accès ne peut pas être attribué.
+                — sans lui, votre accès ne peut pas être attribué.
               </p>
             )}
           </Carte>
