@@ -12,8 +12,8 @@ dev partagée. Ça n'a pas changé.
 
 ## À faire avant de coder — état de la base partagée
 
-> **Dépôt et base hébergée sont alignés** — vérifié le 16 septembre au soir : les 23 migrations
-> sont appliquées, `20260916120000_a_purge_prospects.sql` comprise, et les types régénérés
+> **Dépôt et base hébergée sont alignés** — vérifié le 16 septembre au soir : les 24 migrations
+> sont appliquées, jusqu'à `20260916140000_a_remboursements_immuables.sql`, et les types régénérés
 > depuis la base. `purger_prospects_inactifs(true)` y répond : zéro candidat, ce qui est
 > attendu sur une base de dev qui a moins de trois ans.
 
