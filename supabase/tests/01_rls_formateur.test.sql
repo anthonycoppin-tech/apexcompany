@@ -13,7 +13,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(20);
+select plan(21);
 
 -- Un remboursement, pour que le test « le formateur ne voit pas les
 -- remboursements » porte sur une table non vide. Un test qui passe parce que
@@ -130,20 +130,16 @@ select is(
 -- La fiche prospect consigne un échange et fait avancer le statut. Les deux
 -- écritures passent par la RLS, sans intermédiaire serveur privilégié.
 
-select is(
-  (with maj as (
-     update public.leads set statut = 'contacte'
-     where id = 'b0000000-0000-0000-0000-000000000001' returning 1
-   ) select count(*) from maj)::int, 1,
-  'formateur A fait avancer le statut de son prospect'
+select lives_ok(
+  $$update public.leads set statut = 'contacte'
+    where id = 'b0000000-0000-0000-0000-000000000001'$$,
+  'formateur A peut mettre à jour son prospect'
 );
 
 select is(
-  (with maj as (
-     update public.leads set statut = 'perdu'
-     where id = 'b0000000-0000-0000-0000-000000000003' returning 1
-   ) select count(*) from maj)::int, 0,
-  'formateur A ne peut pas changer le statut du prospect du formateur B'
+  (select statut::text from public.leads where id = 'b0000000-0000-0000-0000-000000000001'),
+  'contacte',
+  'formateur A fait avancer le statut de son prospect'
 );
 
 select throws_ok(
@@ -152,6 +148,19 @@ select throws_ok(
   '42501',
   null,
   'formateur A ne peut pas écrire dans l''historique d''un prospect du formateur B'
+);
+
+-- La mise à jour du prospect d'un autre ne lève rien : la RLS la réduit à zéro
+-- ligne. On vérifie donc son absence d'effet, avec les droits complets.
+update public.leads set statut = 'perdu'
+where id = 'b0000000-0000-0000-0000-000000000003';
+
+reset role;
+
+select is(
+  (select statut::text from public.leads where id = 'b0000000-0000-0000-0000-000000000003'),
+  'proposition',
+  'formateur A ne peut pas changer le statut du prospect du formateur B'
 );
 
 select * from finish();
