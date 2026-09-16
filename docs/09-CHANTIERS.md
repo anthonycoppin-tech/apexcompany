@@ -114,8 +114,10 @@ oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose 
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet | Pourquoi ça vaut le coup |
-| ----- | ------------------------ |
+| Sujet                             | Pourquoi ça vaut le coup                                                                                                                                                                                             |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Harmoniser le site au vouvoiement | Le public vouvoie, le tunnel et l'espace client tutoient (« Réserve ton audit »). Le back-office n'est pas concerné. **Après la fusion de `claude/systeme-de-messages`**, qui réécrit les messages des mêmes écrans. |
+| Purge des prospects inactifs      | Rien ne supprime un prospect qui n'achète jamais. Durée tranchée : trois ans après son dernier contact. Même planificateur que la révocation.                                                                        |
 
 ## Bloqué, et par quoi
 
@@ -137,27 +139,21 @@ Ces sujets n'attendent pas un développeur. Le détail de ce qu'il faut obtenir 
 À trancher par le client ou le chef de projet. Les coder avant la décision, c'est du travail
 à refaire.
 
-- **L'arborescence des salons Discord — trois questions, et elles bloquent la seule chose
-  qui reste à construire côté Discord.** Un client reçoit aujourd'hui son rôle et ne voit
-  rien de nouveau : aucun salon n'existe. Or c'est ce qui remplace Circle et Zoom
-  (`06-PERIMETRE.md`, « La visioconférence »).
+**Tranché le 16 septembre 2026** — détail dans `CLAUDE.md`, « Décisions en attente du
+client » : vouvoiement sur tout le site, pas de PayPal en v1, vidéos exclusives hors projet,
+pas de Supabase Pro pour le dev, conservation des prospects trois ans après le dernier
+contact. Plus rien n'est ouvert côté produit hors le régime de vente et de TVA, qui attend un
+juriste.
 
-  1. **Que voit un `invité` ?** C'est l'état d'avant-achat de tout le monde — un salon
-     d'accueil, une présentation, rien du tout ? La spécification est muette.
-  2. **Le salon planning est-il en lecture seule ?** Le cahier des charges dit « l'équipe y
-     publie le planning hebdomadaire », ce qui se lit comme un salon d'annonces, mais ce
-     n'est écrit nulle part.
-  3. **Y a-t-il un rôle « équipe » ou « formateur » côté Discord ?** Aujourd'hui non — les
-     formateurs voient donc les salons de produit par quel moyen ?
+- **Les salons Discord — tranché par défaut, sauf objection du client.** Un `invité` voit
+  l'accueil, le règlement, les annonces et un salon d'échange général. Le salon planning est
+  en lecture seule. Un rôle `Formateur` voit tous les salons de produit ; il s'attribue à la
+  main et **le bot n'y touche jamais**. Reste à créer les salons sur le serveur de
+  production, une fois l'accès obtenu.
 
-  Ce qui est en revanche tranché, et vérifié le 13 septembre : **les rôles ne portent aucune
+  Ce qui est par ailleurs tranché, et vérifié le 13 septembre : **les rôles ne portent aucune
   permission serveur**. L'accès se règle salon par salon (invisible à `@everyone`, visible
   au rôle du produit). Un rôle produit avec zéro permission fonctionne.
-
-- **Tutoiement ou vouvoiement.** Le site mélange les deux : « Vous faites le point » sur
-  l'accueil, « Réserve ton audit » sur `/reserver` et `/qualification`. Il faut choisir.
-- Les décisions encore ouvertes de `CLAUDE.md` : hébergement des vidéos exclusives, régime de
-  vente et de TVA, plan Supabase Pro.
 
 ## Observations sans propriétaire
 

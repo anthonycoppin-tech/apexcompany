@@ -652,11 +652,9 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   premium sur Discord, et un accès à des **vidéos exclusives**. Le schéma les porte déjà sans
   rien ajouter — deux lignes `formations` en `type_produit = 'abonnement'`, chacune avec son
   `discord_role_id`, et un client peut détenir les deux puisque la révocation se raisonne par
-  inscription. **La seule question ouverte est l'hébergement des vidéos exclusives.** Si
-  elles vivent sur Discord, il n'y a rien à construire. Si elles sont sur le site, la règle
-  « jamais d'URL de vidéo en base » se réveille, et avec elle le lecteur à accès restreint que
-  la révision 3 avait justement retiré du périmètre — à poser au chef de projet avant la
-  phase 5.
+  inscription. **Vidéos exclusives — tranché le 16 septembre 2026 : sur une plateforme
+  externe, hors projet.** Rien à construire côté site, et la règle « jamais d'URL de vidéo en
+  base » reste en sommeil.
 - **Vocabulaire** — **tranché, et fait** : `formations` et `formateur`. Le renommage a
   emporté l'énumération, les politiques RLS, les tests pgTAP, le seed et `packages/db`
   (`20260908090000_a_renommage_formations_formateur.sql`).
@@ -691,10 +689,33 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   reste hors plateforme** : les formateurs organisent les séances individuelles avec leur
   client, le planning de groupe s'annonce sur Discord (`01-CAHIER-DES-CHARGES.md` §3, étape
   4 bis). Pas de table `seances` : la suppression de `coaching_sessions` est confirmée.
-- **Plan Supabase Pro** — non tranché, et c'est une dépense : 25 $/mois par
-  organisation. Ce qu'on achète réellement, c'est le **branching** (une base éphémère par
-  pull request), qui supprime les conflits sur la base de dev partagée, et la fin de la
-  mise en veille des projets gratuits après une semaine d'inactivité. Argumentaire dans
-  `docs/07-REPARTITION.md`.
+- **Plan Supabase Pro pour le développement** — **tranché le 16 septembre 2026 : non.** Deux
+  développeurs, on reste sur la base de dev partagée, et on veille à ce qu'elle ne passe pas
+  en veille (une semaine sans activité). La **production** est une autre question : un projet
+  gratuit n'a pas de sauvegarde quotidienne, ce qui ne se défend pas pour une base qui porte
+  des paiements. Le plan Pro y est recommandé à l'ouverture des ventes, et figure dans les
+  abonnements à la charge du client (`docs/08-CE-QUI-MANQUE.md`).
+- **Tutoiement ou vouvoiement** — **tranché le 16 septembre 2026, décision déléguée aux
+  développeurs : vouvoiement sur tout le site** (public, tunnel, espace client, espace
+  formateur, emails). Mindeo, la référence citée par le client, vouvoie ; on vend des
+  accompagnements chers sur un sujet d'argent, avec un vendeur à l'étranger, et c'est la
+  confiance qui convertit. Discord reste libre de tutoyer, c'est l'usage d'une communauté.
+  Le back-office, qui ne s'adresse qu'à l'équipe, n'est pas concerné. L'harmonisation est un
+  chantier de `docs/09-CHANTIERS.md`.
+- **Second prestataire de paiement (PayPal)** — **tranché le 16 septembre 2026 : pas en v1.**
+  Stripe seul. Le schéma garde la place de PayPal ; les variables `PAYPAL_*` restent vides.
+- **Salons Discord** — **tranché le 16 septembre 2026 par défaut, sauf objection du client** :
+  un `invité` voit l'accueil, le règlement, les annonces et un salon d'échange général ; le
+  salon planning est en lecture seule (l'équipe publie, les membres lisent) ; un rôle
+  `Formateur` voit tous les salons de produit, attribué à la main et **jamais géré par le
+  bot** — la réconciliation ne touche que les rôles du site.
+- **Conservation des prospects** — **tranché le 16 septembre 2026, sur la recommandation de
+  la CNIL** : trois ans après le dernier contact venant du prospect, puis suppression.
+  L'adresse IP du consentement suit le consentement qu'elle prouve. Un juriste peut
+  resserrer ; la purge elle-même est un chantier de `docs/09-CHANTIERS.md`.
+- **Hébergement** — **recommandé le 16 septembre 2026** : le site sur Vercel (plan Pro, le
+  plan gratuit interdisant l'usage commercial), qui porte aussi la tâche quotidienne de
+  révocation ; le worker Discord, processus long, sur un petit hébergeur de conteneur
+  (Railway ou équivalent). Reste à la charge du client d'ouvrir les comptes.
 - **Messagerie coach ↔ client** — recommandation : hors v1, l'échange reste sur
   Discord. Voir l'argumentaire dans `docs/06-PERIMETRE.md`.

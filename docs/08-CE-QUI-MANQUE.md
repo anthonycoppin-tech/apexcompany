@@ -136,8 +136,8 @@ encore accès.
 
 ### PayPal
 
-Prévu au schéma mais non implémenté. Les variables `PAYPAL_*` restent vides tant que le second
-prestataire n'est pas décidé.
+**Pas en v1** — tranché le 16 septembre 2026. Prévu au schéma, non implémenté, variables
+`PAYPAL_*` vides.
 
 ---
 
@@ -160,16 +160,15 @@ Le contrat de prestation transmis apprend que **APEX COMPANY LLC-FZ** est une so
 franche immatriculée 264 5781 à Dubaï, dirigée par Franck Alexandre, et mentionne une seconde
 entité, **NEURO TRADE APEX LLC**.
 
-| Question                                                 | Pourquoi                                                   |
-| -------------------------------------------------------- | ---------------------------------------------------------- |
-| **Laquelle des deux sociétés vend aux clients finaux ?** | Elle figure dans les mentions légales et émet les factures |
-| Qui héberge le site — nom et adresse                     | Mention obligatoire en droit français                      |
-| Directeur de la publication                              | Mention obligatoire                                        |
-| Adresse de contact, et adresse dédiée aux demandes RGPD  | Obligatoire, et attendue sur la page de contact            |
-| Médiateur de la consommation retenu                      | Obligatoire pour qui vend à des consommateurs français     |
-| Régime de TVA retenu                                     | Voir ci-dessous                                            |
-| Durée de conservation d'un prospect qui n'achète jamais  | Rien ne purge `leads` aujourd'hui                          |
-| Conserver l'adresse IP du consentement : combien de temps ? | Elle est enregistrée depuis le 16 septembre 2026           |
+| Question                                                        | Pourquoi                                                   |
+| --------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Laquelle des deux sociétés vend aux clients finaux ?**        | Elle figure dans les mentions légales et émet les factures |
+| Qui héberge le site — nom et adresse                            | Mention obligatoire en droit français                      |
+| Directeur de la publication                                     | Mention obligatoire                                        |
+| Adresse de contact, et adresse dédiée aux demandes RGPD         | Obligatoire, et attendue sur la page de contact            |
+| Médiateur de la consommation retenu                             | Obligatoire pour qui vend à des consommateurs français     |
+| Régime de TVA retenu                                            | Voir ci-dessous                                            |
+| Trois ans pour un prospect inactif (CNIL) : le juriste valide ? | Tranché par défaut le 16/09 ; la purge reste à écrire      |
 
 ### Trois points pour un conseil, pas pour les développeurs
 
@@ -244,18 +243,35 @@ c'est ce qui le rend croyable, et ce qui permettra de voir qu'il a vieilli.
 
 ## 4. Décisions en attente
 
-Une seule reste ouverte côté produit.
+**Aucune ne reste ouverte côté produit** depuis le 16 septembre 2026 : vidéos exclusives sur
+une plateforme externe (hors projet), vouvoiement, pas de PayPal en v1, pas de Supabase Pro
+pour le développement, salons Discord par défaut, prospects conservés trois ans. Détail et
+raisons dans `CLAUDE.md`. Reste le régime de vente et de TVA, qui est une question de juriste
+(section 2).
 
-**Où vivent les vidéos exclusives ?** L'un des deux abonnements annoncés donne accès à des
-vidéos exclusives. Si elles sont sur Discord, il n'y a rien à construire. Si elles sont sur le
-site, la règle « jamais d'URL de vidéo en base » se réveille, et avec elle le lecteur à accès
-restreint et les URL signées que la révision 3 avait justement retirés du périmètre. **Ça se
-chiffre en semaines** — à trancher avant la phase abonnement.
+---
 
-Une dépense reste aussi à arbitrer : **le plan Supabase Pro, 25 $ par mois**. Ce qu'on achète
-réellement, c'est une base isolée par chantier — ce qui supprime les conflits sur la base de
-développement partagée entre les deux développeurs — et la fin de la mise en veille du projet
-après une semaine d'inactivité. Argumentaire dans `07-REPARTITION.md`.
+## 4 bis. Abonnements à la charge du client
+
+Ordres de grandeur relevés le 16 septembre 2026, **à vérifier au moment de souscrire** — les
+grilles changent. Les comptes sont ouverts **au nom du client**, qui les paie ; les
+développeurs y sont invités.
+
+| Service                         | Pour quoi                                              | Coût                                                       |
+| ------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
+| Nom de domaine                  | L'adresse du site                                      | ~10–20 € par an                                            |
+| Vercel (plan Pro)               | Héberger le site et la tâche quotidienne de révocation | ~20 $ par mois — le plan gratuit exclut l'usage commercial |
+| Railway ou équivalent           | Faire tourner le bot Discord en continu                | ~5 $ par mois                                              |
+| Supabase (plan Pro, production) | Base de données, comptes, **sauvegardes quotidiennes** | 25 $ par mois — recommandé dès l'ouverture des ventes      |
+| Stripe                          | Encaisser les paiements                                | Pas d'abonnement, une commission par paiement              |
+| Resend ou équivalent            | Emails de confirmation — **sans eux, aucun paiement**  | Gratuit au départ, ~20 $ par mois au-delà du quota         |
+| Cal.com                         | Prise de rendez-vous de l'audit                        | Gratuit, ou ~12 $ par mois si les webhooks sont payants    |
+| Discord                         | Communauté et accès des clients                        | Gratuit                                                    |
+| Boîtes email professionnelles   | Contact et demandes RGPD, si elles n'existent pas déjà | ~6–8 € par mois par boîte                                  |
+| Médiateur de la consommation    | Obligation légale de vente aux particuliers            | Adhésion, souvent annuelle                                 |
+
+Hors de cette liste : la plateforme des vidéos exclusives, hors projet, et le conseil
+juridique, qui est une dépense ponctuelle.
 
 ---
 
@@ -279,19 +295,19 @@ JJ/MM » pour une clé — **jamais par la clé elle-même**.
 
 ### Accès techniques
 
-| Élément                               | État | Qui s'en occupe | Note |
-| ------------------------------------- | ---- | --------------- | ---- |
-| Clé serveur Supabase                  | fournie le 12/09 | —   | —    |
-| Serveur Discord créé                  | —    | —               | —    |
-| Application et bot Discord            | —    | —               | —    |
-| Rôle `invité` créé, bot au-dessus     | —    | —               | —    |
-| Fournisseur Discord activé (Supabase) | —    | —               | —    |
-| Compte Cal.com de Franck              | —    | —               | —    |
-| Webhooks Cal.com disponibles ?        | —    | —               | —    |
-| Clés Stripe et webhook                | —    | —               | —    |
-| Envoi d'emails configuré              | —    | —               | —    |
-| Planificateur de la révocation        | —    | —               | —    |
-| Nom de domaine et hébergement du site | —    | —               | —    |
+| Élément                               | État             | Qui s'en occupe | Note |
+| ------------------------------------- | ---------------- | --------------- | ---- |
+| Clé serveur Supabase                  | fournie le 12/09 | —               | —    |
+| Serveur Discord créé                  | —                | —               | —    |
+| Application et bot Discord            | —                | —               | —    |
+| Rôle `invité` créé, bot au-dessus     | —                | —               | —    |
+| Fournisseur Discord activé (Supabase) | —                | —               | —    |
+| Compte Cal.com de Franck              | —                | —               | —    |
+| Webhooks Cal.com disponibles ?        | —                | —               | —    |
+| Clés Stripe et webhook                | —                | —               | —    |
+| Envoi d'emails configuré              | —                | —               | —    |
+| Planificateur de la révocation        | —                | —               | —    |
+| Nom de domaine et hébergement du site | —                | —               | —    |
 
 ### Juridique
 
@@ -323,8 +339,9 @@ JJ/MM » pour une clé — **jamais par la clé elle-même**.
 
 ### Décisions
 
-| Question                                  | Réponse |
-| ----------------------------------------- | ------- |
-| Où vivent les vidéos exclusives ?         | —       |
-| Plan Supabase Pro — 25 $/mois             | —       |
-| Second prestataire de paiement (PayPal) ? | —       |
+| Question                                  | Réponse                                             |
+| ----------------------------------------- | --------------------------------------------------- |
+| Où vivent les vidéos exclusives ?         | Plateforme externe, hors projet (16/09)             |
+| Plan Supabase Pro — 25 $/mois             | Pas besoin pour le dev (16/09) ; recommandé en prod |
+| Second prestataire de paiement (PayPal) ? | Pas en v1 (16/09)                                   |
+| Tutoiement ou vouvoiement                 | Vouvoiement (16/09)                                 |
