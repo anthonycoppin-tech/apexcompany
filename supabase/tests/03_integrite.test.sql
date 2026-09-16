@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(32);
+select plan(33);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -312,6 +312,14 @@ select is(
 select is(
   (select count(*) from public.inscriptions where statut = 'remboursee')::int, 1,
   'le rejeu na pas fermé un second accès'
+);
+
+-- Une trace d'argent ne disparaît pas : une demande écartée passe en « refuse ».
+select throws_ok(
+  $delete from public.refunds where id = '9a000000-0000-0000-0000-00000000000a'$,
+  '23001',
+  null,
+  'un remboursement ne peut pas être supprimé'
 );
 
 select * from finish();

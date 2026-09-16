@@ -65,8 +65,8 @@ Dépôt et base sont alignés.
   personne réelle et ses mots, publiés avec son accord : le supprimer effaçait la seule preuve
   de cet accord — celle qu'on veut produire le jour où elle conteste, c'est-à-dire le jour où la
   ligne n'existe plus. `formations` est dans la même migration, même trou hérité de
-  `audit_offres`. `audit_refunds` reste dehors, et la question qui le précède est notée dans
-  `docs/09-CHANTIERS.md`.
+  `audit_offres`. `audit_refunds` reste dehors, volontairement : depuis le 16 septembre, un
+  remboursement ne peut tout simplement plus être supprimé (`20260916140000`).
 
 ### Ce que la recette a surtout montré, et qui n'est pas tranché
 

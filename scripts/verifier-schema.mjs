@@ -627,6 +627,14 @@ async function main() {
     1,
   );
 
+  let remboursementImmuable = false;
+  try {
+    await db.exec(`delete from public.refunds where id = '${remboursement}';`);
+  } catch {
+    remboursementImmuable = true;
+  }
+  verifier('un remboursement ne peut pas être supprimé', remboursementImmuable, true);
+
   // ── Purge des prospects inactifs ─────────────────────────────────────────
   // Le jeu d'essai vit dans le fichier pgTAP, pour n'exister qu'une fois.
   console.log('\nPurge des prospects inactifs\n');
