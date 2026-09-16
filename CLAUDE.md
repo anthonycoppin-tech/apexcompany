@@ -564,8 +564,9 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   (`renouveler_abonnement()`, résiliation à effet différé), et révocation en fin d'accès par
   `revoquer_acces_expires()`, déclenchée par `api/cron/revocation`. L'écran de résiliation
   côté client **est écrit** (`/espace/factures`, en deux temps et sans écran de rétention).
-  **Reste à brancher** : un planificateur qui appelle réellement la route chaque jour — sans
-  lui, la fonction existe et ne tourne jamais.
+  **Le planificateur est écrit pour Vercel** (`apps/web/vercel.json`, 16 septembre) : il ne
+  tournera qu'une fois le site déployé en production avec `CRON_SECRET` — d'ici là, la
+  fonction existe et ne tourne jamais.
 - [x] **6 — Espace client** : accès en cours, rendez-vous, factures et **résiliation de l'abonnement**,
       compte, liaison Discord. La proposition et son paiement y vivent aussi.
 - [~] **7 — Site public** : accueil, catalogue et fiches produit branchés sur le vrai catalogue,
@@ -619,6 +620,8 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   table, à relire à chaque migration qui en touche une — et ce qu'il faut obtenir pour écrire
   chaque page légale. Une seule réponse débloque la moitié de la liste : qui vend.
   **Reste un placeholder** : `/admin/emails`, qui attend qu'un envoi d'emails existe.
+  **`/statistiques`** (16 septembre) donne la conversion par réseau au rôle `branding` — une
+  page hors de `(admin)`, liée depuis le back-office, vue à l'écran avec de vraies sessions.
   **L'édition du catalogue est écrite** (`/admin/formations/[id]` et `/nouveau`), avec deux
   garde-fous : la cohérence type de produit / durée d'accès est vérifiée avant la base pour
   donner un message lisible, et **un produit ne peut pas être publié sans rôle Discord** — il

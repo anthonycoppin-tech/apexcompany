@@ -95,6 +95,17 @@ puisque la personne vient de le saisir.
 **Jamais un montant sur ces écrans.** Ni prix payé, ni facture, ni impayé. Le formateur voit
 si l'accès est actif, pas ce qu'il a coûté.
 
+## 3 bis. Statistiques de conversion
+
+```
+/statistiques               Prospects, audits et clients par réseau d'origine, sur une période
+```
+
+Une page, pas un espace : c'est tout ce dont le rôle `branding` a besoin dans la plateforme
+(`06-PERIMETRE.md`). Ouverte à `branding`, `admin` et `owner`, hors de `(admin)` pour ne pas
+exposer le back-office au branding. Aucune donnée nominative — que des agrégats, calculés par
+`stats_conversion()`. Ajoutée le 16 septembre 2026.
+
 ## 4. Back-office
 
 ```

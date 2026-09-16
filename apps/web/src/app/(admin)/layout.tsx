@@ -27,7 +27,10 @@ import { requireRole } from '@/lib/auth/roles';
 const SECTIONS: Array<{ titre: string; liens: Array<{ href: string; libelle: string }> }> = [
   {
     titre: 'Pilotage',
-    liens: [{ href: '/admin', libelle: 'Tableau de bord' }],
+    liens: [
+      { href: '/admin', libelle: 'Tableau de bord' },
+      { href: '/statistiques', libelle: 'Conversion par réseau' },
+    ],
   },
   {
     titre: 'Commercial',

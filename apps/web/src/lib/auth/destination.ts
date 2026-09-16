@@ -18,6 +18,7 @@ export function destinationApresConnexion(roles: readonly AppRole[]): string {
   if (roles.includes('admin') || roles.includes('owner')) return '/admin';
   if (roles.includes('formateur')) return '/formateur';
   if (roles.includes('client')) return '/espace';
+  if (roles.includes('branding')) return '/statistiques';
 
   // Un compte sans aucun rôle ne devrait pas exister — le trigger
   // `handle_new_user()` en accorde un à la création. Si ça arrive, le site

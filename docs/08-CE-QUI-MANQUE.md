@@ -130,6 +130,15 @@ un vrai parcours d'achat avant d'ouvrir les ventes.
 `CRON_SECRET`, plus un planificateur qui appelle `https://<le-site>/api/cron/revocation` une fois
 par jour, avec ce secret en en-tête `Authorization`.
 
+**Déjà écrit pour Vercel** (`apps/web/vercel.json`, 16 septembre 2026) : la révocation chaque
+jour à 3 h UTC, la purge des prospects inactifs chaque lundi à 4 h UTC. Vercel envoie tout seul
+`Authorization: Bearer <CRON_SECRET>` dès que la variable existe dans le projet — il suffit de
+la renseigner. Les tâches ne tournent que sur le déploiement de production. Sur un autre
+hébergeur, ce fichier est ignoré et il faut reproduire ces deux appels.
+
+Avant le **premier** passage de la purge sur des données reprises de l'ancien site, appeler une
+fois `/api/cron/purge-prospects?simulation=1` : ces données peuvent avoir plus de trois ans.
+
 **Sans lui** : la révocation existe et ne tourne jamais. Les accès expirés restent ouverts
 indéfiniment — et personne ne le signale, parce qu'un client satisfait ne prévient pas qu'il a
 encore accès.
