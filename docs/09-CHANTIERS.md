@@ -35,17 +35,10 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                             | État | Qui         | Depuis   |
-| ------------------------------------------------- | ---- | ----------- | -------- |
-| Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
-| Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
-| Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
-
-**Pour le système de messages : ce qu'il y a à balayer.** Les écrans du contenu éditorial,
-livrés le 13 septembre, avaient besoin d'afficher des succès et des erreurs. Ils n'ont inventé
-**aucune** convention et ont repris le motif déjà présent dans le code — `role="status"` et
-`role="alert"` en ligne, comme `/espace/compte`. C'est donc une mécanique de plus à reprendre,
-pas une de plus à supprimer.
+| Sujet                                 | État | Qui         | Depuis   |
+| ------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
+| Réconciliation des rôles Discord      | pris | Christopher | 13 sept. |
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
@@ -77,20 +70,6 @@ perd ses rôles, et rien ne les lui rend.
 
 **Bloquant avant d'ouvrir les ventes.**
 
-### Système de messages — pris le 13 septembre
-
-**Il n'en existe aucun**, et trois mécaniques différentes se partagent le besoin :
-`/connexion` garde son erreur dans un `useState`, `/espace/communaute` lit un `?discord=ok`
-dans l'URL, et un retour de paiement n'a nulle part où se dire.
-
-À concevoir **une fois** — un composant et une convention d'URL — avant que chaque écran
-n'invente la sienne. La décision de ne pas l'improviser dans le correctif du 12 septembre
-tient toujours : c'est ce qui aurait produit une quatrième mécanique.
-
-Trois familles à couvrir : le succès, l'erreur, et l'information. Et un cas limite à ne pas
-oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose de faux
-(« ton accès arrive dans la minute » après un échec enregistré) est pire que pas de message.
-
 ## Fait
 
 | Sujet                                           | Quand    | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -112,6 +91,7 @@ oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose 
 | État de connexion dans le header                | 12 sept. | Se connecter avec un compte staff menait à `/espace`, dont la garde refuse le rôle — on rebondissait sur l'accueil public et on se croyait déconnecté. Redirection par rôle, header qui lit la session, et une déconnexion, qui n'existait nulle part. Les pages publiques restent statiques : la session est lue dans le navigateur, pas dans le layout serveur.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Aide d'exploitation — premier runbook           | 13 sept. | `/admin/aide`, rangé par symptôme (« j'ai payé et je n'ai pas accès »), et un bouton « Réattribuer les accès Discord » sur la fiche client. **Ce qui peut être mesuré n'est jamais affirmé** : les quatre indicateurs sont lus en base à l'affichage, donc la page ne peut pas se périmer en silence. Les entrées suivantes naîtront d'incidents réels, pas d'anticipations.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Tableau de bord : « demande quelqu'un »         | 13 sept. | Une file de travail qui **nomme des personnes**, en tête de `/admin`, avant les compteurs. Trois cas, tous constatés entre le 12 et le 13 septembre : accès actif sans Discord lié, compte lié mais absent du serveur, attribution abandonnée. Chaque ligne mène à la fiche du client, où le bouton de réattribution existe. Écarté au passage : le récap hebdomadaire par email, qui échouerait comme `/admin/logs` échoue — avec trois semaines de retard, dans un filtre.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Système de messages                             | 13 sept. | **Une URL transporte un accent, jamais une proposition.** Cinq mécaniques (pas trois) fusionnées : `useState` local, quatorze types d'état de `useActionState` sous trois formes incompatibles, quatre conventions de paramètre d'URL, un bloc serveur forgeable, une validation de champ. Reste `Message`, `EtatAction`, un composant qui **dérive le rôle ARIA du ton**, et un catalogue `?m=` à deux familles : constantes (vraies même forgées) et dépendantes, qui exigent une `Preuve` bornée à dix minutes et ne rendent rien sans elle. Trois défauts trouvés en inventoriant : un message orphelin (`/reserver?inscription=ok`, jamais lu), deux messages sans rôle dont « Paiement reçu », et une insertion en file non vérifiée qui laissait intact le mensonge du 12 septembre, une branche plus bas.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Pages légales — état honnête et inventaire      | 13 sept. | Les six pages annonçaient « Placeholder — écran à construire », publiquement, et `/confidentialite` est liée depuis trois formulaires. Elles disent maintenant ce qu'elles contiendront, renvoient vers le contact, et se retirent de l'indexation tant qu'elles sont dans cet état. **Rien de juridique n'a été rédigé** — ce qui est déjà vrai est dit (ce que le code collecte, les services traversés, l'absence de traceur), le reste attend le juriste. `/admin/legal` porte l'inventaire des traitements et les questions par page.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Recette à l’écran — gardes et écrans jamais vus | 15 sept. | Les cinq zones passées avec une vraie session de chaque rôle : les gardes sont justes, `admin` compris, refusé sur `/admin/audit` et `/admin/parametres` pendant qu’`owner` passe. Les 56 écrans répondent, aucun ne plante, et les états vides sont rédigés partout. Deux défauts corrigés : `/evenements` publiait « écran à construire », et les comptes formateur de la base de dev étaient inaccessibles. **Ce qui n’est toujours pas vu, c’est un écran plein** — voir l’observation sur la base de dev.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
@@ -120,24 +100,27 @@ oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose 
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                             | Pourquoi ça vaut le coup                                                                                                                                                                                             |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Harmoniser le site au vouvoiement | Le public vouvoie, le tunnel et l'espace client tutoient (« Réserve ton audit »). Le back-office n'est pas concerné. **Après la fusion de `claude/systeme-de-messages`**, qui réécrit les messages des mêmes écrans. |
+| Sujet                                                 | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Harmoniser le site au vouvoiement                     | Le public vouvoie, le tunnel et l'espace client tutoient (« Réserve ton audit »). Le back-office n'est pas concerné. Réécrit les mêmes messages que `claude/systeme-de-messages`, désormais fusionnée.                                                                                                                                                                                                                                                                                              |
+| **Voir les deux rendus dépendants de Discord**        | Reste le seul rendu testable qu'on n'a pas vu : `discord-lie` avec `roleEnFile` vrai puis faux. Il faut un compte Discord **jamais relié** — le callback ne réempile pas de `grant` quand il en existe un `reussi`, donc relier `client.a` montre la branche `alerte` alors que son accès est en place. Passe par la suppression de sa ligne `discord_links` et de ses `grant` sur la base partagée : à faire en prévenant. Voir aussi l'observation sur le changement de compte Discord, plus bas. |
+| Un garde-fou automatique sur le catalogue de messages | La propriété qui tient tout — **un code dépendant sans preuve ne rend rien** — n'est vérifiée par rien. Elle se casserait en silence au prochain code ajouté. Un test l'énoncerait une fois pour toutes. Ce n'est pas gratuit : `apps/web` n'a **aucun lanceur de tests**, et en introduire un est une décision (dépendance, câblage CI) qu'on n'a pas prise en fin de journée. Le runner intégré de Node évite la dépendance mais demande à lire du TypeScript.                                    |
 
 ## Bloqué, et par quoi
 
 Ces sujets n'attendent pas un développeur. Le détail de ce qu'il faut obtenir est dans
 [`08-CE-QUI-MANQUE.md`](08-CE-QUI-MANQUE.md).
 
-| Sujet                                         | Attend                                                                                                                                                                                                                                    |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| La rédaction des six pages légales            | Les informations de la société — et surtout **laquelle des deux vend**. Les pages elles-mêmes ne sont plus des placeholders ; c'est leur contenu juridique qui attend. Ce qu'il faut obtenir est listé page par page dans `/admin/legal`. |
-| Image Open Graph                              | La charte du designer.                                                                                                                                                                                                                    |
-| Calendrier sur `/reserver`                    | `NEXT_PUBLIC_CAL_LIEN`, donc un compte Cal.com.                                                                                                                                                                                           |
-| `/admin/emails`                               | Qu'un envoi d'emails existe.                                                                                                                                                                                                              |
-| Planificateur de la révocation et de la purge | Un déploiement sur Vercel. La configuration est écrite (`apps/web/vercel.json`) ; sur un autre hébergeur, elle est à reproduire.                                                                                                          |
-| Catalogue affichant des données fausses       | Les vrais produits — la base contient encore des données de la révision 2.                                                                                                                                                                |
-| Hébergement du worker Discord                 | Savoir où le site est hébergé. C'est un processus long, pas une route HTTP.                                                                                                                                                               |
+| Sujet                                         | Attend                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| La rédaction des six pages légales            | Les informations de la société — et surtout **laquelle des deux vend**. Les pages elles-mêmes ne sont plus des placeholders ; c'est leur contenu juridique qui attend. Ce qu'il faut obtenir est listé page par page dans `/admin/legal`.                                                                                                                                                                                                                                |
+| Image Open Graph                              | La charte du designer.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Calendrier sur `/reserver`                    | `NEXT_PUBLIC_CAL_LIEN`, donc un compte Cal.com.                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `/admin/emails`                               | Qu'un envoi d'emails existe.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Planificateur de la révocation et de la purge | Un déploiement sur Vercel. La configuration est écrite (`apps/web/vercel.json`) ; sur un autre hébergeur, elle est à reproduire.                                                                                                                                                                                                                                                                                                                                         |
+| Catalogue affichant des données fausses       | Les vrais produits — la base contient encore des données de la révision 2.                                                                                                                                                                                                                                                                                                                                                                                               |
+| Hébergement du worker Discord                 | Savoir où le site est hébergé. C'est un processus long, pas une route HTTP.                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Voir le message `paiement-recu`**           | Un vrai encaissement, donc **les clés Stripe** et **un produit `abonnement` au catalogue** — la base partagée n'en a aucun, `/formations/[slug]/souscrire` redirige pour les deux produits existants. C'est le message dépendant qui compte le plus (« Paiement reçu » à qui n'a rien payé) et **le seul du système qu'aucun développeur ne peut essayer aujourd'hui**. Le cas forgé, lui, est vérifié : sans commande `payee` de moins de dix minutes, il ne rend rien. |
 
 ## Décisions, pas des tâches
 
@@ -147,8 +130,120 @@ Ces sujets n'attendent pas un développeur. Le détail de ce qu'il faut obtenir 
 **Tranché le 16 septembre 2026** — détail dans `CLAUDE.md`, « Décisions en attente du
 client » : vouvoiement sur tout le site, pas de PayPal en v1, vidéos exclusives hors projet,
 pas de Supabase Pro pour le dev, conservation des prospects trois ans après le dernier
-contact. Plus rien n'est ouvert côté produit hors le régime de vente et de TVA, qui attend un
-juriste.
+contact. **Reste ouvert côté produit** : le régime de vente et de TVA, qui attend un juriste,
+et la question ci-dessous sur le retour d'un client sur le site — non tranchée le 16 septembre,
+relevée le 14 en testant autre chose et toujours vraie.
+
+- **Comment un client revient-il sur le site ? Aujourd'hui : il ne revient pas.** Décision à
+  prendre à deux, relevée le 14 septembre 2026 en testant autre chose.
+
+  **Le constat.** `creerCompteEtSession()` crée le compte avec
+  `createUser({ email, email_confirm: false, user_metadata })` — **sans mot de passe**. La
+  session est posée juste après par un lien magique fabriqué et consommé côté serveur, sans
+  passer par la boîte mail. C'est délibéré et c'est bien vu : zéro friction sur le seul chemin
+  qui produit du chiffre d'affaires.
+
+  Sauf que `/connexion` demande un email **et un mot de passe**, et qu'il n'existe ni « mot de
+  passe oublié » ni lien de connexion. Donc un vrai client est connecté juste après le
+  formulaire, et le jour où son cookie expire, où il change de navigateur ou prend son
+  téléphone, **il ne peut plus jamais entrer** — dans l'espace qui porte ses accès, ses
+  factures, sa proposition et la résiliation de son abonnement. Rien ne l'a signalé jusqu'ici
+  parce que les comptes du seed, eux, ont un mot de passe.
+
+  ### Proposition : un lien de connexion, pas un « mot de passe oublié »
+
+  `signInWithOtp` : on saisit son adresse, on reçoit un lien, on est connecté. Trois raisons.
+
+  - **C'est cohérent avec la façon dont les comptes sont créés.** Proposer de réinitialiser un
+    mot de passe qui n'a jamais existé est précisément le genre de phrase fausse qu'on vient de
+    retirer partout ailleurs.
+  - Un client revient rarement — vérifier un accès, sortir une facture, résilier. Un lien à
+    cliquer bat un mot de passe qu'il n'a pas choisi et qu'il aura oublié.
+  - Ça **supprime** une surface d'authentification au lieu d'en ajouter une.
+
+  **Les comptes de l'équipe gardent le mot de passe** : eux se connectent tous les jours, et un
+  aller-retour par la boîte mail à chaque fois serait intenable.
+
+  ### Est-ce assez sûr ? Oui, et probablement plus que l'alternative
+
+  L'objection naturelle est « un lien dans un email, c'est faible ». Il faut la comparer à ce
+  qu'on ferait sinon, pas à un idéal : **un mot de passe avec « mot de passe oublié » est déjà,
+  lui aussi, adossé à la boîte mail** — quiconque la contrôle réinitialise le mot de passe. Le
+  lien de connexion ne déplace donc pas la confiance, il enlève juste le mot de passe qui
+  s'ajoutait par-dessus. Et ce mot de passe, lui, se réutilise d'un site à l'autre, se retrouve
+  dans les fuites, et se fait hameçonner. Le **credential stuffing** — rejouer des couples
+  email/mot de passe fuités ailleurs — est l'attaque la plus courante contre un site comme le
+  nôtre, et elle devient sans objet.
+
+  Ce qu'il faut regarder en face :
+
+  - **La boîte mail devient la clé du compte.** C'est déjà le cas aujourd'hui et ce le serait
+    avec n'importe quelle réinitialisation. À accepter explicitement.
+  - **Les liens à usage unique se font consommer par des robots.** Les antivirus et les
+    filtres d'entreprise (Outlook Safe Links, par exemple) pré-ouvrent les URL des emails et
+    brûlent le jeton avant le destinataire, qui se retrouve devant un lien expiré. C'est la
+    vraie plaie du procédé. La parade tient en une ligne : **envoyer un code à six chiffres
+    plutôt qu'un lien** (même appel `signInWithOtp`, c'est le gabarit d'email qui change), ou
+    les deux. À trancher au moment de l'écrire.
+  - **Durée de validité et usage unique** : une heure par défaut chez Supabase, à raccourcir.
+  - **Limitation du nombre d'envois**, sans quoi on offre un moyen d'inonder une boîte mail.
+  - **Pour les comptes de l'équipe, le mot de passe ne suffit pas non plus.** Un `owner` change
+    les rôles, exécute des remboursements et lit tout le CRM. La double authentification par
+    application (TOTP) existe chez Supabase et devrait venir avant l'ouverture des ventes —
+    sujet à part, mais il naît de la même discussion.
+
+  Pour ce que le site protège — un statut d'accès, des factures, une résiliation, et aucun
+  moyen de paiement stocké puisque Stripe garde la carte de son côté — c'est proportionné.
+
+  ### Et « Continuer avec Google » ?
+
+  **Possible : oui, et le chemin est déjà éprouvé ici.** C'est le même mécanisme que la liaison
+  Discord, qui fonctionne contre un vrai serveur depuis le 12 septembre. Supabase gère Google
+  nativement ; l'identifiant et le secret se saisissent dans son tableau de bord et **ne vont
+  dans aucun fichier du dépôt**, exactement comme Discord.
+
+  **Lourd à mettre en place : non.** Un projet Google Cloud, un écran de consentement, un
+  identifiant OAuth. Les portées demandées (`email`, `profile`) sont **non sensibles**, donc
+  l'écran de consentement se publie **sans passer par la revue de Google** — c'est ce qui prend
+  des semaines quand on demande l'accès à Gmail ou au Drive, et ça ne nous concerne pas. Compter
+  une après-midi.
+
+  **Lourd à maintenir : non plus.** Les secrets ne tournent presque jamais. Il faut garder
+  valides l'adresse de contact et le domaine déclarés sur l'écran de consentement.
+
+  **Mais deux obstacles concrets, et le premier nous bloque aujourd'hui :**
+
+  1. **Google exige une URL de politique de confidentialité** sur un écran de consentement
+     publié. La nôtre annonce qu'elle n'est pas rédigée et **se retire de l'indexation**. Google
+     est donc bloqué derrière la même question que tout le reste : _quelle société vend ?_
+  2. **Le risque du compte en double.** Si quelqu'un passe le tunnel avec `x@gmail.com` puis
+     revient par « Continuer avec Google », il faut que Supabase rattache les deux identités au
+     **même** compte et n'en crée pas un second. Supabase sait le faire quand le fournisseur a
+     vérifié l'adresse, ce que Google fait — mais **c'est à vérifier en vrai avant d'ouvrir**,
+     parce qu'un doublon, c'est un client qui paie sur un compte et cherche son accès sur
+     l'autre. On a déjà croisé le cousin de ce problème le 14 septembre :
+     `identity_already_exists`, quand un compte Discord est déjà relié ailleurs.
+
+  **Compatible avec le lien de connexion : oui, et c'est la combinaison habituelle.** Google
+  pour qui en a un, le lien pour tous les autres, les deux menant au même compte quand les
+  adresses correspondent. Aucun des deux ne rend l'autre inutile.
+
+  **Ce qu'on ne devrait pas faire : mettre Google dans le tunnel.** `/qualification` recueille
+  prénom, email et téléphone et crée le compte à la fin ; tout son intérêt est que le compte
+  tombe du formulaire. Y insérer un bouton Google obligerait à repenser l'étape qui produit le
+  chiffre d'affaires, pour un gain nul — le prospect n'a pas encore de compte à retrouver.
+  **Google a sa place sur `/connexion`, comme moyen de revenir, pas comme moyen d'entrer.**
+
+  ### Ce que ça attend
+
+  Les deux passent par **l'envoi d'emails de Supabase Auth**, qui n'est pas configuré. Ce n'est
+  pas une dépendance nouvelle : c'est la **même** que la vérification d'adresse qui bloque déjà
+  tout paiement. La configurer débloque trois choses d'un coup. Attention au détail qui coûte
+  une journée : le service d'email intégré de Supabase est limité à quelques envois par heure et
+  n'est pas prévu pour la production — il faut un SMTP à nous (Resend, Postmark, SES).
+
+  **Ordre proposé** : le lien de connexion d'abord, dès que les emails partent — il débloque un
+  parcours aujourd'hui sans issue. Google ensuite, quand la page de confidentialité existera.
 
 - **Les salons Discord — tranché par défaut, sauf objection du client.** Un `invité` voit
   l'accueil, le règlement, les annonces et un salon d'échange général. Le salon planning est
@@ -164,29 +259,39 @@ juriste.
 
 Relevées en passant, vraies, et qui n'ont encore déclenché aucune décision.
 
-- **La base de dev partagée porte encore les données de la révision 2, et c’est plus large
+- **La base de dev partagée porte encore les données de la révision 2, et c'est plus large
   que le catalogue.** Relevé le 15 septembre en passant les écrans en revue : `inscriptions.formateur_id`
-  est NULL sur les deux inscriptions, il n’y a aucune proposition, aucun témoignage et aucune
+  est NULL sur les deux inscriptions, il n'y a aucune proposition, aucun témoignage et aucune
   fiche formateur. Le seed du dépôt, lui, remplit tout cela (`seed.sql` lignes 282 et 316) — il
-  n’a simplement jamais été rejoué sur la base hébergée depuis la révision 3.
+  n'a simplement jamais été rejoué sur la base hébergée depuis la révision 3.
 
-  **Conséquence** : tous les écrans ne peuvent être vus qu’à vide. L’espace formateur affiche
-  quatre états vides parce qu’aucun formateur n’a de client, les écrans du contenu éditorial
-  livrés le 13 septembre n’ont aucune matière, et `/espace/propositions/[id]` n’est pas
-  atteignable. Ce n’est un défaut d’aucun de ces écrans.
+  **Conséquence** : tous les écrans ne peuvent être vus qu'à vide. L'espace formateur affiche
+  quatre états vides parce qu'aucun formateur n'a de client, les écrans du contenu éditorial
+  livrés le 13 septembre n'ont aucune matière, et `/espace/propositions/[id]` n'est pas
+  atteignable. Ce n'est un défaut d'aucun de ces écrans.
 
   **Pourquoi personne ne tranche seul** : rejouer le seed écrase ce qui a été saisi à la main
-  sur une base que deux personnes partagent. C’est le conflit décrit dans `07-REPARTITION.md`,
-  et c’est l’argument le plus concret entendu jusqu’ici pour le branching du plan Pro.
+  sur une base que deux personnes partagent. C'est le conflit décrit dans `07-REPARTITION.md`,
+  et c'est l'argument le plus concret entendu jusqu'ici pour le branching du plan Pro.
 
 - **Le même écart a déjà mordu une fois, en silence.** `auth.users` contenait toujours
   `coach.a@apex.test` / `coach.b@apex.test` alors que le seed dit `formateur.a` / `formateur.b` :
-  ces comptes viennent du seed, pas d’une migration, donc le renommage du 8 septembre ne les a
+  ces comptes viennent du seed, pas d'une migration, donc le renommage du 8 septembre ne les a
   pas touchés. Personne ne pouvait se connecter en formateur avec les identifiants documentés, et
   la CI ne le voyait pas — elle a été alignée sur le seed le 9 septembre, la base hébergée jamais.
   Corrigé le 15 septembre par un renommage des deux emails, à UUID et mot de passe inchangés.
   **La leçon est générale** : une migration corrige le schéma, jamais les données du seed déjà
   posées sur la base hébergée.
+
+- **Changer de compte Discord ne redemande jamais le rôle `invité`.** Les lignes de
+  `discord_sync_queue` portent le `user_id` du site, pas l'identifiant Discord : la route de
+  rappel voit un `grant` déjà `reussi` et n'en empile pas de nouveau, alors que le rôle est dû
+  au **nouveau** compte Discord, qui ne l'a pas. Relevé le 14 septembre en testant les messages.
+  Sans conséquence visible aujourd'hui — `npm run discord:reconcile` compare l'état réel du
+  serveur et rattrape —, mais la réconciliation n'est pas encore planifiée, donc personne ne la
+  lance. Conséquence de second ordre : la page annonce alors « ton accès n'a pas pu être
+  demandé », ce qui est vrai pour le nouveau compte et faux dans sa seconde phrase (« l'équipe
+  est prévenue » — rien n'est journalisé dans ce cas).
 
 - **Le rôle de « Fondations » s'appelle `Fondation` au singulier sur le serveur de test.**
   Sans conséquence technique — le code ne compare que des identifiants — mais à corriger

@@ -3,10 +3,10 @@
 import { useActionState, useState } from 'react';
 
 import { BoutonAction } from '@/components/ui';
+import { MessageLigne } from '@/components/message';
+import { REPOS, info, messageDe } from '@/lib/messages/types';
 
-import { resilierAbonnement, type EtatResiliation } from './actions';
-
-const ETAT_INITIAL: EtatResiliation = { erreur: null, ok: false };
+import { resilierAbonnement } from './actions';
 
 /**
  * Résiliation en deux temps.
@@ -23,14 +23,14 @@ export function BoutonResilier({
   subscriptionId: string;
   finDePeriode: string;
 }) {
-  const [etat, action, enCours] = useActionState(resilierAbonnement, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(resilierAbonnement, REPOS);
   const [confirme, setConfirme] = useState(false);
 
-  if (etat.ok) {
+  if (etat.statut === 'succes') {
     return (
-      <p role="status" className="text-sm text-encre-doux">
-        Résiliation enregistrée. Ton accès reste ouvert jusqu’au {finDePeriode}.
-      </p>
+      <MessageLigne
+        message={info(`Résiliation enregistrée. Ton accès reste ouvert jusqu’au ${finDePeriode}.`)}
+      />
     );
   }
 
@@ -67,11 +67,7 @@ export function BoutonResilier({
           Annuler
         </button>
       </div>
-      {etat.erreur && (
-        <p role="alert" className="text-sm text-alerte">
-          {etat.erreur}
-        </p>
-      )}
+      <MessageLigne message={messageDe(etat)} />
     </form>
   );
 }

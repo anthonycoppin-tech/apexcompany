@@ -4,8 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { requireRole } from '@/lib/auth/roles';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-
-export type EtatReattribution = { readonly message: string | null; readonly erreur: string | null };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Réempile les rôles Discord dus à un client.
@@ -26,15 +25,15 @@ export type EtatReattribution = { readonly message: string | null; readonly erre
  * le métier de `revoquer_acces_expires()`, qui décide sur une date.
  */
 export async function reattribuerAccesDiscord(
-  _precedent: EtatReattribution,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatReattribution> {
+): Promise<EtatAction> {
   // Une action serveur est une API publique : la garde du layout ne la protège
   // pas, seule cette ligne le fait.
   await requireRole(['admin', 'owner']);
 
   const userId = (donnees.get('user_id') ?? '').toString();
-  if (!userId) return { message: null, erreur: 'Client introuvable.' };
+  if (!userId) return echoue('Client introuvable.');
 
   const admin = createServiceRoleClient();
 
@@ -45,11 +44,9 @@ export async function reattribuerAccesDiscord(
     .maybeSingle();
 
   if (!lien) {
-    return {
-      message: null,
-      erreur:
-        'Ce client n’a pas connecté son compte Discord. Aucun rôle ne peut lui être attribué tant qu’il ne l’a pas fait depuis son espace.',
-    };
+    return echoue(
+      'Ce client n’a pas connecté son compte Discord. Aucun rôle ne peut lui être attribué tant qu’il ne l’a pas fait depuis son espace.',
+    );
   }
 
   const roles = new Set<string>();
@@ -72,11 +69,9 @@ export async function reattribuerAccesDiscord(
   }
 
   if (roles.size === 0) {
-    return {
-      message: null,
-      erreur:
-        'Aucun rôle à attribuer : ce client n’a aucun accès actif, et le rôle « invité » n’est pas configuré.',
-    };
+    return echoue(
+      'Aucun rôle à attribuer : ce client n’a aucun accès actif, et le rôle « invité » n’est pas configuré.',
+    );
   }
 
   // Ce qui attend déjà dans la file n'a pas à y être réempilé. `reussi` n'entre
@@ -93,10 +88,7 @@ export async function reattribuerAccesDiscord(
   const aEmpiler = [...roles].filter((r) => !dejaEmpiles.has(r));
 
   if (aEmpiler.length === 0) {
-    return {
-      message: 'Tout est déjà en file d’attente. Le worker traitera ces rôles dans la minute.',
-      erreur: null,
-    };
+    return reussi('Tout est déjà en file d’attente. Le worker traitera ces rôles dans la minute.');
   }
 
   const { error } = await admin
@@ -104,7 +96,7 @@ export async function reattribuerAccesDiscord(
     .insert(aEmpiler.map((role_id) => ({ user_id: userId, action: 'grant' as const, role_id })));
 
   if (error) {
-    return { message: null, erreur: `L’enregistrement a échoué : ${error.message}` };
+    return echoue(`L’enregistrement a échoué : ${error.message}`);
   }
 
   await admin.from('automation_logs').insert({
@@ -117,8 +109,7 @@ export async function reattribuerAccesDiscord(
 
   revalidatePath(`/admin/clients/${userId}`);
 
-  return {
-    message: `${aEmpiler.length} rôle(s) remis en file. Ils arrivent dans la minute si le worker tourne.`,
-    erreur: null,
-  };
+  return reussi(
+    `${aEmpiler.length} rôle(s) remis en file. Ils arrivent dans la minute si le worker tourne.`,
+  );
 }

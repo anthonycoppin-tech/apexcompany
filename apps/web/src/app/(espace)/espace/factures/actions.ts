@@ -5,8 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { stripe } from '@/lib/stripe';
-
-export type EtatResiliation = { readonly erreur: string | null; readonly ok: boolean };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Résilier son abonnement, depuis son espace.
@@ -25,11 +24,11 @@ export type EtatResiliation = { readonly erreur: string | null; readonly ok: boo
  * que les politiques laissent lire.
  */
 export async function resilierAbonnement(
-  _precedent: EtatResiliation,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatResiliation> {
+): Promise<EtatAction> {
   const id = (donnees.get('subscription_id') ?? '').toString();
-  if (!id) return { erreur: 'Abonnement introuvable.', ok: false };
+  if (!id) return echoue('Abonnement introuvable.');
 
   const supabase = await createClient();
 
@@ -40,11 +39,11 @@ export async function resilierAbonnement(
     .maybeSingle();
 
   if (!abonnement) {
-    return { erreur: 'Cet abonnement n’existe pas ou ne t’appartient pas.', ok: false };
+    return echoue('Cet abonnement n’existe pas ou ne t’appartient pas.');
   }
 
   if (abonnement.statut === 'resiliee' || abonnement.statut === 'terminee') {
-    return { erreur: 'Cet abonnement est déjà résilié.', ok: false };
+    return echoue('Cet abonnement est déjà résilié.');
   }
 
   try {
@@ -52,10 +51,7 @@ export async function resilierAbonnement(
       cancel_at_period_end: true,
     });
   } catch {
-    return {
-      erreur: 'La résiliation n’a pas pu être enregistrée. Réessaie dans un instant.',
-      ok: false,
-    };
+    return echoue('La résiliation n’a pas pu être enregistrée. Réessaie dans un instant.');
   }
 
   // Écrit avec la clé de service : `subscriptions` est en lecture seule pour le
@@ -73,5 +69,5 @@ export async function resilierAbonnement(
   revalidatePath('/espace/factures');
   revalidatePath('/espace');
 
-  return { erreur: null, ok: true };
+  return reussi('Résiliation enregistrée.');
 }

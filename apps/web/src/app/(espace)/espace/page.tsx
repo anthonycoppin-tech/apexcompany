@@ -1,6 +1,9 @@
 import Link from 'next/link';
 
+import { MessageURL } from '@/components/message-url';
 import { Carte, LISTE } from '@/components/ui';
+import { PARAM, messagePaiement } from '@/lib/messages/catalogue';
+import { lireEtatPaiement } from '@/lib/messages/preuves';
 import { dateCourte, dateHeure } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
@@ -19,10 +22,13 @@ import { createClient } from '@/lib/supabase/server';
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ paiement?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const { paiement } = await searchParams;
-  const supabase = await createClient();
+  const [parametres, supabase, preuve] = await Promise.all([
+    searchParams,
+    createClient(),
+    lireEtatPaiement(),
+  ]);
 
   const [inscriptions, proposition, rdv, lien] = await Promise.all([
     supabase
@@ -48,11 +54,7 @@ export default async function Page({
 
   return (
     <div className="space-y-8">
-      {paiement === 'ok' && (
-        <p className="rounded-douce border border-accent bg-accent-doux p-4 text-sm font-medium text-accent">
-          Paiement reçu. Ton accès s’ouvre sur Discord dans la minute qui suit.
-        </p>
-      )}
+      <MessageURL message={messagePaiement(parametres[PARAM], preuve)} />
 
       <h1 className="text-3xl font-extrabold">Mon espace</h1>
 

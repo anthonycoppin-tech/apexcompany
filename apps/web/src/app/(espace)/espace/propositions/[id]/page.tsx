@@ -2,8 +2,10 @@ import { notFound } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
 
+import { MessageURL } from '@/components/message-url';
 import { Carte } from '@/components/ui';
 import { dateHeure } from '@/lib/format';
+import { PARAM, messageConstant } from '@/lib/messages/catalogue';
 import { createClient } from '@/lib/supabase/server';
 
 import { BoutonPayer } from './bouton-payer';
@@ -28,9 +30,9 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ paiement?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const [{ id }, { paiement }] = await Promise.all([params, searchParams]);
+  const [{ id }, parametres] = await Promise.all([params, searchParams]);
   const supabase = await createClient();
 
   const { data: proposition } = await supabase
@@ -54,14 +56,7 @@ export default async function Page({
 
   return (
     <div className="max-w-2xl space-y-8">
-      {paiement === 'annule' && (
-        <p
-          role="status"
-          className="rounded-douce border border-filet-fort bg-surface p-4 text-sm leading-relaxed"
-        >
-          Paiement interrompu — rien n’a été débité. Ta proposition reste valable.
-        </p>
-      )}
+      <MessageURL message={messageConstant(parametres[PARAM])} />
 
       <header className="space-y-3">
         <p className="text-sm text-encre-faible">

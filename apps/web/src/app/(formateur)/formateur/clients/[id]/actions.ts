@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
-
-export type EtatProposition = { readonly erreur: string | null; readonly ok: boolean };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Émettre une proposition à la fin de l'audit.
@@ -39,9 +38,9 @@ export type EtatProposition = { readonly erreur: string | null; readonly ok: boo
  * appelant cette action directement.
  */
 export async function emettreProposition(
-  _precedent: EtatProposition,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatProposition> {
+): Promise<EtatAction> {
   const leadId = (donnees.get('lead_id') ?? '').toString();
   const formationId = (donnees.get('formation_id') ?? '').toString();
   const jours = Number((donnees.get('validite_jours') ?? '7').toString());
@@ -51,9 +50,9 @@ export async function emettreProposition(
   // filer un flottant dans le reste du code.
   const montantSaisi = (donnees.get('montant_euros') ?? '').toString().trim().replace(',', '.');
 
-  if (!leadId || !formationId) return { erreur: 'Formation manquante.', ok: false };
+  if (!leadId || !formationId) return echoue('Formation manquante.');
   if (!Number.isFinite(jours) || jours < 1 || jours > 90) {
-    return { erreur: 'La validité doit être comprise entre 1 et 90 jours.', ok: false };
+    return echoue('La validité doit être comprise entre 1 et 90 jours.');
   }
 
   const supabase = await createClient();
@@ -62,7 +61,7 @@ export async function emettreProposition(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { erreur: 'Session expirée.', ok: false };
+  if (!user) return echoue('Session expirée.');
 
   const { data: lead } = await supabase
     .from('leads')
@@ -70,18 +69,16 @@ export async function emettreProposition(
     .eq('id', leadId)
     .maybeSingle();
 
-  if (!lead) return { erreur: 'Fiche introuvable.', ok: false };
+  if (!lead) return echoue('Fiche introuvable.');
 
   // Le tunnel crée le compte avant le rendez-vous, donc ce cas ne devrait pas
   // se présenter — sauf pour une fiche saisie à la main ou importée d'avant.
   // Sans compte, la proposition n'aurait personne à qui s'afficher et rien pour
   // la protéger : la RLS s'appuie sur `user_id`.
   if (!lead.user_id) {
-    return {
-      erreur:
-        "Cette personne n'a pas encore de compte : la proposition ne pourrait pas lui être présentée.",
-      ok: false,
-    };
+    return echoue(
+      "Cette personne n'a pas encore de compte : la proposition ne pourrait pas lui être présentée.",
+    );
   }
 
   const { data: formation } = await supabase
@@ -90,14 +87,14 @@ export async function emettreProposition(
     .eq('id', formationId)
     .maybeSingle();
 
-  if (!formation) return { erreur: 'Formation introuvable.', ok: false };
+  if (!formation) return echoue('Formation introuvable.');
 
   // Le prix catalogue est la valeur par défaut, pas la valeur imposée : un
   // champ vide vaut « le tarif affiché ».
   const montantCents = montantSaisi ? Math.round(Number(montantSaisi) * 100) : formation.prix_cents;
 
   if (!Number.isFinite(montantCents) || montantCents < 0) {
-    return { erreur: 'Le montant proposé n’est pas un nombre valide.', ok: false };
+    return echoue('Le montant proposé n’est pas un nombre valide.');
   }
 
   // La nouvelle périme les précédentes. Deux propositions valides en même temps
@@ -124,7 +121,7 @@ export async function emettreProposition(
   });
 
   if (error) {
-    return { erreur: "L'émission a échoué. Réessaie dans un instant.", ok: false };
+    return echoue("L'émission a échoué. Réessaie dans un instant.");
   }
 
   // Le prospect avance dans le pipeline. `gagne` attendra le paiement : c'est le
@@ -151,5 +148,5 @@ export async function emettreProposition(
   revalidatePath(`/formateur/clients/${lead.id}`);
   revalidatePath('/formateur');
 
-  return { erreur: null, ok: true };
+  return reussi('Proposition envoyée.');
 }

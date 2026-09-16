@@ -3,10 +3,10 @@
 import { useActionState } from 'react';
 
 import { PIPELINE } from '@/lib/crm/pipeline';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-import { mettreAJourFiche, type EtatFiche } from './actions';
-
-const ETAT_INITIAL: EtatFiche = { erreur: null, ok: false };
+import { mettreAJourFiche } from './actions';
 
 /**
  * Affectation et statut, dans un seul formulaire.
@@ -26,7 +26,7 @@ export function FormulaireFiche({
   statut: string;
   formateurs: Array<{ id: string; nom: string }>;
 }) {
-  const [etat, action, enCours] = useActionState(mettreAJourFiche, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(mettreAJourFiche, REPOS);
 
   return (
     <form action={action} className="flex flex-wrap items-end gap-4">
@@ -71,8 +71,7 @@ export function FormulaireFiche({
         {enCours ? 'Enregistrement…' : 'Enregistrer'}
       </button>
 
-      {etat.ok && <span className="text-sm text-succes">Enregistré.</span>}
-      {etat.erreur && <span className="text-sm text-alerte">{etat.erreur}</span>}
+      <MessageLigne message={messageDe(etat)} />
     </form>
   );
 }

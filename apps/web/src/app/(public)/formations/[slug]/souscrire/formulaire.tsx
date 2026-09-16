@@ -2,9 +2,10 @@
 
 import { useActionState } from 'react';
 
-import { souscrire, type EtatSouscription } from './actions';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-const ETAT_INITIAL: EtatSouscription = { erreur: null };
+import { souscrire } from './actions';
 
 /**
  * Le formulaire de souscription directe.
@@ -24,7 +25,7 @@ export function FormulaireSouscription({
   connecte: boolean;
   libelleBouton: string;
 }) {
-  const [etat, action, enCours] = useActionState(souscrire, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(souscrire, REPOS);
 
   return (
     <form action={action} className="space-y-5">
@@ -83,7 +84,7 @@ export function FormulaireSouscription({
         </div>
       )}
 
-      {etat.erreur && <p className="text-sm text-alerte">{etat.erreur}</p>}
+      <MessageLigne message={messageDe(etat)} />
 
       <button
         type="submit"

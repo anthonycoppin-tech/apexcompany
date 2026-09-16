@@ -1,21 +1,9 @@
 import { BoutonLierDiscord } from '@/components/bouton-lier-discord';
+import { MessageURL } from '@/components/message-url';
 import { Carte } from '@/components/ui';
+import { PARAM, messageDiscord } from '@/lib/messages/catalogue';
+import { lireEtatDiscord } from '@/lib/messages/preuves';
 import { createClient } from '@/lib/supabase/server';
-
-const MESSAGES: Record<string, string> = {
-  ok: 'Ton compte Discord est connecté. Ton accès arrive dans la minute.',
-  echec: "La connexion n'a pas abouti. Réessaie, rien n'a été perdu.",
-  annule: 'Connexion annulée.',
-  // La liaison a réussi mais l'accès n'a pas pu être demandé — il manque la
-  // configuration côté serveur. Annoncer « ton accès arrive » ici serait faux,
-  // et faux d'une façon qu'on ne découvre qu'en constatant, une heure plus
-  // tard, qu'il n'est jamais arrivé.
-  'sans-role':
-    "Ton compte Discord est connecté, mais ton accès n'a pas pu être demandé. L'équipe est prévenue — inutile de réessayer.",
-};
-
-/** Les liaisons qui ont abouti, du point de vue de l'affichage. */
-const SUCCES = new Set(['ok']);
 
 /**
  * `/espace/communaute` — état de la liaison Discord.
@@ -33,10 +21,13 @@ const SUCCES = new Set(['ok']);
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ discord?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const { discord } = await searchParams;
-  const supabase = await createClient();
+  const [parametres, supabase, preuve] = await Promise.all([
+    searchParams,
+    createClient(),
+    lireEtatDiscord(),
+  ]);
 
   const { data: lien } = await supabase
     .from('discord_links')
@@ -53,20 +44,7 @@ export default async function Page({
         </p>
       </div>
 
-      {/* `role="status"` : le retour d'une liaison qui vient d'aboutir ou
-          d'échouer doit être annoncé, pas seulement affiché. */}
-      {discord && MESSAGES[discord] && (
-        <p
-          role="status"
-          className={
-            SUCCES.has(discord)
-              ? 'rounded-douce border border-accent bg-accent-doux p-4 text-sm font-medium text-accent'
-              : 'rounded-douce border border-filet-fort bg-surface p-4 text-sm'
-          }
-        >
-          {MESSAGES[discord]}
-        </p>
-      )}
+      <MessageURL message={messageDiscord(parametres[PARAM], preuve)} />
 
       {lien ? (
         <Carte className="space-y-2">

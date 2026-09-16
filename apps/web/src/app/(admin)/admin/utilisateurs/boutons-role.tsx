@@ -2,11 +2,12 @@
 
 import { useActionState } from 'react';
 
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
+
 import { ROLES, type AppRole } from '@apex/db';
 
-import { changerRole, type EtatRole } from './actions';
-
-const ETAT_INITIAL: EtatRole = { erreur: null, ok: false };
+import { changerRole } from './actions';
 
 const LIBELLES: Record<AppRole, string> = {
   client: 'Client',
@@ -36,7 +37,7 @@ export function BoutonsRole({
   roles: string[];
   estOwner: boolean;
 }) {
-  const [etat, action, enCours] = useActionState(changerRole, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(changerRole, REPOS);
 
   return (
     <div className="space-y-1">
@@ -72,7 +73,7 @@ export function BoutonsRole({
         })}
       </div>
 
-      {etat.erreur && <p className="text-xs text-alerte">{etat.erreur}</p>}
+      <MessageLigne message={messageDe(etat)} taille="petite" />
     </div>
   );
 }
