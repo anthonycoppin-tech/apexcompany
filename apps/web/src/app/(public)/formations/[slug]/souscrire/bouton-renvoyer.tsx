@@ -2,16 +2,17 @@
 
 import { useActionState } from 'react';
 
-import { renvoyerVerification, type EtatSouscription } from './actions';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-const ETAT_INITIAL: EtatSouscription = { erreur: null };
+import { renvoyerVerification } from './actions';
 
 /**
  * Sans ce bouton, le contrôle bloquant sur l'email vérifié serait une impasse :
  * la personne verrait « vérifie ton adresse » sans moyen d'en redemander une.
  */
 export function BoutonRenvoyer() {
-  const [etat, action, enCours] = useActionState(renvoyerVerification, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(renvoyerVerification, REPOS);
 
   return (
     <form action={action} className="space-y-2">
@@ -22,7 +23,7 @@ export function BoutonRenvoyer() {
       >
         {enCours ? 'Envoi…' : 'Renvoyer l’email de vérification'}
       </button>
-      {etat.erreur && <p className="text-sm text-alerte">{etat.erreur}</p>}
+      <MessageLigne message={messageDe(etat)} />
     </form>
   );
 }

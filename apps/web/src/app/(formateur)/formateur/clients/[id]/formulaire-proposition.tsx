@@ -5,10 +5,10 @@ import { useActionState, useState } from 'react';
 import { formaterMontant } from '@apex/db';
 
 import { BoutonAction, CHAMP } from '@/components/ui';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-import { emettreProposition, type EtatProposition } from './actions';
-
-const ETAT_INITIAL: EtatProposition = { erreur: null, ok: false };
+import { emettreProposition } from './actions';
 
 type Formation = {
   id: string;
@@ -46,7 +46,7 @@ export function FormulaireProposition({
   formations: Formation[];
   sansCompte: boolean;
 }) {
-  const [etat, action, enCours] = useActionState(emettreProposition, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(emettreProposition, REPOS);
   const [choisieId, setChoisieId] = useState<string | null>(null);
   const [montant, setMontant] = useState('');
 
@@ -138,16 +138,7 @@ export function FormulaireProposition({
         <BoutonAction type="submit" disabled={enCours}>
           {enCours ? 'Envoi…' : 'Émettre la proposition'}
         </BoutonAction>
-        {etat.ok && (
-          <span role="status" className="text-sm font-medium text-succes">
-            Proposition envoyée. Elle apparaît dans son espace.
-          </span>
-        )}
-        {etat.erreur && (
-          <span role="alert" className="text-sm text-alerte">
-            {etat.erreur}
-          </span>
-        )}
+        <MessageLigne message={messageDe(etat)} />
       </div>
 
       <p className="text-xs text-encre-faible">

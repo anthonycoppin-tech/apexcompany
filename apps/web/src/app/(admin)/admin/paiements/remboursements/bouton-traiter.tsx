@@ -2,9 +2,10 @@
 
 import { useActionState, useState } from 'react';
 
-import { traiterRemboursement, type EtatRemboursement } from './actions';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-const ETAT_INITIAL: EtatRemboursement = { erreur: null, ok: false };
+import { traiterRemboursement } from './actions';
 
 /**
  * Exécuter un remboursement, en deux clics.
@@ -14,10 +15,10 @@ const ETAT_INITIAL: EtatRemboursement = { erreur: null, ok: false };
  * « êtes-vous sûr ? » sans chiffre ne fait réfléchir personne.
  */
 export function BoutonTraiter({ refundId, montant }: { refundId: string; montant: string }) {
-  const [etat, action, enCours] = useActionState(traiterRemboursement, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(traiterRemboursement, REPOS);
   const [confirme, setConfirme] = useState(false);
 
-  if (etat.ok) {
+  if (etat.statut === 'succes') {
     return <span className="text-sm text-succes">Remboursé.</span>;
   }
 
@@ -31,7 +32,7 @@ export function BoutonTraiter({ refundId, montant }: { refundId: string; montant
         >
           Rembourser
         </button>
-        {etat.erreur && <p className="text-xs text-alerte">{etat.erreur}</p>}
+        <MessageLigne message={messageDe(etat)} taille="petite" />
       </div>
     );
   }
@@ -58,7 +59,7 @@ export function BoutonTraiter({ refundId, montant }: { refundId: string; montant
           Annuler
         </button>
       </div>
-      {etat.erreur && <p className="text-xs text-alerte">{etat.erreur}</p>}
+      <MessageLigne message={messageDe(etat)} taille="petite" />
     </form>
   );
 }

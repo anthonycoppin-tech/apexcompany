@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
-
-export type EtatCompte = { readonly erreur: string | null; readonly ok: boolean };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Mise à jour de ses informations personnelles.
@@ -22,14 +21,14 @@ export type EtatCompte = { readonly erreur: string | null; readonly ok: boolean 
  * mise à jour de `profiles`.
  */
 export async function mettreAJourCompte(
-  _precedent: EtatCompte,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatCompte> {
+): Promise<EtatAction> {
   const prenom = (donnees.get('prenom') ?? '').toString().trim();
   const nom = (donnees.get('nom') ?? '').toString().trim();
   const telephone = (donnees.get('telephone') ?? '').toString().trim();
 
-  if (!prenom) return { erreur: 'Le prénom est nécessaire.', ok: false };
+  if (!prenom) return echoue('Le prénom est nécessaire.');
 
   const supabase = await createClient();
 
@@ -37,7 +36,7 @@ export async function mettreAJourCompte(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { erreur: 'Session expirée. Reconnecte-toi pour continuer.', ok: false };
+  if (!user) return echoue('Session expirée. Reconnecte-toi pour continuer.');
 
   const { error } = await supabase
     .from('profiles')
@@ -45,9 +44,9 @@ export async function mettreAJourCompte(
     .eq('id', user.id);
 
   if (error) {
-    return { erreur: "L'enregistrement a échoué. Réessaie dans un instant.", ok: false };
+    return echoue("L'enregistrement a échoué. Réessaie dans un instant.");
   }
 
   revalidatePath('/espace/compte');
-  return { erreur: null, ok: true };
+  return reussi('Enregistré.');
 }

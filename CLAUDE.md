@@ -133,6 +133,79 @@ n'est pas.**
 C'est le même garde-fou que les trois du 9 septembre : rendre l'état faux impossible plutôt
 que compter sur la vigilance.
 
+### Le système de messages, et la règle qui le tient
+
+**Une URL transporte un accent, jamais une proposition.** Ce qui est affirmé vient des données
+que la page a chargées. Le test qui range chaque code : _si un inconnu tape cette URL sur une
+page où rien ne s'est passé, ce qu'il lit est-il encore vrai ?_
+
+Il y avait **cinq** mécaniques, pas trois — le `useState` de `/connexion`, quatorze types d'état
+de `useActionState` sous **trois formes incompatibles**, quatre conventions de paramètre d'URL,
+un bloc serveur forgeable, et de la validation de champ en ligne. Il en reste une :
+`lib/messages/` et `components/message.tsx`. Le composant **dérive le rôle ARIA du ton** — on ne
+peut plus écrire un message muet.
+
+Le catalogue `?m=` a deux familles. Les **constantes** restent vraies même forgées
+(« Paiement interrompu — rien n'a été débité » l'est pour qui n'a rien payé). Les
+**dépendantes** exigent une `Preuve` — un type marqué, infabricable hors de `preuves.ts`, et
+**borné à dix minutes** : l'URL dit qu'un événement a eu lieu, la base dit qu'un tel événement
+a eu lieu récemment pour ce compte, et il faut les deux. Sans preuve, pas de message dégradé :
+**pas de message**.
+
+**Trois défauts trouvés en faisant l'inventaire**, tous du même genre que ce qui a motivé le
+chantier :
+
+- `/qualification` redirigeait vers `/reserver?inscription=ok`, que `/reserver` **n'a jamais
+  lu**. Le seul retour du tunnel qui dit « ton compte est créé » tombait dans le vide.
+- `?paiement=ok` sur `/espace` et `?paiement=annule` sur `/souscrire` n'avaient **aucun rôle
+  ARIA**. Le message le plus important du produit n'était pas annoncé.
+- **L'insertion du `grant` dans `api/discord/callback` jetait son erreur.** Le `sans-role` du
+  12 septembre ne bouchait qu'une branche : si l'insertion échouait, la page annonçait toujours
+  « ton accès arrive dans la minute ». C'est l'argument qui a fait descendre la vérification
+  dans les données plutôt que de la laisser dans le paramètre d'URL.
+
+### Ce que la recette visuelle du 14 septembre a corrigé
+
+**Le système a été repris à l'écran, écran par écran, et sept défauts en sont sortis.** Aucun
+n'aurait été vu au typecheck — c'est l'argument, une fois de plus, pour regarder les choses
+tourner.
+
+- **`/connexion` répondait en anglais.** On passait `error.message` de GoTrue tel quel, sur un
+  site français, avec un texte qui parle de son implémentation. C'est `error.code` qui est
+  traduit désormais, et le message brut ne s'affiche plus jamais.
+- **`MessageLigne` était un `<span>` inline**, donc sourd aux marges verticales : posé seul dans
+  une pile `space-y-*`, il se collait au bouton suivant. `inline-block` le règle **partout**.
+- **Tailwind v4 a retiré `cursor: pointer` des `<button>`.** « Se connecter » (un lien) prenait
+  la main, « Se déconnecter » (un bouton) non — et vingt-deux boutons du site étaient dans ce
+  cas. La règle est revenue dans `globals.css`, pas dans le composant de bouton : une classe à
+  ne pas oublier finit par être oubliée.
+- **`discord-echec` s'affichait en gris.** J'avais confondu la famille (constante) et le ton :
+  une constante peut très bien être un échec. Il est en `alerte`, donc annoncé immédiatement.
+- **React 19 réinitialise le formulaire après une action serveur.** Les boutons radio de
+  `/qualification` sont contrôlés par l'état, et React ne réécrit `checked` que si la valeur a
+  changé : après un échec, les réponses restaient en mémoire et disparaissaient de l'écran —
+  puis la soumission suivante repartait avec des champs vides. Le consentement est désormais
+  vérifié dans le navigateur (donc plus d'aller-retour, donc plus de réinitialisation), et les
+  champs sont remontés après chaque action.
+- **Supabase renvoie ses échecs de liaison dans le fragment** (`#error=...&error_code=
+identity_already_exists`), **que le serveur ne voit jamais.** La route de rappel n'y voyait
+  aucun `code` et concluait « annulé ». `MessageURL` lit le fragment côté navigateur, et **il
+  l'emporte sur ce que le serveur a deviné** : il porte la raison du fournisseur, là où la route
+  ne peut qu'inférer d'une absence.
+- **La validation native ne dit rien dans `/admin/formations`** : sa bulle ne s'affiche pas
+  quand le champ fautif est masqué, et la durée d'accès n'existe que pour un accompagnement. Le
+  formulaire bloquait en silence. La contrainte HTML reste la source de vérité (`:invalid`),
+  c'est l'affichage qui est à nous. Les champs obligatoires sont signalés.
+
+**Vérifié contre le site qui tourne** : le ton `alerte` et son `role="alert"`, les constantes en
+`info`, `compte-cree` en situation vraie et son effacement au rechargement, le succès en ligne,
+et surtout **`/espace?m=paiement-recu` avec une vraie session ouverte n'affiche rien** — le cas
+de l'URL forgée, qui est la raison d'être du système.
+
+**Pas encore vus** : les deux rendus dépendants de `discord-lie`, qui demandent un compte Discord
+jamais relié, et `paiement-recu` en positif, qui demande un encaissement réel — donc les clés
+Stripe et un produit `abonnement`, que le catalogue de la base partagée n'a toujours pas.
+
 ### Ce qui a été livré
 
 - **Discord — la réconciliation des rôles existe.** `npm run discord:reconcile` lit l'état réel
@@ -285,8 +358,6 @@ travail de référencement. Vérifié au build.
   quatre secondes de bout en bout. Le départ-retour, qui en était la prémisse, a été constaté
   avec un second compte — quitter et revenir efface bien tous les rôles. **Reste à la
   planifier** : rien ne l'appelle encore.
-- **Un système de messages** — il n'en existe aucun, et trois mécaniques improvisées se
-  partagent le besoin. Pris aussi.
 - **Où tourne le worker en production** : c'est un processus long, pas une route HTTP. Même
   question ouverte que le planificateur de la révocation quotidienne.
 
@@ -503,6 +574,22 @@ faire perdre un accès client silencieusement.
 
 **`SUPABASE_SERVICE_ROLE_KEY` contourne la RLS.** Serveur uniquement. Jamais dans un
 composant client, jamais dans une variable préfixée `NEXT_PUBLIC_`.
+
+**Un paramètre d'URL transporte un accent, jamais une proposition — et le fragment aussi.** Ce qu'un message affirme
+vient des données que la page a chargées, pas de la chaîne qu'on lui a passée — n'importe qui
+la tape à la main, et un favori la garde pour toujours. Le test avant d'ajouter un code à
+`lib/messages/catalogue.ts` : _si un inconnu tape cette URL sur une page où rien ne s'est
+passé, ce qu'il lit est-il encore vrai ?_ Si oui, c'est une constante. Sinon, c'est un code
+dépendant : il se construit à partir d'une `Preuve` (`lib/messages/preuves.ts`, type marqué,
+bornée à dix minutes) et **ne rend rien quand la preuve manque** — pas un message dégradé,
+pas de message. Et un message ne s'écrit jamais à la main : `MessageBloc` et `MessageLigne`
+posent le rôle ARIA à partir du ton, ce qui est la seule raison pour laquelle « Paiement
+reçu » ne peut plus s'afficher sans être annoncé.
+
+Le `#` compte autant que le `?` : **Supabase range ses échecs d'authentification dans le
+fragment**, qui n'est jamais envoyé au serveur. Une route de rappel qui n'y voit pas de `code`
+n'a donc pas le droit d'en conclure que la personne a annulé — elle n'en sait rien.
+`MessageURL` lit le fragment côté navigateur, et il l'emporte sur ce que le serveur a deviné.
 
 **L'argent est en centimes, en entier.** Jamais de flottant.
 

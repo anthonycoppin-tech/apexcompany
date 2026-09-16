@@ -7,8 +7,7 @@ import { ouvrirCheckout } from '@/lib/paiement/checkout';
 import { VERSION_CONSENTEMENT } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-
-export type EtatSouscription = { readonly erreur: string | null };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Souscrire directement à un abonnement, sans passer par l'audit.
@@ -28,14 +27,11 @@ export type EtatSouscription = { readonly erreur: string | null };
  * audit qui n'aura pas lieu. Le nom de famille se collectera au moment où la
  * facturation l'exige.
  */
-export async function souscrire(
-  _precedent: EtatSouscription,
-  donnees: FormData,
-): Promise<EtatSouscription> {
+export async function souscrire(_precedent: EtatAction, donnees: FormData): Promise<EtatAction> {
   const lu = (champ: string) => (donnees.get(champ) ?? '').toString().trim();
 
   const slug = lu('slug');
-  if (!slug) return { erreur: 'Produit introuvable.' };
+  if (!slug) return echoue('Produit introuvable.');
 
   const supabase = await createClient();
 
@@ -56,13 +52,12 @@ export async function souscrire(
     .eq('actif', true)
     .maybeSingle();
 
-  if (!formation) return { erreur: 'Ce produit n’est pas disponible.' };
+  if (!formation) return echoue('Ce produit n’est pas disponible.');
 
   if (formation.type_produit !== 'abonnement') {
-    return {
-      erreur:
-        'Ce programme ne se souscrit pas en ligne. Il passe par un échange d’orientation préalable.',
-    };
+    return echoue(
+      'Ce programme ne se souscrit pas en ligne. Il passe par un échange d’orientation préalable.',
+    );
   }
 
   const {
@@ -81,12 +76,12 @@ export async function souscrire(
     const prenom = lu('prenom');
     email = lu('email').toLowerCase();
 
-    if (!prenom) return { erreur: 'Ton prénom est nécessaire.' };
+    if (!prenom) return echoue('Ton prénom est nécessaire.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { erreur: 'Cette adresse email n’est pas valide.' };
+      return echoue('Cette adresse email n’est pas valide.');
     }
     if (lu('consentement') !== 'on') {
-      return { erreur: 'Merci d’accepter la politique de confidentialité pour continuer.' };
+      return echoue('Merci d’accepter la politique de confidentialité pour continuer.');
     }
 
     const creation = await creerCompteEtSession({
@@ -96,7 +91,7 @@ export async function souscrire(
       versionConsentement: VERSION_CONSENTEMENT,
     });
 
-    if (!creation.ok) return { erreur: creation.erreur };
+    if (!creation.ok) return echoue(creation.erreur);
 
     userId = creation.userId;
     emailVerifie = false;
@@ -125,8 +120,12 @@ export async function souscrire(
   //
   // Le compte vient d'être créé juste au-dessus dans le cas anonyme : la
   // personne est donc renvoyée vers la vérification, pas vers le paiement.
+  // Sans paramètre : l'écran de vérification se déduit de `email_confirmed_at`,
+  // que la page relit. Le `?verifier=1` d'avant était la moitié forgeable d'une
+  // condition dont l'autre moitié était déjà vraie — il n'y avait rien à
+  // remplacer, seulement à enlever.
   if (!emailVerifie) {
-    redirect(`/formations/${slug}/souscrire?verifier=1`);
+    redirect(`/formations/${slug}/souscrire`);
   }
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -136,11 +135,11 @@ export async function souscrire(
     email,
     formation,
     montantCents: formation.prix_cents,
-    urlSucces: `${site}/espace?paiement=ok`,
-    urlAnnulation: `${site}/formations/${slug}/souscrire?paiement=annule`,
+    urlSucces: `${site}/espace?m=paiement-recu`,
+    urlAnnulation: `${site}/formations/${slug}/souscrire?m=paiement-annule`,
   });
 
-  if ('erreur' in resultat) return { erreur: resultat.erreur };
+  if ('erreur' in resultat) return echoue(resultat.erreur);
 
   // Hors de tout try/catch : `redirect` lève une exception pour interrompre le
   // rendu, et un catch la prendrait pour un échec.
@@ -154,9 +153,9 @@ export async function souscrire(
  * personne verrait « vérifie ton email » sans moyen d'en redemander un.
  */
 export async function renvoyerVerification(
-  precedent: EtatSouscription,
+  precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatSouscription> {
+): Promise<EtatAction> {
   // La signature est imposée par `useActionState` : l'état précédent et le
   // FormData sont fournis, cette action-ci n'a besoin ni de l'un ni de l'autre.
   void precedent;
@@ -168,13 +167,13 @@ export async function renvoyerVerification(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email) return { erreur: 'Session expirée. Reconnecte-toi pour continuer.' };
+  if (!user?.email) return echoue('Session expirée. Reconnecte-toi pour continuer.');
 
   const { error } = await supabase.auth.resend({ type: 'signup', email: user.email });
 
   if (error) {
-    return { erreur: 'L’envoi a échoué. Réessaie dans un instant.' };
+    return echoue('L’envoi a échoué. Réessaie dans un instant.');
   }
 
-  return { erreur: null };
+  return reussi('Email renvoyé. Vérifie ta boîte de réception.');
 }

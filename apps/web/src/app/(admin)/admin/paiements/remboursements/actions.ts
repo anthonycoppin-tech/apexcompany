@@ -5,8 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { stripe } from '@/lib/stripe';
-
-export type EtatRemboursement = { readonly erreur: string | null; readonly ok: boolean };
+import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
  * Exécuter un remboursement chez le prestataire, puis l'enregistrer.
@@ -29,11 +28,11 @@ export type EtatRemboursement = { readonly erreur: string | null; readonly ok: b
  * Rembourser sans fermer l'accès, c'est offrir le produit.
  */
 export async function traiterRemboursement(
-  _precedent: EtatRemboursement,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatRemboursement> {
+): Promise<EtatAction> {
   const id = (donnees.get('refund_id') ?? '').toString();
-  if (!id) return { erreur: 'Remboursement introuvable.', ok: false };
+  if (!id) return echoue('Remboursement introuvable.');
 
   const supabase = await createClient();
 
@@ -41,7 +40,7 @@ export async function traiterRemboursement(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { erreur: 'Session expirée.', ok: false };
+  if (!user) return echoue('Session expirée.');
 
   // Lu sous RLS : `refunds_staff` réserve la table au staff.
   const { data: remboursement } = await supabase
@@ -52,27 +51,24 @@ export async function traiterRemboursement(
     .eq('id', id)
     .maybeSingle();
 
-  if (!remboursement) return { erreur: 'Remboursement introuvable.', ok: false };
+  if (!remboursement) return echoue('Remboursement introuvable.');
 
   if (remboursement.provider_refund_id) {
-    return { erreur: 'Ce remboursement a déjà été exécuté.', ok: false };
+    return echoue('Ce remboursement a déjà été exécuté.');
   }
 
   if (remboursement.statut === 'refuse') {
-    return { erreur: 'Ce remboursement a été refusé. Rouvre-le avant de l’exécuter.', ok: false };
+    return echoue('Ce remboursement a été refusé. Rouvre-le avant de l’exécuter.');
   }
 
   const paiement = remboursement.payments;
 
   if (!paiement?.provider_payment_id) {
-    return { erreur: 'Le paiement d’origine n’a pas de référence chez le prestataire.', ok: false };
+    return echoue('Le paiement d’origine n’a pas de référence chez le prestataire.');
   }
 
   if (paiement.provider !== 'stripe') {
-    return {
-      erreur: 'Seuls les paiements Stripe se remboursent depuis ici pour l’instant.',
-      ok: false,
-    };
+    return echoue('Seuls les paiements Stripe se remboursent depuis ici pour l’instant.');
   }
 
   let referenceStripe: string;
@@ -100,7 +96,7 @@ export async function traiterRemboursement(
       .update({ erreur: message })
       .eq('id', remboursement.id);
 
-    return { erreur: `Le prestataire a refusé : ${message}`, ok: false };
+    return echoue(`Le prestataire a refusé : ${message}`);
   }
 
   const { error } = await createServiceRoleClient().rpc('enregistrer_remboursement', {
@@ -112,17 +108,15 @@ export async function traiterRemboursement(
   if (error) {
     // L'argent est parti, l'enregistrement a échoué. Relancer est sans danger :
     // la clé d'idempotence renverra le même remboursement chez Stripe.
-    return {
-      erreur:
-        'Le remboursement a été exécuté chez le prestataire mais n’a pas pu être enregistré. Relance : l’opération ne sera pas refaite deux fois.',
-      ok: false,
-    };
+    return echoue(
+      'Le remboursement a été exécuté chez le prestataire mais n’a pas pu être enregistré. Relance : l’opération ne sera pas refaite deux fois.',
+    );
   }
 
   revalidatePath('/admin/paiements/remboursements');
   revalidatePath('/admin/paiements/transactions');
 
-  return { erreur: null, ok: true };
+  return reussi('Remboursement exécuté et enregistré.');
 }
 
 /**
@@ -134,15 +128,15 @@ export async function traiterRemboursement(
  * de découvrir un remboursement sans savoir d'où il vient.
  */
 export async function demanderRemboursement(
-  _precedent: EtatRemboursement,
+  _precedent: EtatAction,
   donnees: FormData,
-): Promise<EtatRemboursement> {
+): Promise<EtatAction> {
   const paymentId = (donnees.get('payment_id') ?? '').toString();
   const motif = (donnees.get('motif') ?? '').toString().trim();
   const montantSaisi = (donnees.get('montant_euros') ?? '').toString().trim().replace(',', '.');
 
-  if (!paymentId) return { erreur: 'Paiement introuvable.', ok: false };
-  if (!motif) return { erreur: 'Un motif est nécessaire.', ok: false };
+  if (!paymentId) return echoue('Paiement introuvable.');
+  if (!motif) return echoue('Un motif est nécessaire.');
 
   const supabase = await createClient();
 
@@ -150,7 +144,7 @@ export async function demanderRemboursement(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { erreur: 'Session expirée.', ok: false };
+  if (!user) return echoue('Session expirée.');
 
   const { data: paiement } = await supabase
     .from('payments')
@@ -158,10 +152,10 @@ export async function demanderRemboursement(
     .eq('id', paymentId)
     .maybeSingle();
 
-  if (!paiement) return { erreur: 'Paiement introuvable.', ok: false };
+  if (!paiement) return echoue('Paiement introuvable.');
 
   if (paiement.statut !== 'reussi') {
-    return { erreur: 'Seul un paiement encaissé peut être remboursé.', ok: false };
+    return echoue('Seul un paiement encaissé peut être remboursé.');
   }
 
   const montantCents = montantSaisi
@@ -169,13 +163,13 @@ export async function demanderRemboursement(
     : paiement.montant_cents;
 
   if (!Number.isFinite(montantCents) || montantCents <= 0) {
-    return { erreur: 'Le montant n’est pas valide.', ok: false };
+    return echoue('Le montant n’est pas valide.');
   }
 
   // Rembourser plus que ce qui a été encaissé n'a pas de sens, et Stripe le
   // refuserait de toute façon — autant le dire ici.
   if (montantCents > paiement.montant_cents) {
-    return { erreur: 'Le montant dépasse ce qui a été encaissé.', ok: false };
+    return echoue('Le montant dépasse ce qui a été encaissé.');
   }
 
   const { error } = await supabase.from('refunds').insert({
@@ -187,10 +181,10 @@ export async function demanderRemboursement(
   });
 
   if (error) {
-    return { erreur: 'L’enregistrement a échoué. Réessaie dans un instant.', ok: false };
+    return echoue('L’enregistrement a échoué. Réessaie dans un instant.');
   }
 
   revalidatePath('/admin/paiements/remboursements');
 
-  return { erreur: null, ok: true };
+  return reussi('Demande de remboursement enregistrée.');
 }

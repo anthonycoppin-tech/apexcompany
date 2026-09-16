@@ -3,13 +3,13 @@
 import { useActionState } from 'react';
 
 import { BoutonAction } from '@/components/ui';
+import { MessageLigne } from '@/components/message';
+import { REPOS, messageDe } from '@/lib/messages/types';
 
-import { ouvrirPaiement, type EtatPaiement } from './actions';
-
-const ETAT_INITIAL: EtatPaiement = { erreur: null };
+import { ouvrirPaiement } from './actions';
 
 export function BoutonPayer({ propositionId }: { propositionId: string }) {
-  const [etat, action, enCours] = useActionState(ouvrirPaiement, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(ouvrirPaiement, REPOS);
 
   return (
     <form action={action} className="space-y-3">
@@ -17,11 +17,7 @@ export function BoutonPayer({ propositionId }: { propositionId: string }) {
       <BoutonAction type="submit" disabled={enCours}>
         {enCours ? 'Ouverture du paiement…' : 'Payer et ouvrir mon accès'}
       </BoutonAction>
-      {etat.erreur && (
-        <p role="alert" className="text-sm text-alerte">
-          {etat.erreur}
-        </p>
-      )}
+      <MessageLigne message={messageDe(etat)} />
       <p className="text-xs text-encre-faible">
         Paiement sécurisé par Stripe. Ton accès s’ouvre dès l’encaissement.
       </p>

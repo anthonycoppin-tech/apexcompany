@@ -2,9 +2,10 @@
 
 import { useActionState, useState } from 'react';
 
-import { enregistrerFormation, type EtatFormation } from './actions';
+import { MessageBloc, MessageLigne } from '@/components/message';
+import { REPOS, alerte, messageDe } from '@/lib/messages/types';
 
-const ETAT_INITIAL: EtatFormation = { erreur: null, ok: false };
+import { enregistrerFormation } from './actions';
 
 export type FormationEditable = {
   id: string;
@@ -30,6 +31,18 @@ const TYPES = [
   { valeur: 'formation', libelle: 'Formation', acces: 'Illimité' },
 ] as const;
 
+/**
+ * Un champ du formulaire.
+ *
+ * **`obligatoire` est écrit, pas sous-entendu.** Rien ne distinguait un champ
+ * requis d'un champ facultatif : on le découvrait en cliquant sur « Créer le
+ * produit » et en ne voyant rien se passer. Le site marque déjà le contraire
+ * ailleurs (« Téléphone — facultatif » sur la souscription) ; ici la majorité
+ * des champs est facultative, donc c'est l'exception qu'on signale.
+ *
+ * `data-libelle` sert au récapitulatif de soumission : sans lui, il faudrait
+ * relire le contenu du `<label>`, qui porte aussi le texte d'aide.
+ */
 const Champ = ({
   nom,
   libelle,
@@ -41,9 +54,13 @@ const Champ = ({
   aide?: string;
 } & React.InputHTMLAttributes<HTMLInputElement>) => (
   <label className="block space-y-1 text-sm">
-    <span className="font-medium">{libelle}</span>
+    <span className="font-medium">
+      {libelle}
+      {props.required && <span className="font-normal text-encre-faible"> — obligatoire</span>}
+    </span>
     <input
       name={nom}
+      data-libelle={libelle}
       {...props}
       className="w-full rounded-douce border border-filet-fort bg-fond p-2 text-sm"
     />
@@ -64,15 +81,45 @@ const Champ = ({
  * changement de type ne parte en base et ne se fasse refuser par la contrainte.
  */
 export function FormulaireFormation({ formation }: { formation?: FormationEditable }) {
-  const [etat, action, enCours] = useActionState(enregistrerFormation, ETAT_INITIAL);
+  const [etat, action, enCours] = useActionState(enregistrerFormation, REPOS);
   const [type, setType] = useState(formation?.type_produit ?? 'accompagnement');
   const [publie, setPublie] = useState(formation?.actif ?? false);
   const [role, setRole] = useState(formation?.discord_role_id ?? '');
 
   const typeChoisi = TYPES.find((t) => t.valeur === type);
 
+  // Ce qui manque au moment où l'on a cliqué. Effacé à la moindre saisie : un
+  // reproche qui survit à sa correction est le défaut qu'on passe la semaine à
+  // retirer du reste du site.
+  const [manquants, setManquants] = useState<string[]>([]);
+
   return (
-    <form action={action} className="space-y-8">
+    <form
+      action={action}
+      onChange={() => setManquants([])}
+      // **La validation native ne dit rien d'utilisable ici.** Sa bulle est
+      // dans la langue du navigateur, elle disparaît au premier clic, et elle
+      // ne s'affiche pas du tout si le champ fautif est masqué — ce qui arrive
+      // dans ce formulaire, où la durée d'accès n'existe que pour un
+      // accompagnement. On garde la contrainte HTML, qui est la source de
+      // vérité, et on la rend visible avec nos propres moyens.
+      noValidate
+      onSubmit={(e) => {
+        const invalides = Array.from(
+          e.currentTarget.querySelectorAll<HTMLInputElement | HTMLSelectElement>(':invalid'),
+        );
+
+        if (invalides.length === 0) return;
+
+        e.preventDefault();
+        setManquants(invalides.map((c) => c.dataset.libelle ?? c.name));
+
+        const premier = invalides[0];
+        premier.focus({ preventScroll: true });
+        premier.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }}
+      className="space-y-8"
+    >
       {formation && <input type="hidden" name="id" value={formation.id} />}
 
       <section className="grid gap-5 rounded-carte border border-filet bg-fond p-5 sm:grid-cols-2">
@@ -212,10 +259,11 @@ export function FormulaireFormation({ formation }: { formation?: FormationEditab
             n'ouvre aucun accès. On peut préparer un brouillon sans rôle, on ne
             peut pas le publier. */}
         {publie && !role && (
-          <p className="rounded-douce border border-alerte/30 bg-alerte/5 p-3 text-sm text-alerte">
-            Sans rôle Discord, ce produit encaissera un paiement sans ouvrir d’accès. Ajoute le
-            rôle, ou décoche « Publié » pour l’enregistrer en brouillon.
-          </p>
+          <MessageBloc
+            message={alerte(
+              'Sans rôle Discord, ce produit encaissera un paiement sans ouvrir d’accès. Ajoute le rôle, ou décoche « Publié » pour l’enregistrer en brouillon.',
+            )}
+          />
         )}
 
         <div className="grid gap-5 sm:grid-cols-3">
@@ -251,8 +299,17 @@ export function FormulaireFormation({ formation }: { formation?: FormationEditab
         >
           {enCours ? 'Enregistrement…' : formation ? 'Enregistrer' : 'Créer le produit'}
         </button>
-        {etat.ok && <span className="text-sm text-succes">Enregistré.</span>}
-        {etat.erreur && <span className="text-sm text-alerte">{etat.erreur}</span>}
+        <MessageLigne
+          message={
+            manquants.length > 0
+              ? alerte(
+                  manquants.length === 1
+                    ? `Il manque : ${manquants[0]}.`
+                    : `Il manque ${manquants.length} champs : ${manquants.join(', ')}.`,
+                )
+              : messageDe(etat)
+          }
+        />
       </div>
     </form>
   );

@@ -3,7 +3,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { MessageLigne } from '@/components/message';
 import { BoutonAction, CHAMP, Carte, Conteneur } from '@/components/ui';
+import { alerte, type Message } from '@/lib/messages/types';
 import { destinationApresConnexion } from '@/lib/auth/destination';
 import { createClient } from '@/lib/supabase/client';
 
@@ -18,11 +20,35 @@ import { createClient } from '@/lib/supabase/client';
  * ouverte. La règle vit dans `destinationApresConnexion()`, partagée pour que
  * le header et cette page ne puissent pas diverger.
  */
+/**
+ * Les échecs d'authentification, dits en français.
+ *
+ * **`error.message` ne s'affiche jamais** : GoTrue répond en anglais (« Invalid
+ * login credentials ») sur un site qui est en français de bout en bout, et son
+ * texte parle de son implémentation, pas de ce que la personne doit faire. On
+ * traduit donc `error.code`, qui est stable, et on retombe sur une phrase
+ * générique pour ce qu'on n'a pas prévu.
+ *
+ * `invalid_credentials` ne distingue pas l'email inconnu du mot de passe faux,
+ * et c'est voulu : dire « ce compte n'existe pas » révèle qui est client.
+ */
+const MESSAGES_AUTH: Record<string, string> = {
+  invalid_credentials: 'Email ou mot de passe incorrect.',
+  email_not_confirmed:
+    'Votre adresse email n’est pas encore vérifiée. Ouvrez le lien que nous vous avons envoyé, puis réessayez.',
+  over_request_rate_limit: 'Trop de tentatives. Réessayez dans quelques minutes.',
+  user_banned: 'Ce compte est suspendu. Écrivez-nous depuis la page contact.',
+  validation_failed: 'Renseignez votre adresse email et votre mot de passe.',
+};
+
+const messageAuth = (code: string | undefined): string =>
+  (code && MESSAGES_AUTH[code]) || 'La connexion a échoué. Réessayez dans un instant.';
+
 export default function ConnexionPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
-  const [erreur, setErreur] = useState<string | null>(null);
+  const [message, setMessage] = useState<Message | null>(null);
   const [enCours, setEnCours] = useState(false);
 
   // Déjà connecté : cette page n'a rien à proposer. La garde est ici et non
@@ -51,7 +77,7 @@ export default function ConnexionPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setErreur(null);
+    setMessage(null);
     setEnCours(true);
 
     const supabase = createClient();
@@ -62,7 +88,7 @@ export default function ConnexionPage() {
 
     if (error) {
       setEnCours(false);
-      setErreur(error.message);
+      setMessage(alerte(messageAuth(error.code)));
       return;
     }
 
@@ -124,13 +150,7 @@ export default function ConnexionPage() {
             />
           </div>
 
-          {/* `role="alert"` pour que l'échec soit annoncé : sans lui, un lecteur
-              d'écran ne signale rien et l'utilisateur croit sa saisie partie. */}
-          {erreur && (
-            <p role="alert" className="text-sm text-alerte">
-              {erreur}
-            </p>
-          )}
+          <MessageLigne message={message} />
 
           <BoutonAction type="submit" disabled={enCours} className="w-full">
             {enCours ? 'Connexion…' : 'Se connecter'}
