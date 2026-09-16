@@ -1279,6 +1279,10 @@ export type Database = {
       }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      purger_prospects_inactifs: {
+        Args: { p_simulation?: boolean }
+        Returns: Json
+      }
       renouveler_abonnement: {
         Args: {
           p_event_id: string
@@ -1289,10 +1293,6 @@ export type Database = {
           p_provider_payment_id?: string
           p_subscription_id: string
         }
-        Returns: Json
-      }
-      purger_prospects_inactifs: {
-        Args: { p_simulation?: boolean }
         Returns: Json
       }
       revoquer_acces_expires: { Args: never; Returns: Json }

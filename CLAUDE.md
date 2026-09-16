@@ -43,8 +43,8 @@ du seed déjà posées sur la base hébergée.**
 
 **2. ~~Une migration attend un `db:push`.~~ Plus vrai au 16 septembre** :
 `20260915100000_a_audit_suppression.sql` est appliquée sur la base hébergée
-(`npx supabase migration list --linked`). **Mais une nouvelle attend** :
-`20260916120000_a_purge_prospects.sql` — voir l'encadré de `docs/09-CHANTIERS.md`.
+(`npx supabase migration list --linked`), comme `20260916120000_a_purge_prospects.sql` depuis.
+Dépôt et base sont alignés.
 
 ### Ce qui a été livré
 
@@ -714,7 +714,7 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   la CNIL** : trois ans après le dernier contact venant du prospect, puis suppression.
   L'adresse IP du consentement suit le consentement qu'elle prouve. Un juriste peut
   resserrer. **Écrit le 16 septembre** : `purger_prospects_inactifs()` et
-  `api/cron/purge-prospects`, avec un mode simulation — migration en attente de `db:push`.
+  `api/cron/purge-prospects`, avec un mode simulation — appliqué sur la base hébergée, planificateur à brancher.
 - **Hébergement** — **recommandé le 16 septembre 2026** : le site sur Vercel (plan Pro, le
   plan gratuit interdisant l'usage commercial), qui porte aussi la tâche quotidienne de
   révocation ; le worker Discord, processus long, sur un petit hébergeur de conteneur
