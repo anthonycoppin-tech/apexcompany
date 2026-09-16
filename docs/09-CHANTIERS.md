@@ -48,7 +48,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Intégration Discord — mise en service             | pris | Christopher | 12 sept. |
 | Réconciliation des rôles Discord                  | pris | Christopher | 13 sept. |
 | Système de messages (succès, erreur, information) | pris | Christopher | 13 sept. |
-| Audit de la suppression du contenu éditorial      | pris | Anthony     | 15 sept. |
+| IP du consentement                                | pris | Anthony     | 16 sept. |
 
 **Pour le système de messages : ce qu'il y a à balayer.** Les écrans du contenu éditorial,
 livrés le 13 septembre, avaient besoin d'afficher des succès et des erreurs. Ils n'ont inventé
@@ -100,10 +100,32 @@ Trois familles à couvrir : le succès, l'erreur, et l'information. Et un cas li
 oublier, celui qui a motivé ce chantier : un message qui affirme quelque chose de faux
 (« ton accès arrive dans la minute » après un échec enregistré) est pire que pas de message.
 
+### IP du consentement — pris le 16 septembre
+
+**Le manque.** `/admin/legal` l'a fait apparaître le 13 septembre : la colonne `consents.ip`
+existe depuis la migration du 7 septembre et **n'est jamais remplie**. Elle est `inet`, donc
+prévue, pas oubliée à la conception — c'est l'écriture qui ne la renseigne pas.
+
+**Pourquoi ça compte.** Une preuve de consentement se juge sur ce qu'elle permet de
+reconstituer : qui, quand, à quoi, et depuis où. Les trois premiers sont là — `user_id` ou
+`email`, `created_at`, `version_texte`. L'origine manque, et c'est précisément ce qu'on nous
+demandera le jour où quelqu'un affirme n'avoir jamais coché la case. Une colonne prévue et
+vide est pire qu'une colonne absente : elle laisse croire que la donnée existe.
+
+**Ce que ça touche.** Une seule écriture, dans `lib/auth/creation-compte.ts`. **Aucune
+migration** — la colonne existe déjà, donc rien à pousser sur la base partagée.
+
+**Le piège à ne pas rater** : derrière un hébergeur, `request.ip` est celui du proxy, pas du
+visiteur. C'est `x-forwarded-for` qu'il faut lire, en prenant **la première** adresse de la
+liste, et en acceptant que la valeur soit absente en local — auquel cas on écrit `null` plutôt
+qu'une adresse inventée. Une preuve qui ment est pire que pas de preuve, ce qui est la même
+règle que pour les chiffres de l'accueil et les indicateurs de `/admin/aide`.
+
 ## Fait
 
 | Sujet                                           | Quand    | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Audit de la suppression du contenu éditorial    | 15 sept. | Trois déclencheurs passés en `after update or delete` — `temoignages`, `formateurs_fiches` et `formations`, ce dernier ayant le même trou hérité de `audit_offres`. `trace_audit()` savait déjà traiter un DELETE. Vérifié des deux côtés : `db:check` à 81, pgTAP à `plan(11)`, et la CI confirme 82 tests verts sous Docker. **La migration n'est pas encore sur la base hébergée** — voir l'encadré en tête.                                                                                                                            |
 | Référencement du site public                    | 9 sept.  | `sitemap.xml`, `robots.txt`, Open Graph, données structurées. `robots.txt` interdit tout tant que `NEXT_PUBLIC_SITE_URL` n'est pas en HTTPS.                                                                                                                                                                                                                                                                                                                                                                                               |
 | Tunnel d'entrée au design system                | 9 sept.  | `/qualification`, `/connexion`, `/reserver`. A corrigé au passage une largeur de `Conteneur` qui ne s'appliquait pas sur cinq pages.                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Contenu éditorial — schéma                      | 9 sept.  | Tables `temoignages` et `formateurs_fiches`, RLS, seed, pgTAP, invariants PGlite. Migration appliquée sur le projet hébergé le 9 septembre, types régénérés.                                                                                                                                                                                                                                                                                                                                                                               |
