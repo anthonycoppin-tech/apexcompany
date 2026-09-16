@@ -60,10 +60,10 @@ export const TRAITEMENTS: Traitement[] = [
   {
     table: 'consents',
     finalite: 'La preuve du consentement donné au formulaire.',
-    donnees: ['email', 'date', 'version du texte accepté'],
+    donnees: ['email', 'date', 'version du texte accepté', 'adresse IP d’origine'],
     origine: 'Écrit à la création du compte, par la même fonction qui crée le compte.',
     aTrancher:
-      'La colonne prévue pour l’adresse IP existe et n’est jamais remplie. À confirmer : faut-il tracer l’adresse pour que le consentement soit opposable, ou l’horodatage et la version du texte suffisent-ils ?',
+      'L’adresse IP est enregistrée depuis le 16 septembre, et vide quand elle n’est pas connaissable — jamais une valeur de repli. Ce qu’elle vaut dépend de l’hébergeur, qui n’est pas choisi : elle n’est une preuve que s’il écrase « x-forwarded-for » par l’adresse réelle de la connexion. Sinon elle reste déclarative, et c’est à dire au juriste plutôt qu’à présenter comme une preuve.',
   },
   {
     table: 'appointments',

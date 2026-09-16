@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { ipDeLaRequete } from '@/lib/auth/ip-demande';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
@@ -23,7 +24,9 @@ export type ResultatCreation =
  *    ce serait perdre des prospects sur une étape qui ne coûte rien — mais
  *    elle bloque le paiement, vérifié là où l'argent se joue.
  * 2. **Le consentement**, avec la version du texte : sans elle, on ne peut pas
- *    prouver à quoi la personne a consenti le jour où elle le demande.
+ *    prouver à quoi la personne a consenti le jour où elle le demande. Et avec
+ *    l'adresse d'origine, qui dit d'où — `null` si elle n'est pas connaissable,
+ *    jamais une valeur de repli (`ip-demande.ts`).
  * 3. **La session**, posée sans passer par la boîte mail. `generateLink`
  *    fabrique le jeton d'un lien magique sans l'envoyer, `verifyOtp` le
  *    consomme immédiatement côté cookies. La personne enchaîne connectée, ce
@@ -76,6 +79,7 @@ export async function creerCompteEtSession({
     type: 'confidentialite',
     accorde: true,
     version_texte: versionConsentement,
+    ip: await ipDeLaRequete(),
   });
 
   const { data: lien } = await admin.auth.admin.generateLink({ type: 'magiclink', email });
