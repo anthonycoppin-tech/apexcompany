@@ -36,7 +36,9 @@ compile », jamais que « ça marche ».
 
 ### Discord — le plus bloquant
 
-**Aucune application Discord n'existe aujourd'hui**, et le worker `apps/bot` n'a jamais tourné.
+**L'application et le bot existent, et tournent sur un serveur de test** depuis le
+12 septembre 2026. Ce qui manque, c'est **l'accès administrateur au serveur de production**,
+pour y rejouer l'installation (`apps/bot/README.md`) et remplacer les identifiants ci-dessous.
 C'est bloquant dès l'entrée du tunnel, puisque c'est là que le rôle `invité` est attribué.
 
 | À fournir                                                | Variable                                  |
@@ -64,6 +66,7 @@ Manual Linking » doit être activé**. Il est désactivé par défaut, et sans 
 quel que soit l'état du reste. L'exigence vient de `@supabase/auth-js`, pas de notre code.
 
 **Sans ça** : aucun accès n'est jamais attribué ni retiré. Un client peut payer et ne rien
+recevoir.
 
 Le **lien d'invitation** est le seul des quatre à n'avoir aucune conséquence technique
 immédiate : rien ne casse sans lui. Il devient nécessaire le jour où l'on relance quelqu'un qui
@@ -71,7 +74,6 @@ a payé sans rejoindre le serveur — décidé le 13 septembre 2026 — puisqu'u
 pas où aller ne sert à rien. À créer en **invitation permanente, sans expiration** : une
 invitation qui périme transforme la relance en impasse, et personne ne s'en aperçoit avant la
 première plainte.
-recevoir.
 
 ### Supabase — la clé serveur — **fournie**
 
@@ -167,7 +169,7 @@ entité, **NEURO TRADE APEX LLC**.
 | Médiateur de la consommation retenu                      | Obligatoire pour qui vend à des consommateurs français     |
 | Régime de TVA retenu                                     | Voir ci-dessous                                            |
 | Durée de conservation d'un prospect qui n'achète jamais  | Rien ne purge `leads` aujourd'hui                          |
-| Le consentement doit-il tracer l'adresse IP ?            | La colonne existe et n'est jamais remplie                  |
+| Conserver l'adresse IP du consentement : combien de temps ? | Elle est enregistrée depuis le 16 septembre 2026           |
 
 ### Trois points pour un conseil, pas pour les développeurs
 
@@ -279,7 +281,7 @@ JJ/MM » pour une clé — **jamais par la clé elle-même**.
 
 | Élément                               | État | Qui s'en occupe | Note |
 | ------------------------------------- | ---- | --------------- | ---- |
-| Clé serveur Supabase                  | —    | —               | —    |
+| Clé serveur Supabase                  | fournie le 12/09 | —   | —    |
 | Serveur Discord créé                  | —    | —               | —    |
 | Application et bot Discord            | —    | —               | —    |
 | Rôle `invité` créé, bot au-dessus     | —    | —               | —    |

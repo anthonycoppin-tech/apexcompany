@@ -41,11 +41,9 @@ identifiants documentés, et la CI ne le voyait pas — elle avait été aligné
 **La règle générale vaut d'être retenue : une migration corrige le schéma, jamais les données
 du seed déjà posées sur la base hébergée.**
 
-**2. Une migration attend un `db:push`.** `20260915100000_a_audit_suppression.sql` est dans le
-dépôt et validée par `db:check` (PGlite), mais **elle n'est pas appliquée sur la base
-hébergée** — volontairement, parce que `db:push` écrit sur la base partagée et que la règle est
-de prévenir avant. Tant qu'elle n'est pas poussée, le dépôt et la base divergent d'un
-déclencheur. Elle ne change aucun type : pas de `db:types:linked` à relancer derrière.
+**2. ~~Une migration attend un `db:push`.~~ Plus vrai au 16 septembre** :
+`20260915100000_a_audit_suppression.sql` est appliquée sur la base hébergée
+(`npx supabase migration list --linked`). Dépôt et base sont alignés.
 
 ### Ce qui a été livré
 

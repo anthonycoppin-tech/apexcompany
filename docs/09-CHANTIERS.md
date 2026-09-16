@@ -12,18 +12,9 @@ dev partagée. Ça n'a pas changé.
 
 ## À faire avant de coder — état de la base partagée
 
-> **Une migration est dans le dépôt et pas sur la base hébergée.**
-> `20260915100000_a_audit_suppression.sql`, poussée sur `main` le 15 septembre. Elle ajoute
-> `or delete` à trois déclencheurs d'audit — validée par `npm run db:check` sur PGlite, **pas
-> appliquée** sur le projet hébergé, parce que `db:push` écrit sur la base partagée et que la
-> règle est de prévenir avant.
->
-> **Qui la pousse** : le premier des deux qui lit ceci et peut lancer `npm run db:push`, après
-> avoir prévenu l'autre. Elle ne change aucun type — pas de `db:types:linked` derrière. Une
-> fois faite, remplacer cet encadré par une ligne dans `Fait`.
->
-> Tant qu'elle n'est pas appliquée, supprimer un témoignage sur la base de dev n'écrit
-> toujours rien dans `audit_logs`, alors que le dépôt et les tests affirment le contraire.
+> **Dépôt et base hébergée sont alignés** — constaté le 16 septembre par
+> `npx supabase migration list --linked` : les 22 migrations du dépôt sont appliquées,
+> `20260915100000_a_audit_suppression.sql` comprise. Rien n'attend de `db:push`.
 
 > **Les comptes formateur du seed ont été renommés sur la base hébergée**, le 15 septembre.
 > `coach.a@apex.test` et `coach.b@apex.test` ne répondent plus : c'est `formateur.a@apex.test`
