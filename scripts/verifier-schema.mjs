@@ -635,6 +635,48 @@ async function main() {
   }
   verifier('un remboursement ne peut pas être supprimé', remboursementImmuable, true);
 
+  // ── Suivi commercial du formateur ────────────────────────────────────────
+  console.log('\nFormateur A — suivi commercial\n');
+  await devenir('33333333-3333-3333-3333-333333333333');
+  verifier(
+    'fait avancer le statut de son prospect',
+    (
+      await db.query(
+        `update public.leads set statut = 'contacte'
+         where id = 'b0000000-0000-0000-0000-000000000001' returning id`,
+      )
+    ).rows.length,
+    1,
+  );
+  verifier(
+    'ne peut pas changer le statut du prospect du formateur B',
+    (
+      await db.query(
+        `update public.leads set statut = 'perdu'
+         where id = 'b0000000-0000-0000-0000-000000000003' returning id`,
+      )
+    ).rows.length,
+    0,
+  );
+  let historiqueFerme = false;
+  try {
+    await db.exec(
+      `insert into public.lead_events (lead_id, type, payload)
+       values ('b0000000-0000-0000-0000-000000000003', 'echange', '{}'::jsonb);`,
+    );
+  } catch {
+    historiqueFerme = true;
+  }
+  verifier(
+    'ne peut pas écrire dans l’historique d’un prospect du formateur B',
+    historiqueFerme,
+    true,
+  );
+  await enTantQuAdministrateur();
+  await db.exec(
+    `update public.leads set statut = 'nouveau' where id = 'b0000000-0000-0000-0000-000000000001';`,
+  );
+
   // ── Purge des prospects inactifs ─────────────────────────────────────────
   // Le jeu d'essai vit dans le fichier pgTAP, pour n'exister qu'une fois.
   console.log('\nPurge des prospects inactifs\n');

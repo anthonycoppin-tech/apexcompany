@@ -554,8 +554,10 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   liaison Discord par `linkIdentity` puis `grant` du rôle `invité`, webhook Cal.com. **Écrit,
   jamais exécuté** : ni serveur Discord, ni compte Cal.com, ni clé serveur Supabase.
 - [~] **3 — Espace formateur** : tableau de bord, rendez-vous avec issue et compte rendu, liste
-  et fiche client, émission de proposition, statistiques. Même réserve — aucune de ces pages
-  n'a tourné contre de vraies données.
+  et fiche client, émission de proposition, statistiques. **Repris le 16 septembre pour l'usage
+  quotidien** : file « à faire », échanges consignés dans `lead_events`, historique, entonnoir et
+  délais. Même réserve — ces pages s'affichent, mais aucun formateur n'a de prospect sur la base
+  partagée, donc aucune n'a été vue remplie.
 - [~] **4 — Paiement une fois** : ouverture du paiement depuis la proposition, webhook Stripe,
   et `traiter_paiement()` qui fait tout le reste **en une transaction** — idempotence,
   commande, encaissement, inscription, facture, rôle Discord, proposition, prospect. Son

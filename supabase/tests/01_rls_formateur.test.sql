@@ -13,7 +13,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(17);
+select plan(20);
 
 -- Un remboursement, pour que le test « le formateur ne voit pas les
 -- remboursements » porte sur une table non vide. Un test qui passe parce que
@@ -124,6 +124,34 @@ select is(
 select is(
   (select count(*) from public.formations)::int, 4,
   'formateur A voit tout le catalogue, y compris le produit en brouillon'
+);
+
+-- ── Le suivi commercial : écrire sur les siens, jamais sur ceux des autres ──
+-- La fiche prospect consigne un échange et fait avancer le statut. Les deux
+-- écritures passent par la RLS, sans intermédiaire serveur privilégié.
+
+select is(
+  (with maj as (
+     update public.leads set statut = 'contacte'
+     where id = 'b0000000-0000-0000-0000-000000000001' returning 1
+   ) select count(*) from maj)::int, 1,
+  'formateur A fait avancer le statut de son prospect'
+);
+
+select is(
+  (with maj as (
+     update public.leads set statut = 'perdu'
+     where id = 'b0000000-0000-0000-0000-000000000003' returning 1
+   ) select count(*) from maj)::int, 0,
+  'formateur A ne peut pas changer le statut du prospect du formateur B'
+);
+
+select throws_ok(
+  $$insert into public.lead_events (lead_id, type, payload)
+    values ('b0000000-0000-0000-0000-000000000003', 'echange', '{}'::jsonb)$$,
+  '42501',
+  null,
+  'formateur A ne peut pas écrire dans l''historique d''un prospect du formateur B'
 );
 
 select * from finish();

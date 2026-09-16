@@ -81,11 +81,13 @@ correspondent ; le mélanger au back-office obligerait chaque page d'administrat
 la moitié de son contenu pour toujours.
 
 ```
-/formateur                  Tableau de bord : RDV du jour, à venir, propositions en attente
+/formateur                  Audits du jour, file « à faire » nominative, 7 prochains jours
 /formateur/rendez-vous      Audits passés et à venir, issue et compte rendu
-/formateur/clients          Ses clients et ses prospects
-/formateur/clients/[id]     Réponses au formulaire, historique, RDV, notes, statut d'accès
-/formateur/statistiques     RDV honorés, no-show, propositions émises, conversion
+/formateur/clients          Ses clients et ses prospects, par étape, avec recherche
+/formateur/clients/[id]     Contact, prochaine étape, réponses, budget, échanges, historique, RDV,
+                            propositions, accès
+/formateur/statistiques     Entonnoir, délais, présence, conversion par budget/blocage/réseau,
+                            motifs de perte
 ```
 
 La fiche client affiche en tête ce que le formulaire a capté — **budget déclaré, blocage
