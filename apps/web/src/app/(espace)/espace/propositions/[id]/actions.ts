@@ -65,7 +65,7 @@ export async function ouvrirPaiement(
   // vérifiée est une facture qu'on ne peut pas prouver avoir envoyée.
   if (!user.email_confirmed_at) {
     return echoue(
-      'Vérifiez d’abord votre adresse email : nous vous avons envoyé un lien à la création de votre compte. C’est ce qui garantit que votre facture arrive bien chez vous.',
+      'Vérifiez d’abord votre adresse email : nous vous avons envoyé un lien à la création de votre compte. C’est ce qui garantit que votre facture vous parvient bien.',
     );
   }
 

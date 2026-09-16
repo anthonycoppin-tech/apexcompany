@@ -188,7 +188,7 @@ export const ECRANS: ReadonlyArray<Ecran> = [
       {
         type: 'choix',
         champ: 'delai_objectif',
-        libelle: 'Dans quel délai souhaiteriez-vous atteindre votre objectif ?',
+        libelle: 'Dans quel délai souhaitez-vous atteindre votre objectif ?',
         options: DELAIS_OBJECTIF,
       },
     ],

@@ -106,7 +106,7 @@ export async function soumettreQualification(
 
   if (sessionEnCours.user) {
     return echoue(
-      'Vous êtes déjà connecté. Déconnectez-vous d’abord si vous voulez remplir ce formulaire pour quelqu’un d’autre.',
+      'Vous êtes déjà connecté. Déconnectez-vous d’abord pour remplir ce formulaire au nom de quelqu’un d’autre.',
     );
   }
 

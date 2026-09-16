@@ -44,13 +44,13 @@ export default async function Page({
         <h1 className="text-3xl font-extrabold sm:text-4xl">Réservez votre audit stratégique</h1>
         <p className="text-lg leading-relaxed text-encre-doux">
           Un point sur votre situation, pas une présentation de produit. Choisissez le créneau qui
-          vous arrange.
+          vous convient.
         </p>
       </div>
 
       {/* L'orphelin du tunnel : `/qualification` redirigeait ici avec un
           `?inscription=ok` que cette page n'a jamais lu. Le seul retour qui
-          dit « votre compte est créé » tombait dans le vide depuis le début. */}
+          dit « ton compte est créé » tombait dans le vide depuis le début. */}
       <MessageURL message={messageCompte(parametres[PARAM], preuve)} />
 
       {lienCal ? (

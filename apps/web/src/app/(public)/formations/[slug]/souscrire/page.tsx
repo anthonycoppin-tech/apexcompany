@@ -97,7 +97,7 @@ export default async function Page({
                   Votre compte est créé. Nous vous avons envoyé un lien de vérification à{' '}
                   <span className="font-medium text-encre">{user?.email}</span>. Cliquez dessus,
                   puis revenez sur cette page pour finaliser votre souscription — c’est la garantie
-                  que vos factures arrivent bien chez vous.
+                  que vos factures vous parviennent bien.
                 </p>
               </div>
               <BoutonRenvoyer />

@@ -121,7 +121,7 @@ export async function emettreProposition(
   });
 
   if (error) {
-    return echoue("L'émission a échoué. Réessaie dans un instant.");
+    return echoue("L'émission a échoué. Réessayez dans un instant.");
   }
 
   // Le prospect avance dans le pipeline. `gagne` attendra le paiement : c'est le
