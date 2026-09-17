@@ -1,16 +1,29 @@
 import Link from 'next/link';
 
+import { formaterMontant } from '@apex/db';
+
 import { Tableau, Tuile } from '@/components/admin';
+import { Histogramme } from '@/components/histogramme';
 import { SOURCES } from '@/lib/crm/pipeline';
 import {
   JOUR_MS,
   MOTIFS_PERTE,
+  SANS_SUIVI_JOURS,
+  joursRestants,
   duree,
   mediane,
   pourcentage,
   type MotifPerte,
 } from '@/lib/formateur/suivi';
-import { BLOCAGES, TRANCHES_BUDGET } from '@/lib/qualification/questionnaire';
+import {
+  BLOCAGES,
+  DELAIS_OBJECTIF,
+  NIVEAUX_TRADING,
+  PROP_FIRM,
+  SITUATIONS_PRO,
+  TRANCHES_BUDGET,
+  ZONES_GEO,
+} from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
 
 const PERIODES = [
@@ -31,8 +44,10 @@ type Ligne = { cle: string; libelle: string; prospects: number; clients: number 
  * ses prospects, ses audits et ses propositions, donc compter tout ce qui
  * revient donne exactement ses chiffres.
  *
- * **Aucun montant.** La conversion se mesure en personnes, pas en euros
- * encaissés — ce que le formateur n'a pas à connaître.
+ * **Aucun encaissement.** Les seuls montants de cet écran sont ceux des
+ * propositions qu'il a émises — le prix qu'il a proposé, l'exception documentée
+ * dans CLAUDE.md. Ce que le client a réellement payé, remboursements compris,
+ * lui reste fermé : `orders` et `payments` ne lui sont pas lisibles.
  *
  * Deux lectures cohabitent, et l'écran le dit : l'**entonnoir** suit les
  * prospects arrivés sur la période jusqu'où ils sont allés, l'**activité**
@@ -52,17 +67,27 @@ export default async function Page({
 
   const supabase = await createClient();
 
-  const [leads, rdv, propositions, echanges] = await Promise.all([
+  const [leads, rdv, propositions, echanges, inscriptions, notes] = await Promise.all([
     supabase
       .from('leads')
-      .select('id, statut, source, tranche_budget, blocage, created_at, user_id'),
+      .select(
+        'id, statut, source, tranche_budget, blocage, niveau_trading, delai_objectif, prop_firm, situation_pro, zone_geo, created_at, user_id',
+      ),
     supabase.from('appointments').select('id, lead_id, debut, created_at, issue, statut'),
-    supabase.from('propositions').select('id, statut, created_at, updated_at, lead_id, user_id'),
+    supabase
+      .from('propositions')
+      .select(
+        'id, statut, created_at, updated_at, lead_id, user_id, montant_cents, devise, expire_le, formation_id, formations(titre, prix_cents)',
+      ),
     supabase
       .from('lead_events')
       .select('lead_id, created_at, payload')
       .eq('type', 'echange')
       .order('created_at'),
+    supabase
+      .from('inscriptions')
+      .select('id, statut, date_debut, date_fin_acces, formations(titre, modalite)'),
+    supabase.from('suivi_notes').select('inscription_id, type, visible_client, created_at'),
   ]);
 
   const tousLeads = leads.data ?? [];
@@ -213,7 +238,99 @@ export default async function Page({
       valeur,
     };
   });
-  const maxSemaine = Math.max(1, ...semaines.map((s) => s.valeur));
+
+  // ── Ventes ───────────────────────────────────────────────────────────────
+  // « Vendu » veut dire : proposition acceptée, au montant proposé. C'est ce
+  // que le formateur a signé, pas ce qui a été encaissé.
+  const acceptees = propsPeriode.filter((p) => p.statut === 'acceptee');
+  const signe = acceptees.reduce((total, p) => total + p.montant_cents, 0);
+  const devise = toutesProps[0]?.devise ?? 'EUR';
+  const enAttente = toutesProps.filter(
+    (p) => p.statut === 'envoyee' && (!p.expire_le || new Date(p.expire_le).getTime() > maintenant),
+  );
+  const montantEnAttente = enAttente.reduce((total, p) => total + p.montant_cents, 0);
+  const remises = acceptees
+    .filter((p) => (p.formations?.prix_cents ?? 0) > 0)
+    .map((p) => 1 - p.montant_cents / p.formations!.prix_cents);
+  const remiseMoyenne = remises.length ? remises.reduce((a, b) => a + b, 0) / remises.length : null;
+
+  type VenteProduit = {
+    cle: string;
+    titre: string;
+    emises: number;
+    acceptees: number;
+    signe: number;
+    catalogue: number;
+  };
+  const parProduit = new Map<string, VenteProduit>();
+  for (const p of propsPeriode) {
+    const ligne = parProduit.get(p.formation_id) ?? {
+      cle: p.formation_id,
+      titre: p.formations?.titre ?? 'Produit retiré',
+      emises: 0,
+      acceptees: 0,
+      signe: 0,
+      catalogue: 0,
+    };
+    ligne.emises += 1;
+    if (p.statut === 'acceptee') {
+      ligne.acceptees += 1;
+      ligne.signe += p.montant_cents;
+      ligne.catalogue += p.formations?.prix_cents ?? p.montant_cents;
+    }
+    parProduit.set(p.formation_id, ligne);
+  }
+  const ventesParProduit = [...parProduit.values()].sort(
+    (a, b) => b.signe - a.signe || b.emises - a.emises,
+  );
+
+  // ── Formulaires reçus, sur les mêmes semaines que les audits ─────────────
+  const formulairesParSemaine = semaines.map((semaine, i) => {
+    const fin = maintenant - (SEMAINES - 1 - i) * 7 * JOUR_MS;
+    const debut = fin - 7 * JOUR_MS;
+    return {
+      libelle: semaine.libelle,
+      detail: `Semaine du ${semaine.libelle}`,
+      valeur: tousLeads.filter((l) => {
+        const t = new Date(l.created_at).getTime();
+        return t > debut && t <= fin;
+      }).length,
+    };
+  });
+
+  const parNiveau = repartition((l) => l.niveau_trading, libellesDe(NIVEAUX_TRADING));
+  const parDelai = repartition((l) => l.delai_objectif, libellesDe(DELAIS_OBJECTIF));
+  const parPropFirm = repartition((l) => l.prop_firm, libellesDe(PROP_FIRM));
+  const parSituation = repartition((l) => l.situation_pro, libellesDe(SITUATIONS_PRO));
+  const parZone = repartition((l) => l.zone_geo, libellesDe(ZONES_GEO));
+
+  // ── Accompagnements ──────────────────────────────────────────────────────
+  // L'état du portefeuille est celui du jour ; seules les notes et les
+  // nouvelles inscriptions suivent la période choisie.
+  const toutesInscriptions = inscriptions.data ?? [];
+  const actives = toutesInscriptions.filter((i) => i.statut === 'active');
+  const individuels = actives.filter((i) => i.formations?.modalite === 'individuel');
+  const finSous30 = actives.filter((i) => {
+    const restants = joursRestants(i.date_fin_acces, maintenant);
+    return restants !== null && restants <= 30;
+  }).length;
+  const toutesNotes = notes.data ?? [];
+  const derniereNote = new Map<string, string>();
+  for (const n of toutesNotes) {
+    const actuelle = derniereNote.get(n.inscription_id);
+    if (!actuelle || n.created_at > actuelle) derniereNote.set(n.inscription_id, n.created_at);
+  }
+  const aReprendre = individuels.filter(
+    (i) =>
+      maintenant - new Date(derniereNote.get(i.id) ?? i.date_debut).getTime() >
+      SANS_SUIVI_JOURS * JOUR_MS,
+  ).length;
+  const sansObjectif = individuels.filter(
+    (i) => !toutesNotes.some((n) => n.inscription_id === i.id && n.type === 'objectif'),
+  ).length;
+  const notesPeriode = toutesNotes.filter((n) => dansPeriode(n.created_at));
+  const partagees = notesPeriode.filter((n) => n.visible_client).length;
+  const nouveaux = toutesInscriptions.filter((i) => dansPeriode(i.date_debut)).length;
 
   return (
     <div className="space-y-10">
@@ -271,6 +388,67 @@ export default async function Page({
 
       <section className="space-y-4">
         <div className="space-y-1">
+          <h2 className="text-xl font-bold">Ventes</h2>
+          <p className="text-sm text-encre-doux">
+            Vos propositions acceptées sur la période, au montant que vous avez proposé — pas ce qui
+            a été encaissé.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <Tuile
+            libelle="Ventes"
+            valeur={String(acceptees.length)}
+            detail={`${pourcentage(acceptees.length, propsPeriode.length)} des propositions émises`}
+          />
+          <Tuile
+            libelle="Montant signé"
+            valeur={formaterMontant(signe, devise)}
+            detail={
+              acceptees.length
+                ? `${formaterMontant(Math.round(signe / acceptees.length), devise)} par vente en moyenne`
+                : 'Aucune vente sur la période'
+            }
+          />
+          <Tuile
+            libelle="Remise moyenne"
+            valeur={remiseMoyenne === null ? '—' : `${Math.round(remiseMoyenne * 100)} %`}
+            detail="Écart au prix catalogue"
+          />
+          <Tuile
+            libelle="En attente de réponse"
+            valeur={String(enAttente.length)}
+            detail={
+              enAttente.length
+                ? `${formaterMontant(montantEnAttente, devise)} proposés`
+                : 'Aucune proposition ouverte'
+            }
+          />
+        </div>
+        {ventesParProduit.length > 0 && (
+          <Tableau
+            colonnes={['Produit', 'Émises', 'Acceptées', 'Taux', 'Montant signé', 'Remise']}
+            largeurMin="36rem"
+          >
+            {ventesParProduit.map((v) => (
+              <tr key={v.cle} className="border-b border-filet last:border-0">
+                <td className="py-2.5 pr-4 font-medium">{v.titre}</td>
+                <td className="py-2.5 pr-4 tabular-nums">{v.emises}</td>
+                <td className="py-2.5 pr-4 tabular-nums">{v.acceptees}</td>
+                <td className="py-2.5 pr-4 tabular-nums">{pourcentage(v.acceptees, v.emises)}</td>
+                <td className="py-2.5 pr-4 tabular-nums">
+                  {v.acceptees ? formaterMontant(v.signe, devise) : '—'}
+                </td>
+                <td className="py-2.5 pr-4 tabular-nums">
+                  {v.catalogue ? `${Math.round((1 - v.signe / v.catalogue) * 100)} %` : '—'}
+                </td>
+              </tr>
+            ))}
+          </Tableau>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <div className="space-y-1">
           <h2 className="text-xl font-bold">Entonnoir</h2>
           <p className="text-sm text-encre-doux">
             Les prospects arrivés sur la période, et jusqu’où ils sont allés.
@@ -325,32 +503,17 @@ export default async function Page({
           <h2 className="text-xl font-bold">Audits honorés, semaine par semaine</h2>
           <p className="text-sm text-encre-doux">Les {SEMAINES} dernières semaines.</p>
         </div>
-        <div
-          className="flex h-40 items-end gap-2 border-b border-filet"
-          role="img"
-          aria-label={`Audits honorés par semaine : ${semaines.map((s) => `${s.libelle} ${s.valeur}`).join(', ')}`}
-        >
-          {semaines.map((s) => (
-            <div
-              key={s.libelle}
-              className="flex h-full flex-1 flex-col items-center justify-end gap-1"
-              title={`Semaine du ${s.libelle} : ${s.valeur}`}
-            >
-              <span className="text-xs tabular-nums text-encre-doux">{s.valeur || ''}</span>
-              <span
-                className="w-full max-w-10 rounded-t-[4px] bg-accent"
-                style={{ height: `${(s.valeur / maxSemaine) * 80}%` }}
-              />
-            </div>
-          ))}
+        <Histogramme titre="Audits honorés par semaine" points={semaines} />
+      </section>
+
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold">Formulaires reçus, semaine par semaine</h2>
+          <p className="text-sm text-encre-doux">
+            Les prospects qui vous ont été confiés, par semaine d’arrivée.
+          </p>
         </div>
-        <div className="flex gap-2" aria-hidden="true">
-          {semaines.map((s) => (
-            <span key={s.libelle} className="flex-1 text-center text-xs text-encre-faible">
-              {s.libelle}
-            </span>
-          ))}
-        </div>
+        <Histogramme titre="Formulaires reçus par semaine" points={formulairesParSemaine} />
       </section>
 
       <section className="grid gap-8 lg:grid-cols-2">
@@ -392,6 +555,11 @@ export default async function Page({
         { titre: 'Conversion par budget déclaré', lignes: parBudget },
         { titre: 'Conversion par blocage', lignes: parBlocage },
         { titre: 'Conversion par réseau d’origine', lignes: parSource },
+        { titre: 'Conversion par niveau', lignes: parNiveau },
+        { titre: 'Conversion par délai visé', lignes: parDelai },
+        { titre: 'Conversion par situation prop firm', lignes: parPropFirm },
+        { titre: 'Conversion par situation professionnelle', lignes: parSituation },
+        { titre: 'Conversion par zone', lignes: parZone },
       ].map((bloc) => (
         <section key={bloc.titre} className="space-y-3">
           <h2 className="text-xl font-bold">{bloc.titre}</h2>
@@ -440,6 +608,48 @@ export default async function Page({
             )}
           </ul>
         )}
+      </section>
+
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold">Accompagnements</h2>
+          <p className="text-sm text-encre-doux">
+            Les clients qui vous sont confiés, à ce jour. Les notes et les nouveaux accompagnements
+            suivent la période choisie.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <Tuile
+            libelle="En cours"
+            valeur={String(actives.length)}
+            detail={`${individuels.length} individuel${individuels.length > 1 ? 's' : ''}, ${actives.length - individuels.length} en groupe`}
+            href="/formateur/accompagnements"
+          />
+          <Tuile
+            libelle="Suivi à reprendre"
+            valeur={String(aReprendre)}
+            detail={`Sans note depuis ${SANS_SUIVI_JOURS} jours`}
+            ton={aReprendre > 0 ? 'probleme' : 'neutre'}
+            href="/formateur/accompagnements?vue=a-reprendre"
+          />
+          <Tuile
+            libelle="Fin d’accès sous 30 jours"
+            valeur={String(finSous30)}
+            detail="Le moment de parler de la suite"
+            href="/formateur/accompagnements?vue=fin-proche"
+          />
+          <Tuile
+            libelle="Notes écrites"
+            valeur={String(notesPeriode.length)}
+            detail={`${partagees} partagée${partagees > 1 ? 's' : ''} avec le client`}
+          />
+        </div>
+        <p className="text-sm text-encre-doux">
+          Nouveaux accompagnements sur la période : {nouveaux} ·{' '}
+          {sansObjectif > 0
+            ? `sans objectif fixé : ${sansObjectif}`
+            : 'chaque accompagnement individuel a un objectif'}
+        </p>
       </section>
     </div>
   );

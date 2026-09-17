@@ -1,9 +1,19 @@
 import Link from 'next/link';
 
 import { Pastille, Tuile, type Ton } from '@/components/admin';
+import { Coordonnees } from '@/components/coordonnees';
 import { Carte, LISTE } from '@/components/ui';
 import { bornesDuJour, dateCourte, dateHeure, heure } from '@/lib/format';
-import { JOUR_MS, depuis, nomComplet, pourcentage, scoreAppel } from '@/lib/formateur/suivi';
+import {
+  ISSUES_RDV,
+  JOUR_MS,
+  SANS_SUIVI_JOURS,
+  depuis,
+  joursRestants,
+  nomComplet,
+  pourcentage,
+  scoreAppel,
+} from '@/lib/formateur/suivi';
 import { libelle } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
 
@@ -43,58 +53,80 @@ export default async function Page() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [moi, aujourdhui, semaine, leads, rdvPasses, propositions, evenements, finsAcces] =
-    await Promise.all([
-      user
-        ? supabase.from('profiles').select('prenom').eq('id', user.id).maybeSingle()
-        : Promise.resolve({ data: null }),
-      supabase
-        .from('appointments')
-        .select(
-          'id, debut, statut, issue, leads(id, prenom, nom, tranche_budget, blocage, niveau_trading)',
-        )
-        .gte('debut', debut)
-        .lt('debut', fin)
-        .neq('statut', 'annule')
-        .order('debut'),
-      supabase
-        .from('appointments')
-        .select('id, debut, leads(id, prenom, nom)')
-        .gte('debut', fin)
-        .lt('debut', iso(maintenant + 7 * JOUR_MS))
-        .neq('statut', 'annule')
-        .order('debut'),
-      supabase
-        .from('leads')
-        .select(
-          'id, prenom, nom, telephone, statut, tranche_budget, delai_objectif, created_at, user_id',
-        )
-        .in('statut', ['nouveau', 'contacte', 'rdv', 'proposition']),
-      supabase
-        .from('appointments')
-        .select('id, debut, issue, lead_id, leads(id, prenom, nom, statut, user_id)')
-        .lt('debut', iso(maintenant))
-        .gte('debut', iso(maintenant - 30 * JOUR_MS))
-        .neq('statut', 'annule')
-        .order('debut', { ascending: false }),
-      supabase
-        .from('propositions')
-        .select('id, statut, expire_le, user_id, lead_id, created_at, formations(titre)')
-        .gte('created_at', iso(maintenant - 30 * JOUR_MS)),
-      supabase
-        .from('lead_events')
-        .select('lead_id, created_at')
-        .eq('type', 'echange')
-        .gte('created_at', iso(maintenant - 60 * JOUR_MS))
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('inscriptions')
-        .select('id, date_fin_acces, user_id, formations(titre)')
-        .eq('statut', 'active')
-        .not('date_fin_acces', 'is', null)
-        .lte('date_fin_acces', iso(maintenant + FIN_ACCES_JOURS * JOUR_MS).slice(0, 10))
-        .order('date_fin_acces'),
-    ]);
+  const [
+    moi,
+    aujourdhui,
+    semaine,
+    leads,
+    rdvPasses,
+    propositions,
+    evenements,
+    accompagnements,
+    prochain,
+  ] = await Promise.all([
+    user
+      ? supabase.from('profiles').select('prenom').eq('id', user.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from('appointments')
+      .select(
+        'id, debut, statut, issue, leads(id, prenom, nom, telephone, tranche_budget, blocage, niveau_trading)',
+      )
+      .gte('debut', debut)
+      .lt('debut', fin)
+      .neq('statut', 'annule')
+      .order('debut'),
+    supabase
+      .from('appointments')
+      .select('id, debut, leads(id, prenom, nom, telephone)')
+      .gte('debut', fin)
+      .lt('debut', iso(maintenant + 7 * JOUR_MS))
+      .neq('statut', 'annule')
+      .order('debut'),
+    supabase
+      .from('leads')
+      .select(
+        'id, prenom, nom, telephone, statut, tranche_budget, delai_objectif, created_at, user_id',
+      )
+      .in('statut', ['nouveau', 'contacte', 'rdv', 'proposition']),
+    supabase
+      .from('appointments')
+      .select('id, debut, issue, lead_id, leads(id, prenom, nom, statut, user_id)')
+      .lt('debut', iso(maintenant))
+      .gte('debut', iso(maintenant - 30 * JOUR_MS))
+      .neq('statut', 'annule')
+      .order('debut', { ascending: false }),
+    supabase
+      .from('propositions')
+      .select('id, statut, expire_le, user_id, lead_id, created_at, formations(titre)')
+      .gte('created_at', iso(maintenant - 30 * JOUR_MS)),
+    supabase
+      .from('lead_events')
+      .select('lead_id, created_at')
+      .eq('type', 'echange')
+      .gte('created_at', iso(maintenant - 60 * JOUR_MS))
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('inscriptions')
+      .select(
+        'id, date_debut, date_fin_acces, user_id, formations(titre, modalite), suivi_notes(created_at)',
+      )
+      .eq('statut', 'active')
+      .order('date_fin_acces'),
+    // Le prochain audit, qu'il soit aujourd'hui ou dans dix jours : c'est lui
+    // qu'on prépare, et ses coordonnées doivent être à portée de main si
+    // quelque chose bouge.
+    supabase
+      .from('appointments')
+      .select(
+        'id, debut, leads(id, prenom, nom, email, telephone, tranche_budget, blocage, niveau_trading, delai_objectif, prop_firm, formations:produit_souhaite_id(titre))',
+      )
+      .gte('debut', iso(maintenant))
+      .neq('statut', 'annule')
+      .order('debut')
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   const dernierEchange = new Map<string, string>();
   for (const e of evenements.data ?? []) {
@@ -197,34 +229,58 @@ export default async function Page() {
     });
   }
 
-  // 6. Les accès qui se terminent — le moment de parler de la suite.
-  const { data: clientsFin } = finsAcces.data?.length
+  // 6. Les accompagnements : ceux qui se terminent — le moment de parler de
+  // la suite —, et les suivis individuels laissés sans note. Ancrés sur
+  // l'inscription, pas sur la fiche prospect : le client suivi n'a pas
+  // forcément été vendu par ce formateur.
+  const actifs = accompagnements.data ?? [];
+  const { data: personnes } = actifs.length
     ? await supabase
-        .from('leads')
-        .select('id, prenom, nom, user_id')
+        .from('profiles')
+        .select('id, prenom, nom, email')
         .in(
-          'user_id',
-          finsAcces.data.map((i) => i.user_id),
+          'id',
+          actifs.map((i) => i.user_id),
         )
     : {
-        data: [] as Array<{
-          id: string;
-          prenom: string | null;
-          nom: string | null;
-          user_id: string | null;
-        }>,
+        data: [] as Array<{ id: string; prenom: string | null; nom: string | null; email: string }>,
       };
-  for (const i of finsAcces.data ?? []) {
-    const l = clientsFin?.find((c) => c.user_id === i.user_id);
-    if (!l) continue;
+  const personne = new Map((personnes ?? []).map((p) => [p.id, p]));
+
+  for (const i of actifs) {
+    const p = personne.get(i.user_id);
+    const qui = nomComplet(p, p?.email ?? 'Client');
+    const restants = joursRestants(i.date_fin_acces, maintenant);
+    if (restants !== null && restants <= FIN_ACCES_JOURS) {
+      taches.push({
+        cle: `fin-${i.id}`,
+        ton: 'neutre',
+        categorie: 'Accès qui se termine',
+        qui,
+        href: `/formateur/accompagnements/${i.id}`,
+        detail: `${i.formations?.titre ?? 'Accès'} · jusqu’au ${dateCourte(i.date_fin_acces)}`,
+        ordre: 5,
+      });
+    }
+
+    if (i.formations?.modalite !== 'individuel') continue;
+    const derniere = (i.suivi_notes ?? [])
+      .map((n) => n.created_at)
+      .sort()
+      .at(-1);
+    if (maintenant - new Date(derniere ?? i.date_debut).getTime() <= SANS_SUIVI_JOURS * JOUR_MS) {
+      continue;
+    }
     taches.push({
-      cle: `fin-${i.id}`,
-      ton: 'neutre',
-      categorie: 'Accès qui se termine',
-      qui: nomComplet(l),
-      href: `/formateur/clients/${l.id}`,
-      detail: `${i.formations?.titre ?? 'Accès'} · jusqu’au ${dateCourte(i.date_fin_acces)}`,
-      ordre: 5,
+      cle: `suivi-${i.id}`,
+      ton: 'attente',
+      categorie: 'Suivi à reprendre',
+      qui,
+      href: `/formateur/accompagnements/${i.id}`,
+      detail: `${i.formations?.titre ?? 'Accompagnement'} · ${
+        derniere ? `dernière note ${depuis(derniere, maintenant)}` : 'aucune note depuis le début'
+      }`,
+      ordre: 4,
     });
   }
 
@@ -251,6 +307,8 @@ export default async function Page() {
           {moi.data?.prenom ? `Bonjour ${moi.data.prenom}` : 'Tableau de bord'}
         </h1>
       </header>
+
+      {prochain.data && <ProchainAudit rdv={prochain.data} maintenant={maintenant} />}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Tuile
@@ -297,8 +355,18 @@ export default async function Page() {
                   )}
                 </span>
                 {rdv.issue ? (
-                  <Pastille ton={rdv.issue === 'honore' ? 'bon' : 'neutre'}>{rdv.issue}</Pastille>
+                  <Pastille ton={rdv.issue === 'honore' ? 'bon' : 'neutre'}>
+                    {ISSUES_RDV[rdv.issue]}
+                  </Pastille>
                 ) : null}
+                {rdv.leads?.telephone && (
+                  <a
+                    href={`tel:${rdv.leads.telephone.replace(/\s/g, '')}`}
+                    className="text-encre-doux tabular-nums hover:underline"
+                  >
+                    {rdv.leads.telephone}
+                  </a>
+                )}
                 {rdv.leads && (
                   <Link
                     href={`/formateur/clients/${rdv.leads.id}`}
@@ -365,6 +433,14 @@ export default async function Page() {
                 ) : (
                   <span className="flex-1">Réservation sans fiche</span>
                 )}
+                {rdv.leads?.telephone && (
+                  <a
+                    href={`tel:${rdv.leads.telephone.replace(/\s/g, '')}`}
+                    className="text-encre-doux tabular-nums hover:underline"
+                  >
+                    {rdv.leads.telephone}
+                  </a>
+                )}
               </li>
             ))}
           </ul>
@@ -383,5 +459,95 @@ export default async function Page() {
         </Link>
       </p>
     </div>
+  );
+}
+
+type Prospect = {
+  id: string;
+  prenom: string | null;
+  nom: string | null;
+  email: string;
+  telephone: string | null;
+  tranche_budget: Parameters<typeof libelle>[1];
+  blocage: Parameters<typeof libelle>[1];
+  niveau_trading: Parameters<typeof libelle>[1];
+  delai_objectif: Parameters<typeof libelle>[1];
+  prop_firm: Parameters<typeof libelle>[1];
+  formations: { titre: string } | null;
+};
+
+/**
+ * Le prochain audit, en tête d'écran : quand, avec qui, comment le joindre, et
+ * ce qu'il a déclaré. Tout ce qu'il faut pour décrocher à l'heure — ou pour
+ * prévenir d'un retard — sans ouvrir la fiche.
+ */
+function ProchainAudit({
+  rdv,
+  maintenant,
+}: {
+  rdv: { id: string; debut: string; leads: Prospect | null };
+  maintenant: number;
+}) {
+  const l = rdv.leads;
+  const minutes = Math.round((new Date(rdv.debut).getTime() - maintenant) / 60_000);
+  const quand =
+    minutes < 60
+      ? `dans ${Math.max(minutes, 0)} min`
+      : minutes < 24 * 60
+        ? `dans ${Math.round(minutes / 60)} h`
+        : new Date(rdv.debut).toLocaleDateString('fr-FR', {
+            timeZone: 'Europe/Paris',
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          });
+
+  return (
+    <section className="space-y-4 rounded-carte border border-accent/30 bg-accent-doux p-5">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold tracking-wide text-encre-doux uppercase">
+            Prochain audit · {quand}
+          </p>
+          <h2 className="text-2xl font-extrabold">
+            {l ? nomComplet(l) : 'Réservation sans fiche'}{' '}
+            <span className="text-base font-medium text-encre-doux">à {heure(rdv.debut)}</span>
+          </h2>
+        </div>
+        {l && (
+          <Link
+            href={`/formateur/clients/${l.id}`}
+            className="text-sm font-semibold text-accent hover:underline"
+          >
+            Préparer sur la fiche →
+          </Link>
+        )}
+      </div>
+      {l && (
+        <>
+          <Coordonnees telephone={l.telephone} email={l.email} />
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+            {(
+              [
+                ['Budget', 'tranche_budget', l.tranche_budget],
+                ['Blocage', 'blocage', l.blocage],
+                ['Niveau', 'niveau_trading', l.niveau_trading],
+                ['Délai visé', 'delai_objectif', l.delai_objectif],
+                ['Prop firm', 'prop_firm', l.prop_firm],
+              ] as const
+            ).map(([titre, champ, valeur]) => (
+              <div key={champ}>
+                <dt className="text-xs text-encre-doux">{titre}</dt>
+                <dd className="font-medium">{libelle(champ, valeur)}</dd>
+              </div>
+            ))}
+            <div>
+              <dt className="text-xs text-encre-doux">Produit qui l’intéresse</dt>
+              <dd className="font-medium">{l.formations?.titre ?? 'Pas précisé'}</dd>
+            </div>
+          </dl>
+        </>
+      )}
+    </section>
   );
 }

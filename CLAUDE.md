@@ -37,6 +37,10 @@ contredit pas.
   le formulaire, qui n'a pas de mot de passe. Les modèles d'email sont dans
   `supabase/templates/` et se posent par `npm run auth:modeles` — **refusé sur un projet gratuit sans
   SMTP**, donc en attente du plan Pro ou d'un service d'envoi (`docs/08-CE-QUI-MANQUE.md`).
+- **L'espace formateur couvre l'après-vente.** `/formateur/accompagnements` part de
+  `inscriptions.formateur_id` (les clients confiés, vendus ou non) et porte le carnet de suivi ;
+  les notes marquées visibles s'affichent dans `/espace`. Tableau de bord, rendez-vous et
+  statistiques (ventes au montant proposé) repris avec les données rechargées.
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
   `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien ».
 
