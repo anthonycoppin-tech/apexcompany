@@ -8,7 +8,7 @@ import type { EtatCompte, EtatDiscord, EtatPaiement, Preuve } from './preuves.ts
  * conventions coexistaient — `?discord=`, `?paiement=`, `?verifier=`,
  * `?inscription=` — et la quatrième était morte : `/qualification` redirigeait
  * vers `/reserver?inscription=ok`, que `/reserver` n'a jamais lu. Le seul retour
- * du tunnel qui dit « ton compte est créé » tombait dans le vide.
+ * du tunnel qui dit « votre compte est créé » tombait dans le vide.
  *
  * **Un code inconnu ne rend rien, et le contenu de l'URL n'est jamais affiché.**
  * Le paramètre sert d'index dans ce fichier, pas de source de texte.
@@ -71,9 +71,9 @@ const constante = messageConstant;
  * après. C'est `roleEnFile` qui tranche désormais, et la route ne dit plus que
  * ce qu'elle sait, à savoir qu'une liaison vient d'avoir lieu.
  *
- * **Les deux phrases partagent la même prémisse** — « ton compte Discord est
+ * **Les deux phrases partagent la même prémisse** — « votre compte Discord est
  * connecté » — et c'est ce qui manquait à la première version : on ne vérifiait
- * que la subordonnée (« ton accès arrive »), si bien que l'URL forgée basculait
+ * que la subordonnée (« votre accès arrive »), si bien que l'URL forgée basculait
  * simplement sur l'autre branche et mentait quand même, un cran plus bas.
  * `lieRecemment` garde la principale ; sans elle, aucune des deux ne s'affiche.
  */

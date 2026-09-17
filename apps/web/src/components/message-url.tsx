@@ -19,7 +19,7 @@ import { MessageBloc } from './message';
  * apparue qu'à l'écran.
  *
  * 1. Effacer le paramètre après le premier rendu. Sans ça, un rechargement, un
- *    favori ou un lien partagé réaffiche « ton compte est créé » indéfiniment :
+ *    favori ou un lien partagé réaffiche « votre compte est créé » indéfiniment :
  *    le code est au passé, il doit donc disparaître une fois lu. C'est le
  *    pendant navigateur de la fenêtre de fraîcheur côté serveur.
  * 2. **Lire le fragment**, que le serveur ne voit jamais. Supabase renvoie les

@@ -8,7 +8,7 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role';
  *
  * **Le problème que ce fichier existe pour régler.** Un paramètre d'URL est une
  * chaîne que n'importe qui tape à la main. `/espace/communaute?discord=ok`
- * répondait « Ton compte Discord est connecté, ton accès arrive dans la minute »
+ * répondait « Votre compte Discord est connecté, votre accès arrive dans la minute »
  * à quelqu'un qui n'avait jamais rien connecté — et le même lien, remis en
  * favori, le répétait un mois plus tard. La règle qu'on s'est donnée :
  *

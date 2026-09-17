@@ -158,7 +158,7 @@ export async function souscrire(_precedent: EtatAction, donnees: FormData): Prom
  * Renvoyer l'email de vérification.
  *
  * Sans cette action, le contrôle bloquant ci-dessus serait une impasse : la
- * personne verrait « vérifie ton email » sans moyen d'en redemander un.
+ * personne verrait « vérifiez votre email » sans moyen d'en redemander un.
  */
 export async function renvoyerVerification(
   precedent: EtatAction,

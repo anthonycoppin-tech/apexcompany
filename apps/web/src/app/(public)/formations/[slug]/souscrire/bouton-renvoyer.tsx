@@ -9,7 +9,7 @@ import { renvoyerVerification } from './actions';
 
 /**
  * Sans ce bouton, le contrôle bloquant sur l'email vérifié serait une impasse :
- * la personne verrait « vérifie ton adresse » sans moyen d'en redemander une.
+ * la personne verrait « vérifiez votre adresse » sans moyen d'en redemander une.
  */
 export function BoutonRenvoyer() {
   const [etat, action, enCours] = useActionState(renvoyerVerification, REPOS);
