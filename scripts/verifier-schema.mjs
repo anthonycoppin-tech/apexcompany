@@ -514,6 +514,51 @@ async function main() {
   verifier('aucune deuxième facture', apres2.factures - apres1.factures, 0);
   verifier('aucun deuxième rôle empilé', apres2.file - apres1.file, 0);
 
+  // Le client payé par proposition est confié à celui qui l'a émise : sans
+  // cela, aucun formateur ne voit jamais un client réel.
+  await db.exec(`
+    insert into public.propositions (id, lead_id, user_id, formation_id, formateur_id,
+                                     montant_cents, statut, expire_le)
+    values ('f0000000-0000-0000-0000-0000000000c1', 'b0000000-0000-0000-0000-000000000004',
+            '77777777-7777-7777-7777-777777777777', 'a0000000-0000-0000-0000-000000000003',
+            '44444444-4444-4444-4444-444444444444', 99000, 'envoyee', now() + interval '5 days');
+    insert into public.propositions (id, lead_id, user_id, formation_id, formateur_id,
+                                     montant_cents, statut, expire_le)
+    values ('f0000000-0000-0000-0000-0000000000c2', 'b0000000-0000-0000-0000-000000000002',
+            '66666666-6666-6666-6666-666666666666', 'a0000000-0000-0000-0000-000000000002',
+            '44444444-4444-4444-4444-444444444444', 249000, 'envoyee', now() + interval '5 days');
+  `);
+  await db.query(`select public.traiter_paiement(
+    'stripe', 'evt_formateur_verif', 'checkout.session.completed', '{}'::jsonb,
+    '77777777-7777-7777-7777-777777777777', 'a0000000-0000-0000-0000-000000000003',
+    99000, 'EUR', 'cs_formateur_verif', 'pi_formateur_verif',
+    'f0000000-0000-0000-0000-0000000000c1', null)`);
+  verifier(
+    'le paiement confie le client au formateur de la proposition',
+    (
+      await db.query(`select formateur_id from public.inscriptions
+        where user_id = '77777777-7777-7777-7777-777777777777'
+          and formation_id = 'a0000000-0000-0000-0000-000000000003' and statut = 'active'`)
+    ).rows[0]?.formateur_id,
+    '44444444-4444-4444-4444-444444444444',
+  );
+
+  // Un rachat du même accompagnement, proposé par un autre formateur, ne
+  // retire pas le client à celui qui le suit déjà.
+  await db.query(`select public.traiter_paiement(
+    'stripe', 'evt_formateur_garde', 'checkout.session.completed', '{}'::jsonb,
+    '66666666-6666-6666-6666-666666666666', 'a0000000-0000-0000-0000-000000000002',
+    249000, 'EUR', 'cs_formateur_garde', 'pi_formateur_garde',
+    'f0000000-0000-0000-0000-0000000000c2', null)`);
+  verifier(
+    'une affectation existante n’est pas écrasée',
+    (
+      await db.query(`select formateur_id from public.inscriptions
+        where id = 'e0000000-0000-0000-0000-00000000000a'`)
+    ).rows[0]?.formateur_id,
+    '33333333-3333-3333-3333-333333333333',
+  );
+
   // ── La révocation en fin daccès ──────────────────────────────────────────
   console.log('\nRévocation des accès expirés\n');
 
@@ -553,7 +598,8 @@ async function main() {
   verifier(
     'laccès illimité nest pas révoqué',
     await compter(
-      `public.inscriptions where formation_id = 'a0000000-0000-0000-0000-000000000003' and statut = 'active'`,
+      `public.inscriptions where formation_id = 'a0000000-0000-0000-0000-000000000003' and statut = 'active'
+        and user_id = '66666666-6666-6666-6666-666666666666'`,
     ),
     1,
   );

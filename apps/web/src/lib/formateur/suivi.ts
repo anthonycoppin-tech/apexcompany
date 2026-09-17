@@ -145,6 +145,10 @@ export function libelleEvenement(type: string, payload: unknown): string {
 
   if (type === 'formulaire_soumis') return 'A rempli le formulaire';
   if (type === 'proposition_emise') return 'Proposition émise';
+  if (type === 'formateur_affecte') {
+    const formation = p.formation ? ` pour « ${p.formation} »` : '';
+    return p.formateur_id ? `Formateur affecté${formation}` : `Affectation retirée${formation}`;
+  }
   if (type === 'echange') {
     const canal = CANAUX[p.canal as Canal] ?? 'Échange';
     const apres = p.statut_apres as Enums<'lead_statut'> | undefined;

@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(33);
+select plan(37);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -276,6 +276,57 @@ select is(
 select is(
   (public.revoquer_acces_expires() ->> 'inscriptions_terminees')::int, 0,
   'un second passage ne retrouve rien à révoquer'
+);
+
+-- ── Le formateur d'un accès payé ──────────────────────────────────────────
+-- Sans lui, aucun formateur ne voit jamais un client réel : sa RLS s'ancre sur
+-- `inscriptions.formateur_id`, que seul ce paiement pose.
+
+insert into public.propositions (id, lead_id, user_id, formation_id, formateur_id,
+                                 montant_cents, statut, expire_le)
+values
+  ('f0000000-0000-0000-0000-0000000000c1', 'b0000000-0000-0000-0000-000000000004',
+   '77777777-7777-7777-7777-777777777777', 'a0000000-0000-0000-0000-000000000003',
+   '44444444-4444-4444-4444-444444444444', 99000, 'envoyee', now() + interval '5 days'),
+  ('f0000000-0000-0000-0000-0000000000c2', 'b0000000-0000-0000-0000-000000000002',
+   '66666666-6666-6666-6666-666666666666', 'a0000000-0000-0000-0000-000000000002',
+   '44444444-4444-4444-4444-444444444444', 249000, 'envoyee', now() + interval '5 days');
+
+select lives_ok(
+  $$select public.traiter_paiement(
+    'stripe', 'evt_formateur_pgtap', 'checkout.session.completed', '{}'::jsonb,
+    '77777777-7777-7777-7777-777777777777', 'a0000000-0000-0000-0000-000000000003',
+    99000, 'EUR', 'cs_formateur_pgtap', 'pi_formateur_pgtap',
+    'f0000000-0000-0000-0000-0000000000c1', null
+  )$$,
+  'un paiement par proposition est traité'
+);
+
+select is(
+  (select formateur_id from public.inscriptions
+   where user_id = '77777777-7777-7777-7777-777777777777'
+     and formation_id = 'a0000000-0000-0000-0000-000000000003' and statut = 'active'),
+  '44444444-4444-4444-4444-444444444444'::uuid,
+  'le paiement confie le client au formateur de la proposition'
+);
+
+-- Un rachat proposé par un autre formateur ne retire pas le client à celui
+-- qui le suit déjà.
+select lives_ok(
+  $$select public.traiter_paiement(
+    'stripe', 'evt_formateur_garde_pgtap', 'checkout.session.completed', '{}'::jsonb,
+    '66666666-6666-6666-6666-666666666666', 'a0000000-0000-0000-0000-000000000002',
+    249000, 'EUR', 'cs_formateur_garde_pgtap', 'pi_formateur_garde_pgtap',
+    'f0000000-0000-0000-0000-0000000000c2', null
+  )$$,
+  'un rachat proposé par un autre formateur est traité'
+);
+
+select is(
+  (select formateur_id from public.inscriptions
+   where id = 'e0000000-0000-0000-0000-00000000000a'),
+  '33333333-3333-3333-3333-333333333333'::uuid,
+  'une affectation existante n’est pas écrasée'
 );
 
 -- ── Le remboursement, rejoué ───────────────────────────────────────────────
