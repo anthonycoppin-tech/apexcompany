@@ -125,6 +125,31 @@ obligatoire avant de payer — décision prise, et implémentée. Si l'envoi d'e
 pas, **aucun paiement ne peut aboutir**. C'est le comportement voulu, mais il faut avoir essayé
 un vrai parcours d'achat avant d'ouvrir les ventes.
 
+**C'est aussi le seul moyen, pour un client, de revenir sur le site.** Depuis le 17 septembre,
+les clients se connectent par un email (lien et code), jamais par un mot de passe. Sans envoi
+d'emails, un client dont la session a expiré ne peut plus entrer dans son espace.
+
+**Le service d'emails intégré à Supabase ne suffit pas** : il n'écrit qu'aux membres de
+l'organisation Supabase, et quelques emails par heure. Il faut brancher un vrai service (Resend
+ou équivalent) dans _Authentication → Emails → SMTP Settings_.
+
+**Trois réglages Supabase, à faire sur chaque projet (dev et production)** — dans le tableau de
+bord, rien ne se fait depuis le dépôt :
+
+1. _Authentication → URL Configuration → Redirect URLs_ : ajouter
+   `https://<domaine>/connexion/confirmer` (et `http://localhost:3000/connexion/confirmer` sur le
+   projet de dev). Sans cela, Supabase renvoie le lien vers l'accueil, où rien ne l'utilise.
+2. _Authentication → Emails → Templates → Magic Link_ : remplacer le lien par
+   `{{ .SiteURL }}/connexion/confirmer?token_hash={{ .TokenHash }}&type=email`, et ajouter le code
+   `{{ .Token }}` dans le texte. Sujet proposé : « Votre lien de connexion ». Avec le modèle par
+   défaut, le lien ne marche **que dans le navigateur qui l'a demandé** — un client qui lit ses
+   emails sur son téléphone ne pourrait pas se connecter sur son ordinateur — et l'email ne
+   contient pas le code.
+3. _Confirm signup_ : même changement. C'est l'email reçu par un client dont l'adresse n'a pas
+   encore été vérifiée — il sert à la fois de vérification et de connexion.
+
+`Site URL` doit être l'adresse réelle du site en production.
+
 ### Tâche planifiée
 
 `CRON_SECRET`, plus un planificateur qui appelle `https://<le-site>/api/cron/revocation` une fois

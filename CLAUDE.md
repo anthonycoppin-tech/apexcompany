@@ -32,6 +32,10 @@ contredit pas.
 - **Relier un autre compte Discord redemande tous les rôles dus** (`invité` et ceux des
   inscriptions actives). L'ancien compte garde les siens : le worker ne vise que le compte relié,
   et le retrait est manuel, tracé dans `/admin/logs`.
+- **Les clients se connectent par email, sans mot de passe.** `/connexion` envoie un lien et un
+  code ; l'équipe garde son mot de passe. C'était le seul moyen de revenir pour un compte créé par
+  le formulaire, qui n'a pas de mot de passe. **Trois réglages Supabase restent à faire à la main**
+  (adresse de retour, modèles d'email, SMTP) : `docs/08-CE-QUI-MANQUE.md`, « Envoi d'emails ».
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
   `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien ».
 
@@ -827,5 +831,9 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   plan gratuit interdisant l'usage commercial), qui porte aussi la tâche quotidienne de
   révocation ; le worker Discord, processus long, sur un petit hébergeur de conteneur
   (Railway ou équivalent). Reste à la charge du client d'ouvrir les comptes.
+- **Connexion des clients** — **tranché le 17 septembre 2026, décision déléguée aux
+  développeurs : par email (lien et code), sans mot de passe.** Le parcours des plateformes de
+  formation et de communauté comparables, cohérent avec des comptes créés sans mot de passe par
+  le formulaire. L'équipe garde le mot de passe. **Fait.**
 - **Messagerie coach ↔ client** — recommandation : hors v1, l'échange reste sur
   Discord. Voir l'argumentaire dans `docs/06-PERIMETRE.md`.
