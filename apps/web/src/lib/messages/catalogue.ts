@@ -1,5 +1,5 @@
-import { alerte, info, succes, type Message } from './types';
-import type { EtatCompte, EtatDiscord, EtatPaiement, Preuve } from './preuves';
+import { alerte, info, succes, type Message } from './types.ts';
+import type { EtatCompte, EtatDiscord, EtatPaiement, Preuve } from './preuves.ts';
 
 /**
  * Le catalogue des messages portés par l'URL.

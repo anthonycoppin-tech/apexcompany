@@ -99,6 +99,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Le runner intégré de Node : aucune dépendance de test à maintenir.
+      - name: Tests
+        run: npm test
+
       - name: Build
         run: npm run build
         env:

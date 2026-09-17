@@ -17,6 +17,15 @@ dev partagée. Ça n'a pas changé.
 > depuis la base. `purger_prospects_inactifs(true)` y répond : zéro candidat, ce qui est
 > attendu sur une base de dev qui a moins de trois ans.
 
+> **La base partagée porte le jeu de données de la révision 3 depuis le 17 septembre.** Rechargé
+> **sans rien effacer du travail Discord** : comptes, rôles, `discord_links`, `discord_sync_queue`,
+> `automation_logs` et les vrais rôles Discord du catalogue sont intacts. Ce n'est donc pas un
+> `seed.sql` rejoué à l'identique : les deux produits réels gardent leurs rôles du serveur de test
+> (Accélérateur `1548360649199849482`, Fondations `1548360717957210183`), Communauté garde le rôle
+> fictif du seed, `client.a` reste relié à un vrai compte Discord, et la facture existante garde
+> son numéro — une facture ne se supprime pas. Les commandes et inscriptions ont été modifiées sur
+> place pour la même raison. Les écrans formateur, client et back-office ont été vus remplis.
+
 > **Les comptes formateur du seed ont été renommés sur la base hébergée**, le 15 septembre.
 > `coach.a@apex.test` et `coach.b@apex.test` ne répondent plus : c'est `formateur.a@apex.test`
 > et `formateur.b@apex.test`, mot de passe inchangé. Seul l'email a changé — UUID, rôles et
@@ -74,6 +83,8 @@ perd ses rôles, et rien ne les lui rend.
 
 | Sujet                                                                                                                               | Quand    | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | ----------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Garde-fou sur le catalogue de messages                                                                                              | 17 sept. | `apps/web` a désormais un lanceur de tests — **le runner intégré de Node, sans aucune dépendance** — et la CI le lance (`npm test`). `catalogue.test.ts` énonce la règle du système : un code dépendant sans preuve ne rend rien de plus qu'une constante. Les codes et les fonctions à preuve sont relevés dans le source, pas recopiés : un code ajouté est couvert d'office, une fonction à preuve non déclarée fait échouer le test. Vérifié en cassant `messagePaiement` exprès. Vérifie aussi que le catalogue ne tutoie pas (pronoms seulement). Coût : les imports relatifs de `lib/messages/catalogue.ts` portent l'extension `.ts`, que Node exige (`allowImportingTsExtensions`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Changement de compte Discord                                                                                                        | 17 sept. | Relier un autre compte Discord ne redemandait aucun rôle : la file porte le `user_id` du site, et un `grant` réussi pour l'ancien compte passait pour un rôle en place. **Toute liaison réempile désormais les rôles dus** — `invité` et ceux des inscriptions actives —, sauf ceux encore à traiter ; c'est aussi ce qui rend l'accès à un membre parti puis revenu qui reclique. Le message « l'équipe est prévenue » n'apparaît plus que quand une trace existe réellement. **Reste manuel** : l'ancien compte garde ses rôles, le worker ne sachant viser que le compte actuel — une ligne `echec` dans `/admin/logs` donne son identifiant pour les retirer à la main. Vérifié en lecture sur la base hébergée ; la liaison OAuth elle-même n'a pas été rejouée.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | Vouvoiement sur tout le site                                                                                                        | 16 sept. | Tunnel (`/qualification`, `/reserver`, souscription), espace client, questions du formulaire, messages du système de messages, erreurs de paiement et de création de compte, et les quelques messages de l'espace formateur. Le back-office, qui ne parle qu'à l'équipe, n'est pas concerné ; Discord reste libre de tutoyer. Texte seulement, aucune logique touchée. **Un second passage a                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | repris quatre commentaires restés au tutoiement dans `lib/messages/preuves.ts`,                                                     |
 | `components/message-url.tsx`, `api/discord/callback/route.ts` et                                                                    |
@@ -105,10 +116,9 @@ perd ses rôles, et rien ne les lui rend.
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                                                 | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Voir les deux rendus dépendants de Discord**        | Reste le seul rendu testable qu'on n'a pas vu : `discord-lie` avec `roleEnFile` vrai puis faux. Il faut un compte Discord **jamais relié** — le callback ne réempile pas de `grant` quand il en existe un `reussi`, donc relier `client.a` montre la branche `alerte` alors que son accès est en place. Passe par la suppression de sa ligne `discord_links` et de ses `grant` sur la base partagée : à faire en prévenant. Voir aussi l'observation sur le changement de compte Discord, plus bas. |
-| Un garde-fou automatique sur le catalogue de messages | La propriété qui tient tout — **un code dépendant sans preuve ne rend rien** — n'est vérifiée par rien. Elle se casserait en silence au prochain code ajouté. Un test l'énoncerait une fois pour toutes. Ce n'est pas gratuit : `apps/web` n'a **aucun lanceur de tests**, et en introduire un est une décision (dépendance, câblage CI) qu'on n'a pas prise en fin de journée. Le runner intégré de Node évite la dépendance mais demande à lire du TypeScript.                                    |
+| Sujet                                          | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Voir les deux rendus dépendants de Discord** | Reste le seul rendu testable qu'on n'a pas vu : `discord-lie` avec `roleEnFile` vrai puis faux. Depuis le 17 septembre, toute liaison réempile les rôles dus : relier `client.a` montre donc la branche `succes`. La branche `alerte` se voit en retirant `DISCORD_ROLE_INVITE_ID` de `apps/web/.env.local` le temps d'un essai. |
 
 ## Bloqué, et par quoi
 
@@ -263,21 +273,6 @@ relevée le 14 en testant autre chose et toujours vraie.
 
 Relevées en passant, vraies, et qui n'ont encore déclenché aucune décision.
 
-- **La base de dev partagée porte encore les données de la révision 2, et c'est plus large
-  que le catalogue.** Relevé le 15 septembre en passant les écrans en revue : `inscriptions.formateur_id`
-  est NULL sur les deux inscriptions, il n'y a aucune proposition, aucun témoignage et aucune
-  fiche formateur. Le seed du dépôt, lui, remplit tout cela (`seed.sql` lignes 282 et 316) — il
-  n'a simplement jamais été rejoué sur la base hébergée depuis la révision 3.
-
-  **Conséquence** : tous les écrans ne peuvent être vus qu'à vide. L'espace formateur affiche
-  quatre états vides parce qu'aucun formateur n'a de client, les écrans du contenu éditorial
-  livrés le 13 septembre n'ont aucune matière, et `/espace/propositions/[id]` n'est pas
-  atteignable. Ce n'est un défaut d'aucun de ces écrans.
-
-  **Pourquoi personne ne tranche seul** : rejouer le seed écrase ce qui a été saisi à la main
-  sur une base que deux personnes partagent. C'est le conflit décrit dans `07-REPARTITION.md`,
-  et c'est l'argument le plus concret entendu jusqu'ici pour le branching du plan Pro.
-
 - **Le même écart a déjà mordu une fois, en silence.** `auth.users` contenait toujours
   `coach.a@apex.test` / `coach.b@apex.test` alors que le seed dit `formateur.a` / `formateur.b` :
   ces comptes viennent du seed, pas d'une migration, donc le renommage du 8 septembre ne les a
@@ -286,16 +281,6 @@ Relevées en passant, vraies, et qui n'ont encore déclenché aucune décision.
   Corrigé le 15 septembre par un renommage des deux emails, à UUID et mot de passe inchangés.
   **La leçon est générale** : une migration corrige le schéma, jamais les données du seed déjà
   posées sur la base hébergée.
-
-- **Changer de compte Discord ne redemande jamais le rôle `invité`.** Les lignes de
-  `discord_sync_queue` portent le `user_id` du site, pas l'identifiant Discord : la route de
-  rappel voit un `grant` déjà `reussi` et n'en empile pas de nouveau, alors que le rôle est dû
-  au **nouveau** compte Discord, qui ne l'a pas. Relevé le 14 septembre en testant les messages.
-  Sans conséquence visible aujourd'hui — `npm run discord:reconcile` compare l'état réel du
-  serveur et rattrape —, mais la réconciliation n'est pas encore planifiée, donc personne ne la
-  lance. Conséquence de second ordre : la page annonce alors « ton accès n'a pas pu être
-  demandé », ce qui est vrai pour le nouveau compte et faux dans sa seconde phrase (« l'équipe
-  est prévenue » — rien n'est journalisé dans ce cas).
 
 - **Le rôle de « Fondations » s'appelle `Fondation` au singulier sur le serveur de test.**
   Sans conséquence technique — le code ne compare que des identifiants — mais à corriger
