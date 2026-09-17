@@ -35,10 +35,12 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                 | État | Qui         | Depuis   |
-| ------------------------------------- | ---- | ----------- | -------- |
-| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
-| Réconciliation des rôles Discord      | pris | Christopher | 13 sept. |
+| Sujet                                  | État | Qui         | Depuis   |
+| -------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service  | pris | Christopher | 12 sept. |
+| Réconciliation des rôles Discord       | pris | Christopher | 13 sept. |
+| Changement de compte Discord           | pris | Anthony     | 17 sept. |
+| Garde-fou sur le catalogue de messages | pris | Anthony     | 17 sept. |
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
@@ -103,7 +105,6 @@ immédiatement.
 
 | Sujet                                                 | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Harmoniser le site au vouvoiement                     | Le public vouvoie, le tunnel et l'espace client tutoient (« Réserve ton audit »). Le back-office n'est pas concerné. Réécrit les mêmes messages que `claude/systeme-de-messages`, désormais fusionnée.                                                                                                                                                                                                                                                                                              |
 | **Voir les deux rendus dépendants de Discord**        | Reste le seul rendu testable qu'on n'a pas vu : `discord-lie` avec `roleEnFile` vrai puis faux. Il faut un compte Discord **jamais relié** — le callback ne réempile pas de `grant` quand il en existe un `reussi`, donc relier `client.a` montre la branche `alerte` alors que son accès est en place. Passe par la suppression de sa ligne `discord_links` et de ses `grant` sur la base partagée : à faire en prévenant. Voir aussi l'observation sur le changement de compte Discord, plus bas. |
 | Un garde-fou automatique sur le catalogue de messages | La propriété qui tient tout — **un code dépendant sans preuve ne rend rien** — n'est vérifiée par rien. Elle se casserait en silence au prochain code ajouté. Un test l'énoncerait une fois pour toutes. Ce n'est pas gratuit : `apps/web` n'a **aucun lanceur de tests**, et en introduire un est une décision (dépendance, câblage CI) qu'on n'a pas prise en fin de journée. Le runner intégré de Node évite la dépendance mais demande à lire du TypeScript.                                    |
 
