@@ -90,8 +90,12 @@ export async function lireEtatDiscord(): Promise<Preuve<EtatDiscord>> {
     .select('id')
     .eq('user_id', user.id)
     .eq('action', 'grant')
-    .in('statut', ['en_attente', 'en_cours', 'reussi'])
-    .gte('created_at', new Date(Date.now() - FRAICHEUR_MS).toISOString())
+    .in('statut', ['en_attente', 'en_cours', 'echoue', 'reussi'])
+    // Une ligne encore à traiter compte quel que soit son âge : la liaison
+    // n'en empile pas de seconde, et l'accès est bien en route. Une ligne
+    // traitée ne compte que si elle vient d'être empilée — sinon elle peut
+    // viser un ancien compte Discord.
+    .or(`statut.neq.reussi,created_at.gte.${new Date(Date.now() - FRAICHEUR_MS).toISOString()}`)
     .limit(1);
 
   return atteste({ lieRecemment: true, roleEnFile: Boolean(enFile?.length) });

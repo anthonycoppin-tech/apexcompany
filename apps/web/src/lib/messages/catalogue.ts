@@ -131,7 +131,7 @@ export function messagePaiement(
  */
 const FOURNISSEUR: Record<string, Message> = {
   identity_already_exists: alerte(
-    'Ce compte Discord est déjà relié à un autre compte du site. Relie un autre compte Discord, ou écris-nous pour détacher l’ancien.',
+    'Ce compte Discord est déjà relié à un autre compte du site. Reliez un autre compte Discord, ou écrivez-nous pour détacher l’ancien.',
   ),
   access_denied: info('Connexion à Discord annulée. Rien n’a changé.'),
 };

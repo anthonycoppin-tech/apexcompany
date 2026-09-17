@@ -85,15 +85,31 @@ export async function GET(request: Request) {
 
   const admin = createServiceRoleClient();
 
+  const { data: ancienLien } = await admin
+    .from('discord_links')
+    .select('discord_user_id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  // **Changer de compte Discord est une nouvelle liaison, pas un reclic.** Les
+  // lignes de la file portent le `user_id` du site, jamais l'identifiant
+  // Discord : un `grant` réussi pour l'ancien compte ressemble trait pour trait
+  // à un rôle déjà en place. Il faut donc le savoir ici, avant d'écraser la
+  // liaison — après, l'ancien identifiant n'existe plus nulle part.
+  const ancienCompte =
+    ancienLien && ancienLien.discord_user_id !== discordUserId ? ancienLien.discord_user_id : null;
+
   // `upsert` sur user_id : relier deux fois le même compte est un geste normal
-  // — quelqu'un qui change de compte Discord, ou qui reclique par doute — et
-  // doit rester sans conséquence.
+  // — quelqu'un qui reclique par doute — et doit rester sans conséquence.
+  // Sur un changement de compte, `roles_attribues` repart de zéro : les rôles
+  // qu'elle listait sont portés par l'ancien compte, pas par le nouveau.
   const { error: erreurLien } = await admin.from('discord_links').upsert(
     {
       user_id: user.id,
       discord_user_id: discordUserId,
       discord_username: nomDiscord(identite?.identity_data),
       derniere_sync: new Date().toISOString(),
+      ...(ancienCompte ? { roles_attribues: [], linked_at: new Date().toISOString() } : {}),
     },
     { onConflict: 'user_id' },
   );
@@ -103,38 +119,77 @@ export async function GET(request: Request) {
     return NextResponse.redirect(destination);
   }
 
+  if (ancienCompte) {
+    // Le worker résout l'identifiant Discord au moment de traiter une ligne :
+    // un `revoke` empilé maintenant viserait le nouveau compte. Retirer les
+    // rôles de l'ancien est donc hors de portée de la file — sans cette trace,
+    // un compte Discord garderait des accès payés que plus rien ne relie à un
+    // client, et personne ne le saurait.
+    await admin.from('automation_logs').insert({
+      declencheur: 'discord.liaison',
+      entite_type: 'discord_links',
+      entite_id: user.id,
+      statut: 'echec',
+      details: {
+        raison: 'Changement de compte Discord : retirer à la main les rôles de l’ancien compte',
+        ancien_discord_user_id: ancienCompte,
+        nouveau_discord_user_id: discordUserId,
+      },
+    });
+  }
+
   // Le rôle `invité` : celui que tout compte reçoit à l'entrée, avant tout
   // achat. Les rôles de produit viennent ensuite, un par formation payée, et
   // par le même chemin — la file, jamais un appel direct à l'API Discord.
   const roleInvite = process.env.DISCORD_ROLE_INVITE_ID;
 
   if (roleInvite) {
-    const { data: dejaEmpile } = await admin
-      .from('discord_sync_queue')
-      .select('id')
+    // Tout ce qui est dû à ce compte, pas seulement `invité` : sur un
+    // changement de compte, les rôles des formations payées doivent suivre, et
+    // la liaison est le seul instant où l'on sait qu'ils ne l'ont pas fait.
+    // Même calcul que `etatAttendu()` dans `apps/bot/src/reconciliation.ts`.
+    const { data: inscriptions } = await admin
+      .from('inscriptions')
+      .select('formations!inner(discord_role_id)')
       .eq('user_id', user.id)
-      .eq('role_id', roleInvite)
-      .eq('action', 'grant')
-      .in('statut', ['en_attente', 'en_cours', 'reussi'])
-      .limit(1);
+      .eq('statut', 'active')
+      .not('formations.discord_role_id', 'is', null);
 
-    // Reclic sur « connecter mon Discord » : on ne réempile pas un rôle déjà
-    // accordé ou déjà en file. Le worker est idempotent, mais une file qui
-    // grossit à chaque clic rend son diagnostic illisible.
-    if (!dejaEmpile?.length) {
-      const { error: erreurFile } = await admin.from('discord_sync_queue').insert({
-        user_id: user.id,
-        action: 'grant',
-        role_id: roleInvite,
-      });
+    const rolesDus = new Set([roleInvite]);
+    for (const inscription of inscriptions ?? []) {
+      const role = (inscription.formations as { discord_role_id: string | null } | null)
+        ?.discord_role_id;
+      if (role) rolesDus.add(role);
+    }
+
+    // **`reussi` ne dédoublonne plus.** Un rôle accordé hier peut manquer
+    // aujourd'hui — autre compte, ou membre parti puis revenu — et reconnecter
+    // son Discord est justement le geste qu'on fait alors. Le worker est
+    // idempotent, et chaque ligne coûte un aller-retour OAuth : la file ne
+    // gonfle pas au clic. Ce qui est encore à traiter (`echoue` compris, que
+    // le worker retente) suffit à ne rien empiler.
+    const { data: enFile } = await admin
+      .from('discord_sync_queue')
+      .select('role_id')
+      .eq('user_id', user.id)
+      .eq('action', 'grant')
+      .in('statut', ['en_attente', 'en_cours', 'echoue']);
+
+    for (const ligne of enFile ?? []) rolesDus.delete(ligne.role_id);
+
+    if (rolesDus.size) {
+      const { error: erreurFile } = await admin
+        .from('discord_sync_queue')
+        .insert(
+          [...rolesDus].map((role_id) => ({ user_id: user.id, action: 'grant' as const, role_id })),
+        );
 
       // **Cette erreur était jetée**, et elle laissait passer exactement le
       // mensonge que la branche `else` ci-dessous avait été écrite pour
       // supprimer : la liaison existe, le `grant` n'a jamais été empilé, et la
-      // page annonçait quand même « ton accès arrive dans la minute ». Le même
-      // écran, une branche plus bas. C'est ce qui a convaincu qu'un correctif
-      // par cas ne converge pas, et que la vérification devait descendre dans
-      // les données plutôt que rester dans le paramètre d'URL.
+      // page annonçait quand même « ton accès arrive dans la minute ». C'est ce
+      // qui a convaincu que la vérification devait descendre dans les données
+      // plutôt que rester dans le paramètre d'URL.
       if (erreurFile) {
         await admin.from('automation_logs').insert({
           declencheur: 'discord.liaison',
@@ -142,7 +197,7 @@ export async function GET(request: Request) {
           entite_id: user.id,
           statut: 'echec',
           details: {
-            raison: 'Mise en file du rôle invité impossible',
+            raison: 'Mise en file des rôles Discord impossible',
             erreur: erreurFile.message,
           },
         });
