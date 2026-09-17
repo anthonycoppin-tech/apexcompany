@@ -29,7 +29,8 @@
     "db:test": "supabase test db",
     "format": "prettier --write \"**/*.{ts,tsx,mjs,js,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,md,css}\"",
-    "db:check": "node scripts/verifier-schema.mjs"
+    "db:check": "node scripts/verifier-schema.mjs",
+    "auth:modeles": "node scripts/appliquer-modeles-email.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

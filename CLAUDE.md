@@ -34,8 +34,9 @@ contredit pas.
   et le retrait est manuel, tracé dans `/admin/logs`.
 - **Les clients se connectent par email, sans mot de passe.** `/connexion` envoie un lien et un
   code ; l'équipe garde son mot de passe. C'était le seul moyen de revenir pour un compte créé par
-  le formulaire, qui n'a pas de mot de passe. **Trois réglages Supabase restent à faire à la main**
-  (adresse de retour, modèles d'email, SMTP) : `docs/08-CE-QUI-MANQUE.md`, « Envoi d'emails ».
+  le formulaire, qui n'a pas de mot de passe. Les modèles d'email sont dans
+  `supabase/templates/` et se posent par `npm run auth:modeles` — **refusé sur un projet gratuit sans
+  SMTP**, donc en attente du plan Pro ou d'un service d'envoi (`docs/08-CE-QUI-MANQUE.md`).
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
   `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien ».
 
@@ -511,6 +512,7 @@ npm run db:check         # Applique migrations + seed sur PGlite et rejoue les i
 npm run db:push          # Applique les migrations en attente sur le projet hébergé
 npm run db:types:linked  # Régénère packages/db/src/database.types.ts depuis le projet hébergé
 npm run db:types         # Idem depuis une instance locale — exige Docker, donc CI seulement
+npm run auth:modeles     # Pose les modèles d'email sur un projet hébergé (jeton de gestion requis)
 npm run typecheck
 ```
 

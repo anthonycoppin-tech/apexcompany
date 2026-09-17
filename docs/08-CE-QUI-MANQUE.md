@@ -133,22 +133,29 @@ d'emails, un client dont la session a expiré ne peut plus entrer dans son espac
 l'organisation Supabase, et quelques emails par heure. Il faut brancher un vrai service (Resend
 ou équivalent) dans _Authentication → Emails → SMTP Settings_.
 
-**Trois réglages Supabase, à faire sur chaque projet (dev et production)** — dans le tableau de
-bord, rien ne se fait depuis le dépôt :
+**Les modèles d'email et l'adresse de retour sont prêts dans le dépôt**
+(`supabase/templates/`) et se posent en une commande, sur chaque projet — dev, puis production :
 
-1. _Authentication → URL Configuration → Redirect URLs_ : ajouter
-   `https://<domaine>/connexion/confirmer` (et `http://localhost:3000/connexion/confirmer` sur le
-   projet de dev). Sans cela, Supabase renvoie le lien vers l'accueil, où rien ne l'utilise.
-2. _Authentication → Emails → Templates → Magic Link_ : remplacer le lien par
-   `{{ .SiteURL }}/connexion/confirmer?token_hash={{ .TokenHash }}&type=email`, et ajouter le code
-   `{{ .Token }}` dans le texte. Sujet proposé : « Votre lien de connexion ». Avec le modèle par
-   défaut, le lien ne marche **que dans le navigateur qui l'a demandé** — un client qui lit ses
-   emails sur son téléphone ne pourrait pas se connecter sur son ordinateur — et l'email ne
-   contient pas le code.
-3. _Confirm signup_ : même changement. C'est l'email reçu par un client dont l'adresse n'a pas
-   encore été vérifiée — il sert à la fois de vérification et de connexion.
+```bash
+SUPABASE_ACCESS_TOKEN=sbp_... npm run auth:modeles -- <référence-du-projet>
+```
 
-`Site URL` doit être l'adresse réelle du site en production.
+Le jeton se crée sur supabase.com/dashboard/account/tokens et se supprime juste après : il ouvre
+tous les projets du compte.
+
+**Bloqué aujourd'hui** : un projet gratuit refuse toute modification des modèles tant qu'il
+envoie par le service intégré (constaté le 17 septembre sur le projet de dev). Il faut **l'un des
+deux** : le plan Pro, ou un SMTP configuré. Le plan Pro seul débloque les modèles, mais pas
+l'envoi aux vrais clients — le SMTP reste indispensable avant d'ouvrir les ventes.
+
+Tant que les modèles ne sont pas posés, la connexion marche quand même, avec deux limites : le
+lien ne fonctionne **que dans le navigateur qui l'a demandé** (un client qui lit ses emails sur
+son téléphone ne peut pas se connecter sur son ordinateur), et l'email, en anglais, ne contient
+pas le code.
+
+**Déjà fait sur le projet de dev** : l'adresse de retour `http://localhost:3000/connexion/confirmer`
+est autorisée. Sur le projet de production, `Site URL` doit valoir l'adresse réelle du site —
+la commande autorise alors `<Site URL>/connexion/confirmer` d'elle-même.
 
 ### Tâche planifiée
 

@@ -1,0 +1,8 @@
+<h2>Confirmez votre adresse email</h2>
+<p>Bonjour,</p>
+<p>Cliquez sur le bouton ci-dessous pour confirmer votre adresse et accéder à votre espace :</p>
+<p><a href="{{ .SiteURL }}/connexion/confirmer?token_hash={{ .TokenHash }}&type=email" style="display:inline-block;padding:12px 20px;background:#111827;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600">Confirmer mon adresse</a></p>
+<p>Vous pouvez aussi saisir ce code sur la page de connexion :</p>
+<p style="font-size:24px;font-weight:700;letter-spacing:4px">{{ .Token }}</p>
+<p>Ce lien et ce code ne servent qu’une fois et expirent au bout d’une heure.</p>
+<p>Si vous n’êtes pas à l’origine de cette demande, ignorez simplement cet email.</p>
