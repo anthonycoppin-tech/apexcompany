@@ -61,6 +61,12 @@ empêchait le worker de passer le moindre appel (le tiret cadratin de `X-Audit-L
 réglages Discord et Supabase, eux, ne se refont pas — l'application n'appartient à aucun
 serveur. Détail dans `apps/bot/README.md`.
 
+### Emails transactionnels — pris le 17 septembre, à reprendre
+
+**Fait** : le registre `emails_envoyes` (migration `20260917130000`, appliquée, types régénérés, testé en PGlite et pgTAP `07_emails`) — une ligne par (modèle, clé), réservée avant l'envoi. Les quatre modèles en fonctions pures dans `apps/web/src/lib/email/modeles.ts` : paiement reçu, proposition reçue, relance Discord, fin d'accès proche.
+
+**Reste** : (1) `lib/email/envoi.ts`, appel REST à Resend avec `Idempotency-Key` = `modele:cle`, inerte sans `RESEND_API_KEY` ; (2) la tâche `api/cron/emails` (garde `refuserSiNonAutorise`, clé de service) qui sélectionne les commandes `payee` des 7 derniers jours, les propositions `envoyee` non expirées, les inscriptions actives de plus de 2 jours sans `discord_links`, les accompagnements finissant sous 7 jours (clé `id:date_fin`), réserve la ligne puis envoie, et retente les `echec` jusqu'à 3 fois ; (3) l'entrée horaire dans `apps/web/vercel.json` ; (4) `/admin/emails` : état de la configuration, derniers envois, aperçu des modèles sur données d'exemple ; (5) des tests des modèles (vouvoiement, échappement HTML) ; (6) une ligne `emails_envoyes` dans `/admin/legal/inventaire.ts`.
+
 ### Réconciliation des rôles Discord — pris le 13 septembre
 
 **Le problème, démontré le 12 septembre.** Rien ne rattrape un rôle qui n'a pas été accordé.

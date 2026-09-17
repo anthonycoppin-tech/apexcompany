@@ -349,6 +349,56 @@ export type Database = {
           },
         ]
       }
+      emails_envoyes: {
+        Row: {
+          cle: string
+          created_at: string
+          destinataire: string
+          erreur: string | null
+          fournisseur_id: string | null
+          id: string
+          modele: string
+          statut: string
+          tentatives: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cle: string
+          created_at?: string
+          destinataire: string
+          erreur?: string | null
+          fournisseur_id?: string | null
+          id?: string
+          modele: string
+          statut?: string
+          tentatives?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cle?: string
+          created_at?: string
+          destinataire?: string
+          erreur?: string | null
+          fournisseur_id?: string | null
+          id?: string
+          modele?: string
+          statut?: string
+          tentatives?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_envoyes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       formateurs_fiches: {
         Row: {
           biographie: string | null

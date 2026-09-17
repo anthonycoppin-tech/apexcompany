@@ -52,6 +52,8 @@ contredit pas.
 - **Les demandes RGPD se traitent depuis la fiche prospect** : copie des données en JSON, et
   effacement en deux temps par `effacer_personne()` (migration `20260917120000`, appliquée), qui
   refuse toute personne ayant une trace d'achat.
+- **Emails transactionnels : à moitié faits.** Registre `emails_envoyes` appliqué et modèles écrits ;
+  l'envoi, la tâche planifiée et `/admin/emails` restent — détail dans `docs/09-CHANTIERS.md`.
 - **`/admin/exports`** sort paiements, remboursements, factures et prospects en CSV pour Excel.
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
   `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien » ;
