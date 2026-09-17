@@ -51,16 +51,29 @@ function decalageParis(instant: Date): number {
  * borne.
  */
 export function bornesDuJour(maintenant = new Date()): { debut: string; fin: string } {
-  const jour = new Intl.DateTimeFormat('en-CA', { timeZone: FUSEAU }).format(maintenant);
+  return bornesDesJours(jourParis(maintenant), jourParis(maintenant));
+}
+
+/** La date du jour à Paris, en `AAAA-MM-JJ`. */
+export const jourParis = (instant = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: FUSEAU }).format(instant);
+
+/**
+ * Du premier jour à minuit jusqu'au lendemain du dernier jour à minuit, à
+ * Paris. Ce qu'un comptable entend par « du 1er au 30 septembre » : un
+ * paiement de 0 h 30 le 1er en fait partie, même si c'est encore le 31 août en
+ * UTC.
+ */
+export function bornesDesJours(premier: string, dernier: string): { debut: string; fin: string } {
   const minuit = (iso: string) => {
     const utc = new Date(`${iso}T00:00:00Z`);
     return new Date(utc.getTime() - decalageParis(utc));
   };
-  const lendemain = new Date(`${jour}T12:00:00Z`);
+  const lendemain = new Date(`${dernier}T12:00:00Z`);
   lendemain.setUTCDate(lendemain.getUTCDate() + 1);
 
   return {
-    debut: minuit(jour).toISOString(),
+    debut: minuit(premier).toISOString(),
     fin: minuit(lendemain.toISOString().slice(0, 10)).toISOString(),
   };
 }

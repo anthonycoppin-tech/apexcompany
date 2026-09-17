@@ -2,6 +2,7 @@ import { formaterMontant } from '@apex/db';
 
 import { EnTete, Pastille, Tableau, Tuile, Vide, type Ton } from '@/components/admin';
 import { dateHeure } from '@/lib/format';
+import { METHODES, PRESTATAIRES } from '@/lib/paiement/libelles';
 import { createClient } from '@/lib/supabase/server';
 
 const ETATS: Record<string, { libelle: string; ton: Ton }> = {
@@ -9,18 +10,6 @@ const ETATS: Record<string, { libelle: string; ton: Ton }> = {
   en_attente: { libelle: 'En attente', ton: 'attente' },
   echoue: { libelle: 'Échoué', ton: 'probleme' },
   rembourse: { libelle: 'Remboursé', ton: 'neutre' },
-};
-
-const PRESTATAIRES: Record<string, string> = { stripe: 'Stripe', paypal: 'PayPal' };
-
-/** Les moyens que Stripe renvoie dans `payment_method_types`, dits en français. */
-const METHODES: Record<string, string> = {
-  card: 'carte',
-  sepa_debit: 'prélèvement SEPA',
-  paypal: 'PayPal',
-  link: 'Link',
-  apple_pay: 'Apple Pay',
-  google_pay: 'Google Pay',
 };
 
 /**

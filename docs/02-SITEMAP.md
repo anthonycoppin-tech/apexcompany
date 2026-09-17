@@ -141,6 +141,7 @@ exposer le back-office au branding. Aucune donnée nominative — que des agrég
   /litiges
 
 /admin/documents            Factures, attestations générées
+/admin/exports              CSV paiements, remboursements, factures, prospects
 /admin/emails               Modèles transactionnels
 /admin/utilisateurs         Comptes et rôles                      [admin, owner]
 /admin/logs                 Automatisations et webhooks           [admin, owner]

@@ -46,8 +46,13 @@ contredit pas.
   statistiques (ventes au montant proposé) repris avec les données rechargées.
 - **`/admin/statistiques`** donne toute l'activité, argent compris : encaissé et net, abonnements,
   tunnel, réseaux jusqu'à l'encaissé, comparaison des formateurs.
+- **On ne paie plus deux fois le même accès**, et un rachat d'accompagnement prolonge l'accès au
+  lieu de le raccourcir (migration `20260917110000`, appliquée). Vus à l'écran avec données :
+  l'espace client et tout le back-office.
+- **`/admin/exports`** sort paiements, remboursements, factures et prospects en CSV pour Excel.
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
-  `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien ».
+  `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien » ;
+  35 tests en tout, règles du formateur et exports compris.
 
 ## Point d'étape — 15 septembre 2026
 
