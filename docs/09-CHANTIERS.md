@@ -44,10 +44,12 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                 | État | Qui         | Depuis   |
-| ------------------------------------- | ---- | ----------- | -------- |
-| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
-| Réconciliation des rôles Discord      | pris | Christopher | 13 sept. |
+| Sujet                                     | État | Qui         | Depuis   |
+| ----------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service     | pris | Christopher | 12 sept. |
+| Réconciliation des rôles Discord          | pris | Christopher | 13 sept. |
+| Affectation des formateurs après paiement | pris | Anthony     | 17 sept. |
+| Statistiques globales du back-office      | pris | Anthony     | 17 sept. |
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
