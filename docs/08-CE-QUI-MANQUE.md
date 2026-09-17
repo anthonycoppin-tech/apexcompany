@@ -265,6 +265,27 @@ d'accès.
 | Source et date des quatre chiffres de l'accueil     | 80+ apprenants, 9/10, 100 %, 24 h — **retirés de l'affichage en attendant**    |
 | Logo et visuels                                     | C'est le principal écart visuel avec la référence citée                        |
 | Une preuve sociale externe, si elle existe          | Type Trustpilot — c'est ce qui porte la crédibilité chez le concurrent cité    |
+| Le contenu de tous les emails envoyés               | Clients et formateurs — voir ci-dessous                                        |
+
+### Les emails : le texte est au client
+
+Le site enverra des emails automatiques. **Le ton, les formulations et la signature sont au
+client** : ce sont ses mots qui partent dans la boîte de ses clients. Des brouillons existent,
+en vouvoiement, pour montrer la forme attendue — à relire, corriger ou réécrire :
+
+| Email                                       | Destinataire | Quand il part                                  | Brouillon                              |
+| ------------------------------------------- | ------------ | ---------------------------------------------- | -------------------------------------- |
+| Lien de connexion (avec code)               | Client       | Chaque demande de connexion                    | `supabase/templates/connexion.html`    |
+| Confirmation d'adresse (avec code)          | Client       | Adresse pas encore vérifiée                    | `supabase/templates/confirmation.html` |
+| Paiement reçu                               | Client       | Après chaque encaissement                      | `apps/web/src/lib/email/modeles.ts`    |
+| Proposition reçue                           | Client       | Quand le formateur émet une proposition        | idem                                   |
+| Relance : connecter son Discord             | Client       | Deux jours après l'achat, si Discord non relié | idem                                   |
+| Fin d'accès proche                          | Client       | Sept jours avant la fin d'un accompagnement    | idem                                   |
+| Nouveau prospect, rendez-vous réservé, etc. | Formateur    | **À décider** : aucun n'existe encore          | —                                      |
+
+Pour chacun, il faut : le **sujet**, le **texte**, la **signature** (nom de la société qui
+vend, adresse de contact) et, côté formateur, **la liste des notifications voulues**. Les
+mentions légales de pied d'email attendent, comme les pages légales, de savoir qui vend.
 
 **Deux refus qui ne se contournent pas**, et qui valent d'être connus avant de rassembler la
 matière : un témoignage ne se publie pas sans consentement enregistré, et un chiffre ne
