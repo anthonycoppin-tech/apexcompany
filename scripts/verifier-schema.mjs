@@ -813,6 +813,100 @@ async function main() {
   // Le droit d'exécution n'est pas vérifiable ici : GRANTS rouvre toutes les
   // fonctions à `authenticated`. Il l'est en pgTAP.
 
+  // ── Effacement sur demande ───────────────────────────────────────────────
+  // Même principe : le jeu d'essai vit dans le fichier pgTAP.
+  console.log('\nEffacement d’une personne, à sa demande\n');
+  await enTantQuAdministrateur();
+
+  const testEffacement = await readFile(
+    join(racine, 'supabase', 'tests', '06_effacement.test.sql'),
+    'utf8',
+  );
+  const debutEff = testEffacement.indexOf('-- ── Jeu d');
+  const finEff = testEffacement.indexOf('-- ── Les vérifications');
+  if (debutEff < 0 || finEff < debutEff) {
+    throw new Error('Repères du jeu d’essai introuvables dans 06_effacement.test.sql');
+  }
+  await db.exec(testEffacement.slice(debutEff, finEff));
+
+  const effacer = async (lead, simulation = true) =>
+    (await db.query(`select public.effacer_personne('${lead}', ${simulation}) as r`)).rows[0].r;
+  const refuse = async (lead) => {
+    try {
+      await effacer(lead);
+      return 'accepté';
+    } catch (err) {
+      return err.code ?? err.message;
+    }
+  };
+
+  await devenir('66666666-6666-6666-6666-666666666666');
+  verifier(
+    'un client ne peut pas lancer un effacement',
+    await refuse('b0000000-0000-0000-0000-000000000002'),
+    '42501',
+  );
+
+  await devenir('22222222-2222-2222-2222-222222222222');
+  verifier(
+    'un prospect inconnu est signalé, pas ignoré',
+    await refuse('0c000000-0000-0000-0000-0000000000ff'),
+    'P0002',
+  );
+  const simulation = await effacer('0c000000-0000-0000-0000-000000000001');
+  verifier(
+    'la simulation annonce le compte, ses deux leads, son rendez-vous et ses deux consentements',
+    `${simulation.possible}/${simulation.compte}/${simulation.leads}/${simulation.rendez_vous}/${simulation.consentements}`,
+    'true/true/2/1/2',
+  );
+  verifier(
+    'la simulation ne supprime rien',
+    await compter(`public.leads where id = '0c000000-0000-0000-0000-000000000001'`),
+    1,
+  );
+  verifier(
+    'un client ne s’efface pas d’ici',
+    (await effacer('b0000000-0000-0000-0000-000000000002')).possible,
+    false,
+  );
+  verifier(
+    'un compte de l’équipe ne s’efface pas d’ici',
+    (await effacer('0c000000-0000-0000-0000-000000000003')).possible,
+    false,
+  );
+  verifier(
+    'une commande, même annulée, bloque l’effacement',
+    (await effacer('0c000000-0000-0000-0000-000000000004')).possible,
+    false,
+  );
+  verifier(
+    'l’effacement réel supprime ce qui était annoncé',
+    (await effacer('0c000000-0000-0000-0000-000000000001', false)).leads,
+    2,
+  );
+
+  await enTantQuAdministrateur();
+  verifier(
+    'le compte, ses leads, son rendez-vous et ses consentements ont disparu',
+    (await compter(`auth.users where id = '0d000000-0000-0000-0000-000000000001'`)) +
+      (await compter(`public.leads where id in
+        ('0c000000-0000-0000-0000-000000000001', '0c000000-0000-0000-0000-000000000002')`)) +
+      (await compter(`public.appointments where cal_booking_id = 'cal_efface'`)) +
+      (await compter(`public.consents where user_id = '0d000000-0000-0000-0000-000000000001'
+        or lower(email) = 'efface.moi@example.com'`)),
+    0,
+  );
+  verifier(
+    'l’effacement laisse une trace, sans l’adresse effacée',
+    JSON.stringify(
+      (
+        await db.query(`select apres from public.audit_logs
+          where action = 'EFFACEMENT' and enregistrement_id = '0d000000-0000-0000-0000-000000000001'`)
+      ).rows[0]?.apres,
+    ),
+    '{"leads":2,"motif":"demande de la personne"}',
+  );
+
   // ── Filet : aucune table sans RLS ────────────────────────────────────────
   console.log('\nCouverture RLS\n');
   const sansRls = await db.query(`
