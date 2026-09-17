@@ -122,6 +122,8 @@ exposer le back-office au branding. Aucune donnée nominative — que des agrég
 
 ```
 /admin                      CA, inscriptions, RDV du jour, alertes webhooks
+/admin/statistiques         CA encaissé et net par mois, produit, type ; abonnements ; tunnel ;
+                            réseaux jusqu'à l'encaissé ; comparaison des formateurs
 
 /admin/crm
   /leads                    Pipeline : nouveau → contacté → RDV → proposition → gagné/perdu

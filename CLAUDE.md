@@ -44,6 +44,8 @@ contredit pas.
   `inscriptions.formateur_id` (les clients confiés, vendus ou non) et porte le carnet de suivi ;
   les notes marquées visibles s'affichent dans `/espace`. Tableau de bord, rendez-vous et
   statistiques (ventes au montant proposé) repris avec les données rechargées.
+- **`/admin/statistiques`** donne toute l'activité, argent compris : encaissé et net, abonnements,
+  tunnel, réseaux jusqu'à l'encaissé, comparaison des formateurs.
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
   `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien ».
 
