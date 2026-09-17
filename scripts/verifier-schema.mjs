@@ -558,6 +558,16 @@ async function main() {
     ).rows[0]?.formateur_id,
     '33333333-3333-3333-3333-333333333333',
   );
+  // Le même rachat prolonge l'accès en cours au lieu de le raccourcir : le seed
+  // lui laisse 81 jours, les 90 achetés s'y ajoutent.
+  verifier(
+    'un rachat d’accompagnement prolonge l’accès depuis sa fin actuelle',
+    (
+      await db.query(`select (date_fin_acces - current_date)::int as j from public.inscriptions
+        where id = 'e0000000-0000-0000-0000-00000000000a'`)
+    ).rows[0]?.j,
+    171,
+  );
 
   // ── La révocation en fin daccès ──────────────────────────────────────────
   console.log('\nRévocation des accès expirés\n');

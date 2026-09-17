@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
@@ -6,6 +7,7 @@ import { MessageURL } from '@/components/message-url';
 import { Carte } from '@/components/ui';
 import { dateHeure } from '@/lib/format';
 import { PARAM, messageConstant } from '@/lib/messages/catalogue';
+import { lireAccesExistant, phraseProlongation } from '@/lib/paiement/acces-existant';
 import { createClient } from '@/lib/supabase/server';
 
 import { BoutonPayer } from './bouton-payer';
@@ -38,7 +40,7 @@ export default async function Page({
   const { data: proposition } = await supabase
     .from('propositions')
     .select(
-      'id, statut, montant_cents, devise, expire_le, created_at, formations(titre, description, type_produit, duree_acces_jours, modalite)',
+      'id, statut, montant_cents, devise, expire_le, created_at, formation_id, formations(titre, description, type_produit, duree_acces_jours, modalite)',
     )
     .eq('id', id)
     .maybeSingle();
@@ -48,11 +50,24 @@ export default async function Page({
   // pas droit serait déjà en dire trop.
   if (!proposition || !proposition.formations) notFound();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const formation = proposition.formations;
   const expiree =
     proposition.statut === 'expiree' ||
     (proposition.expire_le != null && new Date(proposition.expire_le) < new Date());
-  const payable = proposition.statut === 'envoyee' && !expiree;
+  const ouverte = proposition.statut === 'envoyee' && !expiree;
+  const acces =
+    ouverte && user
+      ? await lireAccesExistant(supabase, user.id, {
+          id: proposition.formation_id,
+          titre: formation.titre,
+          type_produit: formation.type_produit,
+        })
+      : null;
+  const payable = ouverte && !acces?.bloque;
 
   return (
     <div className="max-w-2xl space-y-8">
@@ -99,8 +114,21 @@ export default async function Page({
         )}
       </Carte>
 
+      {acces && !acces.bloque && acces.prolongeDepuis && (
+        <p className="rounded-douce border border-filet bg-surface p-4 text-sm leading-relaxed">
+          {phraseProlongation(acces.prolongeDepuis, formation.duree_acces_jours)}
+        </p>
+      )}
+
       {payable ? (
         <BoutonPayer propositionId={proposition.id} />
+      ) : acces?.bloque ? (
+        <p className="rounded-douce border border-filet-fort bg-surface p-4 text-sm leading-relaxed">
+          {acces.raison}{' '}
+          <Link href="/espace/factures" className="font-semibold text-accent hover:underline">
+            Voir mes factures
+          </Link>
+        </p>
       ) : proposition.statut === 'acceptee' ? (
         <p className="rounded-douce border border-succes bg-surface p-4 text-sm leading-relaxed text-succes">
           Proposition acceptée — votre accès est ouvert. Retrouvez-le dans votre espace.

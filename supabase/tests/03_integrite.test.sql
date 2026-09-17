@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(37);
+select plan(38);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -327,6 +327,15 @@ select is(
    where id = 'e0000000-0000-0000-0000-00000000000a'),
   '33333333-3333-3333-3333-333333333333'::uuid,
   'une affectation existante n’est pas écrasée'
+);
+
+-- Le même rachat prolonge l'accès en cours au lieu de le raccourcir : le seed
+-- lui laisse 81 jours, les 90 achetés s'y ajoutent.
+select is(
+  (select (date_fin_acces - current_date)::int from public.inscriptions
+   where id = 'e0000000-0000-0000-0000-00000000000a'),
+  171,
+  'un rachat d’accompagnement prolonge l’accès depuis sa fin actuelle'
 );
 
 -- ── Le remboursement, rejoué ───────────────────────────────────────────────

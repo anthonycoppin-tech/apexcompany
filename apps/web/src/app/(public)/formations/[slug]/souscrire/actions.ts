@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { creerCompteEtSession } from '@/lib/auth/creation-compte';
+import { lireAccesExistant } from '@/lib/paiement/acces-existant';
 import { ouvrirCheckout } from '@/lib/paiement/checkout';
 import { VERSION_CONSENTEMENT } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
@@ -67,6 +68,13 @@ export async function souscrire(_precedent: EtatAction, donnees: FormData): Prom
   let userId = user?.id;
   let email = user?.email ?? '';
   let emailVerifie = Boolean(user?.email_confirmed_at);
+
+  // Un compte qui vient d'être créé ne peut rien détenir : la vérification ne
+  // vaut que pour une session existante.
+  if (user) {
+    const acces = await lireAccesExistant(supabase, user.id, formation);
+    if (acces.bloque) return echoue(acces.raison);
+  }
 
   // ── Visiteur anonyme : on crée le compte avant de facturer ───────────────
   // Le compte doit exister avant le paiement, parce que c'est lui qui permet

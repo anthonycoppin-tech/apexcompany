@@ -6,6 +6,7 @@ import { formaterMontant } from '@apex/db';
 import { MessageURL } from '@/components/message-url';
 import { AvertissementRisque, Carte, Conteneur, Section } from '@/components/ui';
 import { PARAM, messageConstant } from '@/lib/messages/catalogue';
+import { lireAccesExistant } from '@/lib/paiement/acces-existant';
 import { createClient } from '@/lib/supabase/server';
 
 import { BoutonRenvoyer } from './bouton-renvoyer';
@@ -61,6 +62,7 @@ export default async function Page({
   } = await supabase.auth.getUser();
 
   const emailAVerifier = Boolean(user) && !user?.email_confirmed_at;
+  const acces = user ? await lireAccesExistant(supabase, user.id, formation) : null;
 
   return (
     <Section>
@@ -89,7 +91,14 @@ export default async function Page({
               l'inscription, bloquant ici. Une facture qui part vers une adresse
               non vérifiée est une facture qu'on ne peut pas prouver avoir
               envoyée. */}
-          {emailAVerifier ? (
+          {acces?.bloque ? (
+            <p className="text-sm leading-relaxed">
+              {acces.raison}{' '}
+              <Link href="/espace/factures" className="font-semibold text-accent hover:underline">
+                Voir mes factures
+              </Link>
+            </p>
+          ) : emailAVerifier ? (
             <div className="space-y-4">
               <div className="space-y-2">
                 <h2 className="font-semibold">Vérifiez votre adresse email</h2>
