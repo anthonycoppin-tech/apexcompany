@@ -6,6 +6,14 @@ import { formaterMontant } from '@apex/db';
 import { EnTete, Pastille, Tableau, Vide } from '@/components/admin';
 import { SOURCES, libelleStatut, tonStatut } from '@/lib/crm/pipeline';
 import { dateCourte, dateHeure } from '@/lib/format';
+import {
+  ISSUES_RDV,
+  STATUTS_INSCRIPTION,
+  STATUTS_PROPOSITION,
+  STATUTS_RDV,
+  detailEvenement,
+  libelleEvenement,
+} from '@/lib/formateur/suivi';
 import { libelle } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
 
@@ -151,7 +159,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   <td className="py-2.5 pr-4 tabular-nums">
                     {formaterMontant(p.montant_cents, p.devise)}
                   </td>
-                  <td className="py-2.5 pr-4">{p.statut}</td>
+                  <td className="py-2.5 pr-4">{STATUTS_PROPOSITION[p.statut]}</td>
                   <td className="py-2.5 text-encre-doux">{dateCourte(p.expire_le)}</td>
                 </tr>
               ))}
@@ -170,7 +178,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               {inscriptions.data.map((i) => (
                 <tr key={i.id} className="border-b border-filet last:border-0">
                   <td className="py-2.5 pr-4">{i.formations?.titre ?? '—'}</td>
-                  <td className="py-2.5 pr-4">{i.statut}</td>
+                  <td className="py-2.5 pr-4">{STATUTS_INSCRIPTION[i.statut]}</td>
                   <td className="py-2.5 pr-4 text-encre-doux">{dateCourte(i.date_debut)}</td>
                   <td className="py-2.5 text-encre-doux">
                     {/* `null` veut dire illimité, jamais « non renseigné ». */}
@@ -193,7 +201,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               <li key={r.id} className="rounded-carte border border-filet bg-fond p-4 text-sm">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span>{dateHeure(r.debut)}</span>
-                  <span className="text-encre-doux">{r.issue ?? r.statut}</span>
+                  <span className="text-encre-doux">
+                    {r.issue ? ISSUES_RDV[r.issue] : STATUTS_RDV[r.statut]}
+                  </span>
                 </div>
                 {r.compte_rendu && (
                   <p className="mt-2 whitespace-pre-wrap text-encre-doux">{r.compte_rendu}</p>
@@ -220,13 +230,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   <td className="py-2.5 pr-4 whitespace-nowrap text-encre-doux">
                     {dateHeure(e.created_at)}
                   </td>
-                  <td className="py-2.5 pr-4 font-medium">{e.type}</td>
+                  <td className="py-2.5 pr-4 font-medium">{libelleEvenement(e.type, e.payload)}</td>
                   <td className="py-2.5 text-encre-doux">
-                    {typeof e.payload === 'object' && e.payload !== null
-                      ? Object.entries(e.payload as Record<string, unknown>)
-                          .map(([cle, valeur]) => `${cle} : ${String(valeur)}`)
-                          .join(' · ')
-                      : '—'}
+                    {detailEvenement(e.type, e.payload) ?? '—'}
                   </td>
                 </tr>
               ))}

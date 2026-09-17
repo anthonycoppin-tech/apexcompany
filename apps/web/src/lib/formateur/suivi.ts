@@ -241,3 +241,42 @@ export function joursRestants(fin: string | null, maintenant = Date.now()): numb
   // La fin d'accès est une date : l'accès court jusqu'au soir de ce jour-là.
   return Math.ceil((new Date(`${fin}T23:59:59`).getTime() - maintenant) / JOUR_MS);
 }
+
+/**
+ * Le détail lisible d'une ligne de `lead_events`, pour le back-office.
+ *
+ * L'historique affichait le `payload` tel quel — `blocage : gestion_risque ·
+ * tranche_budget : 2000_5000`. La soumission du formulaire n'a pas de détail
+ * ici : ses réponses sont déjà affichées, traduites, en tête de fiche.
+ */
+export function detailEvenement(type: string, payload: unknown): string | null {
+  const p = (payload ?? {}) as Record<string, unknown>;
+  const euros = (cents: unknown) =>
+    typeof cents === 'number'
+      ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100)
+      : null;
+
+  if (type === 'formulaire_soumis') return null;
+  if (type === 'echange') return typeof p.contenu === 'string' ? p.contenu : null;
+  if (type === 'proposition_emise') {
+    const remise = typeof p.remise_cents === 'number' && p.remise_cents > 0;
+    return [
+      euros(p.montant_cents),
+      remise ? `remise de ${euros(p.remise_cents)} sur ${euros(p.prix_catalogue_cents)}` : null,
+      typeof p.expire_le === 'string'
+        ? `valable jusqu’au ${new Date(p.expire_le).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  }
+  if (type === 'formateur_affecte') return typeof p.formation === 'string' ? p.formation : null;
+  if (type.startsWith('cal.')) return null;
+
+  // Un type qu'on n'a pas prévu : mieux vaut ses clés brutes que rien.
+  const brut = Object.entries(p)
+    .filter(([, v]) => v !== null && typeof v !== 'object')
+    .map(([k, v]) => `${k} : ${String(v)}`)
+    .join(' · ');
+  return brut || null;
+}

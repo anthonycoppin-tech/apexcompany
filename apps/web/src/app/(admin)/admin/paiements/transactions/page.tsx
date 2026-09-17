@@ -11,6 +11,18 @@ const ETATS: Record<string, { libelle: string; ton: Ton }> = {
   rembourse: { libelle: 'Remboursé', ton: 'neutre' },
 };
 
+const PRESTATAIRES: Record<string, string> = { stripe: 'Stripe', paypal: 'PayPal' };
+
+/** Les moyens que Stripe renvoie dans `payment_method_types`, dits en français. */
+const METHODES: Record<string, string> = {
+  card: 'carte',
+  sepa_debit: 'prélèvement SEPA',
+  paypal: 'PayPal',
+  link: 'Link',
+  apple_pay: 'Apple Pay',
+  google_pay: 'Google Pay',
+};
+
 /**
  * `/admin/paiements/transactions` — Stripe et PayPal réunis.
  *
@@ -102,8 +114,8 @@ export default async function Page() {
                     <Pastille ton={etat?.ton ?? 'neutre'}>{etat?.libelle ?? p.statut}</Pastille>
                   </td>
                   <td className="py-2.5 pr-4 text-encre-doux">
-                    {p.provider}
-                    {p.methode ? ` · ${p.methode}` : ''}
+                    {PRESTATAIRES[p.provider] ?? p.provider}
+                    {p.methode ? ` · ${METHODES[p.methode] ?? p.methode}` : ''}
                   </td>
                   <td className="py-2.5 font-mono text-xs text-encre-faible">
                     {p.provider_payment_id ?? '—'}

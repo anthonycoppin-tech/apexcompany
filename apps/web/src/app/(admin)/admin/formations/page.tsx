@@ -89,7 +89,11 @@ export default async function Page() {
                   )}
                 </td>
                 <td className="py-2.5 pr-4 text-encre-doux">
-                  {f.duree_acces_jours ? `${f.duree_acces_jours} jours` : 'illimité'}
+                  {f.type_produit === 'abonnement'
+                    ? 'tant que l’abonnement court'
+                    : f.duree_acces_jours
+                      ? `${f.duree_acces_jours} jours`
+                      : 'illimité'}
                 </td>
                 <td className="py-2.5 pr-4">
                   {f.discord_role_id ? (

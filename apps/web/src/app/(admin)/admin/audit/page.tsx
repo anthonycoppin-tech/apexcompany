@@ -33,6 +33,18 @@ export default async function Page() {
 
   const liste = lignes ?? [];
 
+  // L'auteur par son nom : un identifiant ne dit rien à qui relit l'audit. Le
+  // compte peut avoir disparu depuis — l'identifiant reste alors affiché.
+  const auteurs = [...new Set(liste.map((l) => l.user_id).filter((u): u is string => !!u))];
+  const { data: profils } = auteurs.length
+    ? await supabase.from('profiles').select('id, prenom, nom, email').in('id', auteurs)
+    : { data: [] };
+  const nomAuteur = (id: string | null) => {
+    if (!id) return 'système';
+    const p = profils?.find((x) => x.id === id);
+    return p ? [p.prenom, p.nom].filter(Boolean).join(' ') || p.email : id;
+  };
+
   return (
     <>
       <EnTete
@@ -60,7 +72,7 @@ export default async function Page() {
                   {/* `null` ici veut dire « pas d'utilisateur porteur de la
                       session » : une écriture faite par un handler en clé de
                       service, ou par une migration. */}
-                  {l.user_id ?? 'système'}
+                  {nomAuteur(l.user_id)}
                 </td>
                 {/* `ip` est un `inet` côté Postgres, que les types générés
                     rendent comme `unknown` : la conversion est explicite plutôt
