@@ -907,6 +907,40 @@ async function main() {
     '{"leads":2,"motif":"demande de la personne"}',
   );
 
+  // ── Registre des emails ──────────────────────────────────────────────────
+  console.log('\nRegistre des emails transactionnels\n');
+  await enTantQuAdministrateur();
+  const reserver = `insert into public.emails_envoyes (modele, cle, user_id, destinataire)
+    values ('paiement', 'd0000000-0000-0000-0000-00000000000a',
+            '66666666-6666-6666-6666-666666666666', 'client.a@apex.test')`;
+  await db.exec(reserver);
+  let doublon = 'accepté';
+  try {
+    await db.exec(reserver);
+  } catch (err) {
+    doublon = err.code;
+  }
+  verifier('un même email ne se réserve qu’une fois', doublon, '23505');
+
+  await devenir('66666666-6666-6666-6666-666666666666');
+  verifier(
+    'un client ne lit pas le registre, pas même ses propres lignes',
+    await compter('public.emails_envoyes'),
+    0,
+  );
+  let ecriture = 'acceptée';
+  try {
+    await db.exec(`insert into public.emails_envoyes (modele, cle, user_id, destinataire)
+      values ('test', 'x', '66666666-6666-6666-6666-666666666666', 'x@example.com')`);
+  } catch (err) {
+    ecriture = err.code;
+  }
+  verifier('personne n’écrit dans le registre par l’API', ecriture, '42501');
+
+  await devenir('22222222-2222-2222-2222-222222222222');
+  verifier('le staff lit le registre', await compter('public.emails_envoyes'), 1);
+  await enTantQuAdministrateur();
+
   // ── Filet : aucune table sans RLS ────────────────────────────────────────
   console.log('\nCouverture RLS\n');
   const sansRls = await db.query(`
