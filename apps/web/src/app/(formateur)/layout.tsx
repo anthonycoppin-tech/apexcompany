@@ -9,7 +9,8 @@ import { requireRole } from '@/lib/auth/roles';
 const LIENS = [
   { href: '/formateur', libelle: 'Tableau de bord' },
   { href: '/formateur/rendez-vous', libelle: 'Rendez-vous' },
-  { href: '/formateur/clients', libelle: 'Clients' },
+  { href: '/formateur/clients', libelle: 'Prospects' },
+  { href: '/formateur/accompagnements', libelle: 'Accompagnements' },
   { href: '/formateur/statistiques', libelle: 'Statistiques' },
 ];
 
@@ -30,8 +31,10 @@ const LIENS = [
  * la même frontière (voir CLAUDE.md, « La RLS est la sécurité, pas le filtre
  * d'affichage »).
  *
- * Et jamais un montant sur ces écrans : ni prix payé, ni facture, ni impayé.
- * Le formateur voit si l'accès est actif, pas ce qu'il a coûté.
+ * Et jamais ce qu'un client a payé : ni encaissement, ni facture, ni impayé.
+ * Le formateur voit si l'accès est actif, pas ce qu'il a coûté. Les seuls
+ * montants de la zone sont les prix du catalogue et ceux des propositions
+ * qu'il émet lui-même (CLAUDE.md, « Un formateur ne voit que ses affectations »).
  */
 export default async function FormateurLayout({ children }: { children: ReactNode }) {
   await requireRole(['formateur']);

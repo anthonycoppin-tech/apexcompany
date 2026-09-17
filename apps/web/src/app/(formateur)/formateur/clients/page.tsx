@@ -92,7 +92,7 @@ export default async function Page({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-3xl font-extrabold">Mes clients</h1>
+        <h1 className="text-3xl font-extrabold">Mes prospects</h1>
         <form className="flex gap-2" action="/formateur/clients">
           <input type="hidden" name="vue" value={choisie.valeur} />
           <label className="sr-only" htmlFor="recherche">

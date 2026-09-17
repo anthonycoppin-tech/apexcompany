@@ -30,7 +30,7 @@ export default async function Page({
     lireEtatPaiement(),
   ]);
 
-  const [inscriptions, proposition, rdv, lien] = await Promise.all([
+  const [inscriptions, proposition, rdv, lien, notes] = await Promise.all([
     supabase
       .from('inscriptions')
       .select('id, statut, date_fin_acces, formations(titre, type_produit, modalite)')
@@ -50,7 +50,25 @@ export default async function Page({
       .limit(1)
       .maybeSingle(),
     supabase.from('discord_links').select('discord_username').maybeSingle(),
+    // La RLS ne rend que les notes marquées visibles, sur ses propres
+    // inscriptions (`suivi_notes_client_lit_les_visibles`). Les notes internes
+    // du formateur ne quittent jamais la base pour ce compte.
+    supabase
+      .from('suivi_notes')
+      .select('id, type, contenu, created_at, inscription_id, inscriptions(formations(titre))')
+      .order('created_at', { ascending: false })
+      .limit(20),
   ]);
+
+  const toutesNotes = notes.data ?? [];
+  const objectifs = toutesNotes.filter(
+    (n, i) =>
+      n.type === 'objectif' &&
+      toutesNotes.findIndex(
+        (m) => m.type === 'objectif' && m.inscription_id === n.inscription_id,
+      ) === i,
+  );
+  const retours = toutesNotes.filter((n) => n.type !== 'objectif').slice(0, 5);
 
   return (
     <div className="space-y-8">
@@ -100,6 +118,38 @@ export default async function Page({
           </Carte>
         )}
       </section>
+
+      {toutesNotes.length > 0 && (
+        <section className="space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold">Mon suivi</h2>
+            <p className="text-sm text-encre-doux">
+              Les objectifs et les retours que votre formateur partage avec vous.
+            </p>
+          </div>
+          {objectifs.map((o) => (
+            <Carte key={o.id} className="space-y-1 border-accent/30 bg-accent-doux">
+              <p className="text-xs font-semibold tracking-wide text-encre-doux uppercase">
+                Objectif en cours · {o.inscriptions?.formations?.titre ?? 'Accompagnement'}
+              </p>
+              <p className="whitespace-pre-wrap">{o.contenu}</p>
+              <p className="text-xs text-encre-doux">Fixé le {dateCourte(o.created_at)}</p>
+            </Carte>
+          ))}
+          {retours.length > 0 && (
+            <ul className={LISTE}>
+              {retours.map((r) => (
+                <li key={r.id} className="space-y-1 p-4 text-sm">
+                  <p className="text-xs text-encre-doux">
+                    {r.type === 'retour' ? 'Retour de séance' : 'Note'} · {dateCourte(r.created_at)}
+                  </p>
+                  <p className="whitespace-pre-wrap">{r.contenu}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="space-y-4">

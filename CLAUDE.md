@@ -32,6 +32,20 @@ contredit pas.
 - **Relier un autre compte Discord redemande tous les rôles dus** (`invité` et ceux des
   inscriptions actives). L'ancien compte garde les siens : le worker ne vise que le compte relié,
   et le retrait est manuel, tracé dans `/admin/logs`.
+- **Les clients se connectent par email, sans mot de passe.** `/connexion` envoie un lien et un
+  code ; l'équipe garde son mot de passe. C'était le seul moyen de revenir pour un compte créé par
+  le formulaire, qui n'a pas de mot de passe. Les modèles d'email sont dans
+  `supabase/templates/` et se posent par `npm run auth:modeles` — **refusé sur un projet gratuit sans
+  SMTP**, donc en attente du plan Pro ou d'un service d'envoi (`docs/08-CE-QUI-MANQUE.md`).
+- **Un accès payé est confié au formateur de la proposition** (migration `20260917100000`,
+  appliquée) : sans cela, aucun formateur ne voyait jamais un client réel. Le back-office permet
+  d'en désigner un autre, accès par accès, depuis la fiche client.
+- **L'espace formateur couvre l'après-vente.** `/formateur/accompagnements` part de
+  `inscriptions.formateur_id` (les clients confiés, vendus ou non) et porte le carnet de suivi ;
+  les notes marquées visibles s'affichent dans `/espace`. Tableau de bord, rendez-vous et
+  statistiques (ventes au montant proposé) repris avec les données rechargées.
+- **`/admin/statistiques`** donne toute l'activité, argent compris : encaissé et net, abonnements,
+  tunnel, réseaux jusqu'à l'encaissé, comparaison des formateurs.
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
   `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien ».
 
@@ -507,6 +521,7 @@ npm run db:check         # Applique migrations + seed sur PGlite et rejoue les i
 npm run db:push          # Applique les migrations en attente sur le projet hébergé
 npm run db:types:linked  # Régénère packages/db/src/database.types.ts depuis le projet hébergé
 npm run db:types         # Idem depuis une instance locale — exige Docker, donc CI seulement
+npm run auth:modeles     # Pose les modèles d'email sur un projet hébergé (jeton de gestion requis)
 npm run typecheck
 ```
 
@@ -827,5 +842,9 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   plan gratuit interdisant l'usage commercial), qui porte aussi la tâche quotidienne de
   révocation ; le worker Discord, processus long, sur un petit hébergeur de conteneur
   (Railway ou équivalent). Reste à la charge du client d'ouvrir les comptes.
+- **Connexion des clients** — **tranché le 17 septembre 2026, décision déléguée aux
+  développeurs : par email (lien et code), sans mot de passe.** Le parcours des plateformes de
+  formation et de communauté comparables, cohérent avec des comptes créés sans mot de passe par
+  le formulaire. L'équipe garde le mot de passe. **Fait.**
 - **Messagerie coach ↔ client** — recommandation : hors v1, l'échange reste sur
   Discord. Voir l'argumentaire dans `docs/06-PERIMETRE.md`.

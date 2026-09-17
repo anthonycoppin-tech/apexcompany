@@ -5,10 +5,12 @@ import { formaterMontant } from '@apex/db';
 
 import { EnTete, Pastille, Tableau, Vide, type Ton } from '@/components/admin';
 import { dateCourte, dateHeure } from '@/lib/format';
+import { STATUTS_INSCRIPTION, nomComplet } from '@/lib/formateur/suivi';
 import { createClient } from '@/lib/supabase/server';
 
 import { BoutonReattribuer } from '../bouton-reattribuer';
 import { FormulaireRemboursement } from './formulaire-remboursement';
+import { SelecteurFormateur } from './selecteur-formateur';
 
 const ETATS_INSCRIPTION: Record<string, Ton> = {
   active: 'bon',
@@ -45,35 +47,48 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
   if (!profil) notFound();
 
-  const [inscriptions, commandes, factures, abonnements, discord, lead] = await Promise.all([
-    supabase
-      .from('inscriptions')
-      .select('id, statut, date_debut, date_fin_acces, formations(titre, type_produit)')
-      .eq('user_id', id)
-      .order('date_debut', { ascending: false }),
-    supabase
-      .from('orders')
-      .select(
-        'id, montant_cents, devise, statut, provider, provider_order_id, created_at, formations(titre), payments(id, statut, paid_at, provider_payment_id)',
-      )
-      .eq('user_id', id)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('invoices')
-      .select('id, numero, emise_at, pdf_url, orders!inner(user_id, montant_cents, devise)')
-      .eq('orders.user_id', id)
-      .order('emise_at', { ascending: false }),
-    supabase
-      .from('subscriptions')
-      .select('id, statut, periode_fin, resiliation_demandee_le, formations(titre)')
-      .eq('user_id', id),
-    supabase
-      .from('discord_links')
-      .select('discord_user_id, discord_username, derniere_sync')
-      .eq('user_id', id)
-      .maybeSingle(),
-    supabase.from('leads').select('id, statut').eq('user_id', id).maybeSingle(),
-  ]);
+  const [inscriptions, commandes, factures, abonnements, discord, lead, formateurs] =
+    await Promise.all([
+      supabase
+        .from('inscriptions')
+        .select(
+          'id, statut, date_debut, date_fin_acces, formateur_id, formations(titre, type_produit)',
+        )
+        .eq('user_id', id)
+        .order('date_debut', { ascending: false }),
+      supabase
+        .from('orders')
+        .select(
+          'id, montant_cents, devise, statut, provider, provider_order_id, created_at, formations(titre), payments(id, statut, paid_at, provider_payment_id)',
+        )
+        .eq('user_id', id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('invoices')
+        .select('id, numero, emise_at, pdf_url, orders!inner(user_id, montant_cents, devise)')
+        .eq('orders.user_id', id)
+        .order('emise_at', { ascending: false }),
+      supabase
+        .from('subscriptions')
+        .select('id, statut, periode_fin, resiliation_demandee_le, formations(titre)')
+        .eq('user_id', id),
+      supabase
+        .from('discord_links')
+        .select('discord_user_id, discord_username, derniere_sync')
+        .eq('user_id', id)
+        .maybeSingle(),
+      supabase.from('leads').select('id, statut').eq('user_id', id).maybeSingle(),
+      // Les comptes qui peuvent recevoir un client : le rôle, pas une liste tenue
+      // à la main.
+      supabase
+        .from('user_roles')
+        .select('user_id, profiles!user_roles_user_id_fkey(prenom, nom, email)')
+        .eq('role', 'formateur'),
+    ]);
+
+  const listeFormateurs = (formateurs.data ?? [])
+    .map((f) => ({ id: f.user_id, nom: nomComplet(f.profiles, f.profiles?.email ?? 'Formateur') }))
+    .sort((a, b) => a.nom.localeCompare(b.nom));
 
   // Les notes se lisent APRÈS les inscriptions, et restreintes aux siennes.
   // La RLS ne suffit pas ici : elle ouvre au staff les notes de TOUS les
@@ -143,16 +158,34 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <h2 className="text-sm font-semibold text-encre-doux">Accès</h2>
         {inscriptions.data?.length ? (
           <div className="rounded-carte border border-filet bg-fond p-5">
-            <Tableau colonnes={['Produit', 'Statut', 'Depuis', 'Jusqu’au']} largeurMin="38rem">
+            <Tableau
+              colonnes={['Produit', 'Statut', 'Depuis', 'Jusqu’au', 'Formateur']}
+              largeurMin="52rem"
+            >
               {inscriptions.data.map((i) => (
                 <tr key={i.id} className="border-b border-filet last:border-0">
                   <td className="py-2.5 pr-4">{i.formations?.titre ?? '—'}</td>
                   <td className="py-2.5 pr-4">
-                    <Pastille ton={ETATS_INSCRIPTION[i.statut] ?? 'neutre'}>{i.statut}</Pastille>
+                    <Pastille ton={ETATS_INSCRIPTION[i.statut] ?? 'neutre'}>
+                      {STATUTS_INSCRIPTION[i.statut]}
+                    </Pastille>
                   </td>
                   <td className="py-2.5 pr-4 text-encre-doux">{dateCourte(i.date_debut)}</td>
-                  <td className="py-2.5 text-encre-doux">
+                  <td className="py-2.5 pr-4 text-encre-doux">
                     {i.date_fin_acces ? dateCourte(i.date_fin_acces) : 'illimité'}
+                  </td>
+                  <td className="py-2.5">
+                    {/* Un abonnement communauté n'a pas de suivi individuel : pas
+                        de formateur à désigner. */}
+                    {i.formations?.type_produit === 'abonnement' ? (
+                      <span className="text-encre-doux">—</span>
+                    ) : (
+                      <SelecteurFormateur
+                        inscriptionId={i.id}
+                        actuel={i.formateur_id}
+                        formateurs={listeFormateurs}
+                      />
+                    )}
                   </td>
                 </tr>
               ))}

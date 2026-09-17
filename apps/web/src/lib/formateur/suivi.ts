@@ -13,6 +13,9 @@ type Enums<T extends keyof Database['public']['Enums']> = Database['public']['En
 
 export const JOUR_MS = 86_400_000;
 
+/** Au-delà, un accompagnement individuel sans note est un client qu'on oublie. */
+export const SANS_SUIVI_JOURS = 14;
+
 export const STATUTS: Record<Enums<'lead_statut'>, string> = {
   nouveau: 'À contacter',
   contacte: 'Contacté',
@@ -142,6 +145,10 @@ export function libelleEvenement(type: string, payload: unknown): string {
 
   if (type === 'formulaire_soumis') return 'A rempli le formulaire';
   if (type === 'proposition_emise') return 'Proposition émise';
+  if (type === 'formateur_affecte') {
+    const formation = p.formation ? ` pour « ${p.formation} »` : '';
+    return p.formateur_id ? `Formateur affecté${formation}` : `Affectation retirée${formation}`;
+  }
   if (type === 'echange') {
     const canal = CANAUX[p.canal as Canal] ?? 'Échange';
     const apres = p.statut_apres as Enums<'lead_statut'> | undefined;
@@ -178,3 +185,59 @@ export function duree(ms: number | null): string {
 
 export const pourcentage = (part: number, total: number) =>
   total === 0 ? '—' : `${Math.round((part / total) * 100)} %`;
+
+/**
+ * Les valeurs d'énumération, dites comme on les dit.
+ *
+ * La fiche affichait `honore`, `acceptee`, `active` tels que la base les
+ * range : lisible par un développeur, pas par la personne qui prépare un appel.
+ */
+export const ISSUES_RDV: Record<Enums<'rdv_issue'>, string> = {
+  honore: 'Honoré',
+  absent: 'Absent',
+  annule: 'Annulé',
+};
+
+export const STATUTS_RDV: Record<Enums<'appointment_statut'>, string> = {
+  planifie: 'Planifié',
+  confirme: 'Confirmé',
+  honore: 'Honoré',
+  absent: 'Absent',
+  annule: 'Annulé',
+  reporte: 'Reporté',
+};
+
+export const STATUTS_PROPOSITION: Record<Enums<'proposition_statut'>, string> = {
+  brouillon: 'Brouillon',
+  envoyee: 'Envoyée',
+  acceptee: 'Acceptée',
+  refusee: 'Refusée',
+  expiree: 'Expirée',
+};
+
+export const STATUTS_INSCRIPTION: Record<Enums<'inscription_statut'>, string> = {
+  active: 'Actif',
+  suspendue: 'Suspendu',
+  terminee: 'Terminé',
+  remboursee: 'Remboursé',
+};
+
+/**
+ * Les trois sortes de notes de suivi. Le type ne décide pas de la visibilité —
+ * c'est `visible_client`, coché à la main —, mais il la suggère : un objectif
+ * se partage, une observation reste le plus souvent interne.
+ */
+export const TYPES_NOTE: Record<Enums<'suivi_note_type'>, string> = {
+  objectif: 'Objectif',
+  retour: 'Retour de séance',
+  observation: 'Observation',
+};
+
+export type TypeNote = Enums<'suivi_note_type'>;
+
+/** Jours restants avant une date de fin d'accès, `null` pour un accès illimité. */
+export function joursRestants(fin: string | null, maintenant = Date.now()): number | null {
+  if (!fin) return null;
+  // La fin d'accès est une date : l'accès court jusqu'au soir de ce jour-là.
+  return Math.ceil((new Date(`${fin}T23:59:59`).getTime() - maintenant) / JOUR_MS);
+}

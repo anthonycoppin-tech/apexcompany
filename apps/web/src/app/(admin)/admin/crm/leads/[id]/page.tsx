@@ -129,7 +129,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-encre-doux">Ce qu’il a répondu</h2>
+        <h2 className="text-sm font-semibold text-encre-doux">Ses réponses au formulaire</h2>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-carte border border-filet bg-fond p-5 text-sm sm:grid-cols-4">
           {reponses.map(([titre, champ, valeur]) => (
             <div key={champ} className="space-y-0.5">

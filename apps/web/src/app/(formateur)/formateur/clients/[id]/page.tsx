@@ -4,16 +4,20 @@ import { notFound } from 'next/navigation';
 import { formaterMontant } from '@apex/db';
 
 import { Pastille, type Ton } from '@/components/admin';
+import { Coordonnees } from '@/components/coordonnees';
 import { Carte, LISTE } from '@/components/ui';
 import { SOURCES } from '@/lib/crm/pipeline';
 import { dateCourte, dateHeure } from '@/lib/format';
 import {
+  ISSUES_RDV,
   STATUTS,
+  STATUTS_INSCRIPTION,
+  STATUTS_PROPOSITION,
+  STATUTS_RDV,
   dansLeBudget,
   depuis,
   libelleEvenement,
   nomComplet,
-  numeroWhatsApp,
 } from '@/lib/formateur/suivi';
 import { libelle } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
@@ -98,19 +102,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       .limit(50),
   ]);
 
-  // Les notes se lisent APRÈS les inscriptions, et restreintes aux siennes : la
-  // RLS laisse lire les notes de TOUS ses clients, et sans ce filtre chaque
-  // fiche afficherait celles de tout le monde.
-  const inscriptionIds = (inscriptions.data ?? []).map((i) => i.id);
-
-  const notes = inscriptionIds.length
-    ? await supabase
-        .from('suivi_notes')
-        .select('id, type, contenu, visible_client, created_at')
-        .in('inscription_id', inscriptionIds)
-        .order('created_at', { ascending: false })
-    : { data: [] as never[] };
-
   const maintenant = new Date().getTime();
   const prochainRdv = (rdv.data ?? [])
     .filter((r) => new Date(r.debut).getTime() > maintenant && r.statut !== 'annule')
@@ -152,9 +143,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   ];
 
   const produitSouhaite = catalogue.data?.find((f) => f.id === lead.produit_souhaite_id);
-  const whatsapp = numeroWhatsApp(lead.telephone);
-  const lienContact =
-    'rounded-douce border border-filet px-3 py-1.5 text-sm font-medium transition-colors hover:bg-surface';
 
   return (
     <div className="space-y-10">
@@ -165,33 +153,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <Pastille ton={TON_STATUT[lead.statut]}>{STATUTS[lead.statut]}</Pastille>
           </div>
           <p className="text-sm text-encre-doux">
-            Arrivé via {SOURCES[lead.source] ?? lead.source} le {dateCourte(lead.created_at)} ·
-            dernier échange {depuis(dernierEchange?.created_at)}
+            Via {SOURCES[lead.source] ?? lead.source}, le {dateCourte(lead.created_at)} · dernier
+            échange {depuis(dernierEchange?.created_at)}
           </p>
         </div>
 
         {/* Les moyens de joindre la personne en premier : c'est le geste pour
             lequel on ouvre la fiche. */}
-        <div className="flex flex-wrap gap-2">
-          {lead.telephone && (
-            <a href={`tel:${lead.telephone.replace(/\s/g, '')}`} className={lienContact}>
-              Appeler · {lead.telephone}
-            </a>
-          )}
-          {whatsapp && (
-            <a
-              href={`https://wa.me/${whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={lienContact}
-            >
-              WhatsApp
-            </a>
-          )}
-          <a href={`mailto:${lead.email}`} className={lienContact}>
-            {lead.email}
-          </a>
-        </div>
+        <Coordonnees telephone={lead.telephone} email={lead.email} />
 
         {prochaineEtape && (
           <p className="rounded-douce border border-accent/30 bg-accent-doux px-4 py-3 text-sm">
@@ -202,7 +171,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-bold">Ce qu’il a répondu</h2>
+        <h2 className="text-xl font-bold">Ses réponses au formulaire</h2>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-carte border border-filet bg-fond p-5 text-sm sm:grid-cols-4">
           {reponses.map(([titre, champ, valeur]) => (
             <div key={champ} className="space-y-0.5">
@@ -300,7 +269,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               <li key={r.id} className="rounded-carte border border-filet bg-fond p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span>{dateHeure(r.debut)}</span>
-                  <span className="text-encre-doux">{r.issue ?? r.statut}</span>
+                  <span className="text-encre-doux">
+                    {r.issue ? ISSUES_RDV[r.issue] : STATUTS_RDV[r.statut]}
+                  </span>
                 </div>
                 {r.compte_rendu && (
                   <p className="mt-2 whitespace-pre-wrap text-encre-doux">{r.compte_rendu}</p>
@@ -335,7 +306,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   {formaterMontant(p.montant_cents, p.devise)}
                 </span>
                 <span className="text-encre-doux">
-                  {p.statut}
+                  {STATUTS_PROPOSITION[p.statut]}
                   {p.expire_le && p.statut === 'envoyee'
                     ? ` · expire le ${dateCourte(p.expire_le)}`
                     : ''}
@@ -357,17 +328,30 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-bold">Accès en cours</h2>
+        <h2 className="text-xl font-bold">Accès et suivi</h2>
         {inscriptions.data?.length ? (
           <ul className={`${LISTE} text-sm`}>
             {inscriptions.data.map((i) => (
-              <li key={i.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3">
-                <span className="font-medium">{i.formations?.titre ?? 'Formation'}</span>
-                <span className="text-encre-doux">
-                  {i.formations?.modalite === 'individuel' ? 'Individuel' : 'Groupe'} · {i.statut} ·{' '}
-                  {/* `null` veut dire illimité, jamais « pas de date ». */}
-                  {i.date_fin_acces ? `jusqu’au ${dateCourte(i.date_fin_acces)}` : 'accès illimité'}
-                </span>
+              <li key={i.id}>
+                {/* Le carnet de suivi vit sur l'accompagnement, pas sur la fiche
+                    commerciale : c'est l'inscription qui est confiée, et un
+                    collègue qui suit ce client sans l'avoir vendu doit y
+                    retrouver les mêmes notes. */}
+                <Link
+                  href={`/formateur/accompagnements/${i.id}`}
+                  className="flex flex-wrap items-baseline justify-between gap-2 p-3 transition-colors hover:bg-surface"
+                >
+                  <span className="font-medium">{i.formations?.titre ?? 'Formation'}</span>
+                  <span className="text-encre-doux">
+                    {i.formations?.modalite === 'individuel' ? 'Individuel' : 'Groupe'} ·{' '}
+                    {STATUTS_INSCRIPTION[i.statut]} ·{' '}
+                    {/* `null` veut dire illimité, jamais « pas de date ». */}
+                    {i.date_fin_acces
+                      ? `jusqu’au ${dateCourte(i.date_fin_acces)}`
+                      : 'accès illimité'}
+                    <span className="ml-3 font-semibold text-accent">Carnet de suivi →</span>
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -377,28 +361,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           </Carte>
         )}
       </section>
-
-      {(notes.data?.length ?? 0) > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xl font-bold">Notes de suivi</h2>
-          <ul className="space-y-2 text-sm">
-            {notes.data!.map((n) => (
-              <li key={n.id} className="rounded-carte border border-filet bg-fond p-4">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-xs font-semibold tracking-wide text-encre-faible uppercase">
-                    {n.type}
-                  </span>
-                  <span className="text-xs text-encre-doux">
-                    {n.visible_client ? 'Visible par le client' : 'Interne'} ·{' '}
-                    {dateCourte(n.created_at)}
-                  </span>
-                </div>
-                <p className="mt-1 whitespace-pre-wrap">{n.contenu}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   );
 }

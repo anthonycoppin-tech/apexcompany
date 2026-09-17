@@ -81,21 +81,31 @@ correspondent ; le mélanger au back-office obligerait chaque page d'administrat
 la moitié de son contenu pour toujours.
 
 ```
-/formateur                  Audits du jour, file « à faire » nominative, 7 prochains jours
-/formateur/rendez-vous      Audits passés et à venir, issue et compte rendu
-/formateur/clients          Ses clients et ses prospects, par étape, avec recherche
-/formateur/clients/[id]     Contact, prochaine étape, réponses, budget, échanges, historique, RDV,
-                            propositions, accès
-/formateur/statistiques     Entonnoir, délais, présence, conversion par budget/blocage/réseau,
-                            motifs de perte
+/formateur                       Prochain audit avec coordonnées, audits du jour, file « à faire »
+                                 nominative (dont suivis à reprendre), 7 prochains jours
+/formateur/rendez-vous           À consigner, à venir par jour avec coordonnées, historique
+/formateur/clients               Ses prospects et clients vendus, par étape, avec recherche
+/formateur/clients/[id]          Contact, prochaine étape, réponses, budget, échanges, historique,
+                                 RDV, propositions, accès
+/formateur/accompagnements       Les clients qui lui sont confiés : fin d'accès, objectif, dernier suivi
+/formateur/accompagnements/[id]  Coordonnées, objectif en cours, point de départ, carnet de suivi
+/formateur/statistiques          Ventes, entonnoir, délais, présence, formulaires par semaine,
+                                 conversion par profil, motifs de perte, accompagnements
 ```
+
+**Deux ancrages, deux écrans.** « Prospects » part de `leads.assigned_to` : les personnes que le
+formateur a vendues ou doit vendre. « Accompagnements » part de `inscriptions.formateur_id` : les
+clients qu'on lui a confiés, qu'il les ait vendus ou non. Le carnet de suivi vit sur
+l'accompagnement, et ses notes marquées visibles apparaissent dans `/espace`.
 
 La fiche client affiche en tête ce que le formulaire a capté — **budget déclaré, blocage
 principal, niveau, délai**. C'est ce qui prépare l'appel, et c'est disponible gratuitement
 puisque la personne vient de le saisir.
 
-**Jamais un montant sur ces écrans.** Ni prix payé, ni facture, ni impayé. Le formateur voit
-si l'accès est actif, pas ce qu'il a coûté.
+**Jamais ce qu'un client a payé.** Ni encaissement, ni facture, ni impayé. Le formateur voit
+si l'accès est actif, pas ce qu'il a coûté. Les seuls montants de la zone sont les prix du
+catalogue et ceux des propositions qu'il a émises — ses statistiques de ventes se lisent donc
+« au montant proposé », jamais « encaissé ».
 
 ## 3 bis. Statistiques de conversion
 
@@ -112,6 +122,8 @@ exposer le back-office au branding. Aucune donnée nominative — que des agrég
 
 ```
 /admin                      CA, inscriptions, RDV du jour, alertes webhooks
+/admin/statistiques         CA encaissé et net par mois, produit, type ; abonnements ; tunnel ;
+                            réseaux jusqu'à l'encaissé ; comparaison des formateurs
 
 /admin/crm
   /leads                    Pipeline : nouveau → contacté → RDV → proposition → gagné/perdu

@@ -125,6 +125,38 @@ obligatoire avant de payer — décision prise, et implémentée. Si l'envoi d'e
 pas, **aucun paiement ne peut aboutir**. C'est le comportement voulu, mais il faut avoir essayé
 un vrai parcours d'achat avant d'ouvrir les ventes.
 
+**C'est aussi le seul moyen, pour un client, de revenir sur le site.** Depuis le 17 septembre,
+les clients se connectent par un email (lien et code), jamais par un mot de passe. Sans envoi
+d'emails, un client dont la session a expiré ne peut plus entrer dans son espace.
+
+**Le service d'emails intégré à Supabase ne suffit pas** : il n'écrit qu'aux membres de
+l'organisation Supabase, et quelques emails par heure. Il faut brancher un vrai service (Resend
+ou équivalent) dans _Authentication → Emails → SMTP Settings_.
+
+**Les modèles d'email et l'adresse de retour sont prêts dans le dépôt**
+(`supabase/templates/`) et se posent en une commande, sur chaque projet — dev, puis production :
+
+```bash
+SUPABASE_ACCESS_TOKEN=sbp_... npm run auth:modeles -- <référence-du-projet>
+```
+
+Le jeton se crée sur supabase.com/dashboard/account/tokens et se supprime juste après : il ouvre
+tous les projets du compte.
+
+**Bloqué aujourd'hui** : un projet gratuit refuse toute modification des modèles tant qu'il
+envoie par le service intégré (constaté le 17 septembre sur le projet de dev). Il faut **l'un des
+deux** : le plan Pro, ou un SMTP configuré. Le plan Pro seul débloque les modèles, mais pas
+l'envoi aux vrais clients — le SMTP reste indispensable avant d'ouvrir les ventes.
+
+Tant que les modèles ne sont pas posés, la connexion marche quand même, avec deux limites : le
+lien ne fonctionne **que dans le navigateur qui l'a demandé** (un client qui lit ses emails sur
+son téléphone ne peut pas se connecter sur son ordinateur), et l'email, en anglais, ne contient
+pas le code.
+
+**Déjà fait sur le projet de dev** : l'adresse de retour `http://localhost:3000/connexion/confirmer`
+est autorisée. Sur le projet de production, `Site URL` doit valoir l'adresse réelle du site —
+la commande autorise alors `<Site URL>/connexion/confirmer` d'elle-même.
+
 ### Tâche planifiée
 
 `CRON_SECRET`, plus un planificateur qui appelle `https://<le-site>/api/cron/revocation` une fois

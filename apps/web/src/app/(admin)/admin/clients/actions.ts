@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { requireRole } from '@/lib/auth/roles';
+import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
@@ -112,4 +113,78 @@ export async function reattribuerAccesDiscord(
   return reussi(
     `${aEmpiler.length} rôle(s) remis en file. Ils arrivent dans la minute si le worker tourne.`,
   );
+}
+
+/**
+ * Confie un accès à un formateur — ou le lui retire.
+ *
+ * **Personne d'autre ne le fait.** `traiter_paiement()` ouvre l'inscription sans
+ * formateur : le vendeur (Franck, le plus souvent) n'est pas celui qui suit le
+ * client, et la base ne peut pas deviner qui le fera. Tant que ce geste n'a pas
+ * eu lieu, aucun formateur ne voit ce client — c'est `inscriptions.formateur_id`
+ * qui ouvre sa fiche, ses coordonnées et son carnet de suivi, par la RLS.
+ *
+ * Écrit avec la session de l'admin, pas la clé de service : la politique
+ * `inscriptions_staff_modifie` suffit, et elle revérifie le rôle.
+ */
+export async function affecterFormateur(
+  _precedent: EtatAction,
+  donnees: FormData,
+): Promise<EtatAction> {
+  await requireRole(['admin', 'owner']);
+
+  const inscriptionId = (donnees.get('inscription_id') ?? '').toString();
+  const formateurId = (donnees.get('formateur_id') ?? '').toString() || null;
+  if (!inscriptionId) return echoue('Accès introuvable.');
+
+  const supabase = await createClient();
+
+  // Le formateur choisi doit en être un : un identifiant quelconque ouvrirait
+  // les données du client au compte correspondant.
+  if (formateurId) {
+    const { data: role } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('user_id', formateurId)
+      .eq('role', 'formateur')
+      .maybeSingle();
+    if (!role) return echoue('Ce compte n’a pas le rôle formateur.');
+  }
+
+  const { data: inscription, error } = await supabase
+    .from('inscriptions')
+    .update({ formateur_id: formateurId })
+    .eq('id', inscriptionId)
+    .select('id, user_id, formations(titre)')
+    .maybeSingle();
+
+  if (error || !inscription) return echoue('L’affectation n’a pas pu être enregistrée.');
+
+  // Une trace dans l'historique du prospect, quand il y en a un : « qui suit
+  // ce client depuis quand » est la première question d'un collègue qui reprend.
+  const { data: lead } = await supabase
+    .from('leads')
+    .select('id')
+    .eq('user_id', inscription.user_id)
+    .limit(1)
+    .maybeSingle();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (lead) {
+    await supabase.from('lead_events').insert({
+      lead_id: lead.id,
+      type: 'formateur_affecte',
+      created_by: user?.id ?? null,
+      payload: {
+        inscription_id: inscription.id,
+        formation: inscription.formations?.titre ?? null,
+        formateur_id: formateurId,
+      },
+    });
+  }
+
+  revalidatePath(`/admin/clients/${inscription.user_id}`);
+  revalidatePath('/admin');
+  return reussi(formateurId ? 'Formateur affecté.' : 'Affectation retirée.');
 }

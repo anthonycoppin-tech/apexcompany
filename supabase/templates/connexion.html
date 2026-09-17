@@ -1,0 +1,8 @@
+<h2>Connexion à votre espace</h2>
+<p>Bonjour,</p>
+<p>Cliquez sur le bouton ci-dessous pour vous connecter :</p>
+<p><a href="{{ .SiteURL }}/connexion/confirmer?token_hash={{ .TokenHash }}&type=email" style="display:inline-block;padding:12px 20px;background:#111827;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600">Me connecter</a></p>
+<p>Vous pouvez aussi saisir ce code sur la page de connexion :</p>
+<p style="font-size:24px;font-weight:700;letter-spacing:4px">{{ .Token }}</p>
+<p>Ce lien et ce code ne servent qu’une fois et expirent au bout d’une heure.</p>
+<p>Si vous n’avez pas demandé à vous connecter, ignorez simplement cet email.</p>

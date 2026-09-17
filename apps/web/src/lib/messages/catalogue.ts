@@ -45,6 +45,12 @@ const CONSTANTES: Record<string, Message> = {
   // « Rien n'a changé » reste vrai même forgé, y compris pour qui n'a jamais
   // rien lié : c'est ce qui autorise cette phrase dans une constante.
   'discord-annule': info('Connexion à Discord annulée. Rien n’a changé.'),
+  // Ne prétend pas connaître la cause : lien expiré, déjà servi, ou ouvert sur
+  // un autre appareil que celui qui l'a demandé — la route ne sait pas lequel.
+  // Forgé, il reste vrai : qui le lit n'a pas de lien valide en main.
+  'lien-invalide': alerte(
+    'Ce lien de connexion n’a pas pu être utilisé : il a peut-être expiré, ou a été ouvert sur un autre appareil. Demandez-en un nouveau ci-dessous.',
+  ),
 };
 
 /**

@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
+import { lireAccesExistant } from '@/lib/paiement/acces-existant';
 import { ouvrirCheckout } from '@/lib/paiement/checkout';
 import { echoue, type EtatAction } from '@/lib/messages/types';
 
@@ -58,6 +59,15 @@ export async function ouvrirPaiement(
   if (proposition.expire_le && new Date(proposition.expire_le) < new Date()) {
     return echoue('Cette proposition a expiré. Votre formateur peut en émettre une nouvelle.');
   }
+
+  // Revérifié ici et pas seulement à l'affichage : l'écran peut dater d'avant
+  // un achat fait dans un autre onglet.
+  const acces = await lireAccesExistant(supabase, user.id, {
+    id: proposition.formation_id,
+    titre: proposition.formations.titre,
+    type_produit: proposition.formations.type_produit,
+  });
+  if (acces.bloque) return echoue(acces.raison);
 
   // ── L'email doit être vérifié avant de payer ─────────────────────────────
   // Décision consignée en §8 : non bloquante pour prendre rendez-vous,
