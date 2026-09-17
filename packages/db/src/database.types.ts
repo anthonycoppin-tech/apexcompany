@@ -1261,6 +1261,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      effacer_personne: {
+        Args: { p_lead_id: string; p_simulation?: boolean }
+        Returns: Json
+      }
       enregistrer_remboursement: {
         Args: {
           p_provider_refund_id: string

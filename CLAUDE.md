@@ -49,6 +49,9 @@ contredit pas.
 - **On ne paie plus deux fois le même accès**, et un rachat d'accompagnement prolonge l'accès au
   lieu de le raccourcir (migration `20260917110000`, appliquée). Vus à l'écran avec données :
   l'espace client et tout le back-office.
+- **Les demandes RGPD se traitent depuis la fiche prospect** : copie des données en JSON, et
+  effacement en deux temps par `effacer_personne()` (migration `20260917120000`, appliquée), qui
+  refuse toute personne ayant une trace d'achat.
 - **`/admin/exports`** sort paiements, remboursements, factures et prospects en CSV pour Excel.
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
   `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien » ;

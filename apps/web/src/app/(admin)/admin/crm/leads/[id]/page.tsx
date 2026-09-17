@@ -17,6 +17,7 @@ import {
 import { libelle } from '@/lib/qualification/questionnaire';
 import { createClient } from '@/lib/supabase/server';
 
+import { DonneesPersonnelles } from './donnees-personnelles';
 import { FormulaireFiche } from './formulaire-fiche';
 
 /**
@@ -241,6 +242,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         ) : (
           <Vide>Aucun événement enregistré.</Vide>
         )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-encre-doux">Données personnelles (RGPD)</h2>
+        <DonneesPersonnelles leadId={lead.id} email={lead.email} />
       </section>
 
       <p className="text-sm">
