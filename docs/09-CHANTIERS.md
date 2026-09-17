@@ -17,6 +17,15 @@ dev partagée. Ça n'a pas changé.
 > depuis la base. `purger_prospects_inactifs(true)` y répond : zéro candidat, ce qui est
 > attendu sur une base de dev qui a moins de trois ans.
 
+> **La base partagée porte le jeu de données de la révision 3 depuis le 17 septembre.** Rechargé
+> **sans rien effacer du travail Discord** : comptes, rôles, `discord_links`, `discord_sync_queue`,
+> `automation_logs` et les vrais rôles Discord du catalogue sont intacts. Ce n'est donc pas un
+> `seed.sql` rejoué à l'identique : les deux produits réels gardent leurs rôles du serveur de test
+> (Accélérateur `1548360649199849482`, Fondations `1548360717957210183`), Communauté garde le rôle
+> fictif du seed, `client.a` reste relié à un vrai compte Discord, et la facture existante garde
+> son numéro — une facture ne se supprime pas. Les commandes et inscriptions ont été modifiées sur
+> place pour la même raison. Les écrans formateur, client et back-office ont été vus remplis.
+
 > **Les comptes formateur du seed ont été renommés sur la base hébergée**, le 15 septembre.
 > `coach.a@apex.test` et `coach.b@apex.test` ne répondent plus : c'est `formateur.a@apex.test`
 > et `formateur.b@apex.test`, mot de passe inchangé. Seul l'email a changé — UUID, rôles et
@@ -259,21 +268,6 @@ relevée le 14 en testant autre chose et toujours vraie.
 ## Observations sans propriétaire
 
 Relevées en passant, vraies, et qui n'ont encore déclenché aucune décision.
-
-- **La base de dev partagée porte encore les données de la révision 2, et c'est plus large
-  que le catalogue.** Relevé le 15 septembre en passant les écrans en revue : `inscriptions.formateur_id`
-  est NULL sur les deux inscriptions, il n'y a aucune proposition, aucun témoignage et aucune
-  fiche formateur. Le seed du dépôt, lui, remplit tout cela (`seed.sql` lignes 282 et 316) — il
-  n'a simplement jamais été rejoué sur la base hébergée depuis la révision 3.
-
-  **Conséquence** : tous les écrans ne peuvent être vus qu'à vide. L'espace formateur affiche
-  quatre états vides parce qu'aucun formateur n'a de client, les écrans du contenu éditorial
-  livrés le 13 septembre n'ont aucune matière, et `/espace/propositions/[id]` n'est pas
-  atteignable. Ce n'est un défaut d'aucun de ces écrans.
-
-  **Pourquoi personne ne tranche seul** : rejouer le seed écrase ce qui a été saisi à la main
-  sur une base que deux personnes partagent. C'est le conflit décrit dans `07-REPARTITION.md`,
-  et c'est l'argument le plus concret entendu jusqu'ici pour le branching du plan Pro.
 
 - **Le même écart a déjà mordu une fois, en silence.** `auth.users` contenait toujours
   `coach.a@apex.test` / `coach.b@apex.test` alors que le seed dit `formateur.a` / `formateur.b` :

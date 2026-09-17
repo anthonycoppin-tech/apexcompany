@@ -19,6 +19,22 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
+## Point d'étape — 17 septembre 2026
+
+**Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
+contredit pas.
+
+- **La base partagée porte enfin les données de la révision 3.** Rechargée le 17 septembre, en
+  gardant tout le montage Discord de Christopher (liaisons, file, journaux, vrais rôles du
+  catalogue). Les écrans formateur, client et back-office ont été vus **remplis** pour la première
+  fois. Ce qui diffère du seed est écrit en tête de `docs/09-CHANTIERS.md`. Toutes les mentions
+  « la base porte les données de la révision 2 » plus bas sont donc périmées.
+- **Relier un autre compte Discord redemande tous les rôles dus** (`invité` et ceux des
+  inscriptions actives). L'ancien compte garde les siens : le worker ne vise que le compte relié,
+  et le retrait est manuel, tracé dans `/admin/logs`.
+- **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
+  `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien ».
+
 ## Point d'étape — 15 septembre 2026
 
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
