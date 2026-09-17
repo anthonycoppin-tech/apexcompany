@@ -37,6 +37,9 @@ contredit pas.
   le formulaire, qui n'a pas de mot de passe. Les modèles d'email sont dans
   `supabase/templates/` et se posent par `npm run auth:modeles` — **refusé sur un projet gratuit sans
   SMTP**, donc en attente du plan Pro ou d'un service d'envoi (`docs/08-CE-QUI-MANQUE.md`).
+- **Un accès payé est confié au formateur de la proposition** (migration `20260917100000`,
+  appliquée) : sans cela, aucun formateur ne voyait jamais un client réel. Le back-office permet
+  d'en désigner un autre, accès par accès, depuis la fiche client.
 - **L'espace formateur couvre l'après-vente.** `/formateur/accompagnements` part de
   `inscriptions.formateur_id` (les clients confiés, vendus ou non) et porte le carnet de suivi ;
   les notes marquées visibles s'affichent dans `/espace`. Tableau de bord, rendez-vous et
