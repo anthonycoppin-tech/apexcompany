@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 
 import { BoutonAction, CHAMP, Carte } from '@/components/ui';
 import { ECRANS, MOINS_18 } from '@/lib/qualification/questionnaire';
+import { CHAMP_PIEGE } from '@/lib/qualification/anti-spam';
 import { MessageBloc, MessageLigne } from '@/components/message';
 import { REPOS, alerte, messageDe } from '@/lib/messages/types';
 
@@ -158,6 +159,19 @@ export function FormulaireQualification({ src }: { src?: string }) {
       className="space-y-8"
     >
       <input type="hidden" name="src" value={src ?? ''} />
+
+      {/* Champ piège : invisible, hors tabulation, ignoré des lecteurs d'écran.
+          Une personne ne le remplit jamais ; un robot qui remplit tout, si.
+          Hors écran plutôt que `display: none`, que certains robots sautent. Le
+          nom évite tout ce que le remplissage automatique du navigateur
+          reconnaîtrait (`company`, `website`…), sans quoi un vrai prospect
+          serait refusé. */}
+      <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <label>
+          Ne pas remplir
+          <input type="text" name={CHAMP_PIEGE} tabIndex={-1} autoComplete="off" defaultValue="" />
+        </label>
+      </div>
 
       <div className="space-y-3">
         <p className="text-xs font-semibold tracking-wide text-encre-faible uppercase">

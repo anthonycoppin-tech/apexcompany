@@ -4,6 +4,31 @@ import { ipDeLaRequete } from '@/lib/auth/ip-demande';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
+/**
+ * Au-delà, on refuse. Assez haut pour qu'une connexion partagée — un bureau,
+ * et surtout un opérateur mobile, qui place des milliers d'abonnés derrière une
+ * même adresse — ne bloque jamais un vrai prospect au lendemain d'une
+ * publication ; assez bas pour qu'un robot ne remplisse pas le CRM et la table
+ * des comptes en une nuit.
+ *
+ * **En développement, toutes les requêtes viennent de `::1`** : vingt comptes
+ * de test dans l'heure, et le vingt et unième est refusé. C'est la limite qui
+ * marche, pas un bug.
+ */
+const COMPTES_PAR_HEURE_ET_ADRESSE = 20;
+
+async function comptesRecentsDepuis(
+  admin: ReturnType<typeof createServiceRoleClient>,
+  ip: string,
+): Promise<number> {
+  const { count } = await admin
+    .from('consents')
+    .select('id', { count: 'exact', head: true })
+    .eq('ip', ip)
+    .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString());
+  return count ?? 0;
+}
+
 export type ResultatCreation =
   | { readonly ok: true; readonly userId: string }
   | { readonly ok: false; readonly erreur: string; readonly compteExiste: boolean };
@@ -48,6 +73,19 @@ export async function creerCompteEtSession({
   versionConsentement: string;
 }): Promise<ResultatCreation> {
   const admin = createServiceRoleClient();
+  const ip = await ipDeLaRequete();
+
+  // Une limite par adresse, lue dans les consentements déjà enregistrés : rien
+  // de nouveau n'est collecté pour la tenir. Sans adresse connaissable, pas de
+  // limite — on ne refuse pas quelqu'un sur une information qu'on n'a pas.
+  if (ip && (await comptesRecentsDepuis(admin, ip)) >= COMPTES_PAR_HEURE_ET_ADRESSE) {
+    return {
+      ok: false,
+      compteExiste: false,
+      erreur:
+        'Trop de comptes ont été créés depuis votre connexion récemment. Réessayez dans une heure, ou écrivez-nous.',
+    };
+  }
 
   const { data: compte, error } = await admin.auth.admin.createUser({
     email,
@@ -79,7 +117,7 @@ export async function creerCompteEtSession({
     type: 'confidentialite',
     accorde: true,
     version_texte: versionConsentement,
-    ip: await ipDeLaRequete(),
+    ip,
   });
 
   const { data: lien } = await admin.auth.admin.generateLink({ type: 'magiclink', email });

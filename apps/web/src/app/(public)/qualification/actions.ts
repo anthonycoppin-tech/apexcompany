@@ -14,6 +14,7 @@ import { creerCompteEtSession } from '@/lib/auth/creation-compte';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { codeSource, SOURCES } from '@/lib/qualification/source';
+import { CHAMP_PIEGE } from '@/lib/qualification/anti-spam';
 
 /**
  * Soumission du formulaire de qualification — la porte d'entrée du tunnel.
@@ -47,6 +48,22 @@ export async function soumettreQualification(
   donnees: FormData,
 ): Promise<EtatAction> {
   const lu = (champ: string) => (donnees.get(champ) ?? '').toString().trim();
+
+  // ── Champ piège ──────────────────────────────────────────────────────────
+  // Rempli, c'est un robot. On refuse avant toute écriture, avec le même
+  // message qu'un échec ordinaire : lui dire pourquoi, c'est lui apprendre à
+  // contourner. La trace dans `/admin/logs` dit si le site est visé.
+  if (lu(CHAMP_PIEGE)) {
+    await createServiceRoleClient()
+      .from('automation_logs')
+      .insert({
+        declencheur: 'qualification.piege',
+        entite_type: 'leads',
+        statut: 'ignore',
+        details: { raison: 'Champ piège rempli' },
+      });
+    return echoue('La création du compte a échoué. Réessayez dans un instant.');
+  }
 
   // ── Refus dur des mineurs ────────────────────────────────────────────────
   // Le composant arrête déjà le parcours sur cet écran. On revérifie ici parce
