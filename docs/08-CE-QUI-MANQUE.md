@@ -95,8 +95,9 @@ démarre pas du tout.
 Le webhook doit pointer vers `https://<le-site>/api/stripe`, et écouter ces événements :
 `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`,
 `customer.subscription.deleted`, `charge.dispute.created`, `charge.dispute.updated`,
-`charge.dispute.closed`, `refund.created`, `refund.updated`, `refund.failed`. Un événement
-oublié dans cette liste est un événement que le site n'apprendra jamais — un litige, par exemple.
+`charge.dispute.closed`, `charge.dispute.funds_withdrawn`, `charge.dispute.funds_reinstated`,
+`refund.created`, `refund.updated`, `refund.failed`. Un événement oublié dans cette liste est un
+événement que le site n'apprendra jamais — un litige, par exemple.
 
 **Le portail client Stripe doit être enregistré une fois** (_Paramètres → Facturation → Portail
 client_, bouton « Enregistrer »), en y autorisant la mise à jour du moyen de paiement. C'est lui

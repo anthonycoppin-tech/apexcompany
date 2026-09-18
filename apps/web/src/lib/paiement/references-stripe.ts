@@ -13,7 +13,7 @@ import type Stripe from 'stripe';
  * appelant n'ait à connaître la règle.
  */
 
-const idDe = (x: string | { id?: string } | null | undefined): string | null =>
+export const idDe = (x: string | { id?: string } | null | undefined): string | null =>
   typeof x === 'string' ? x : (x?.id ?? null);
 
 /**

@@ -2,7 +2,7 @@ import type Stripe from 'stripe';
 
 import { NextResponse } from 'next/server';
 
-import { referencesDuPaiement } from '@/lib/paiement/references-stripe';
+import { idDe, referencesDuPaiement } from '@/lib/paiement/references-stripe';
 import { stripe } from '@/lib/stripe';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
@@ -274,9 +274,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ erreur: 'Traitement impossible' }, { status: 500 });
   }
 }
-
-const idDe = (x: string | { id: string } | null | undefined): string | null =>
-  typeof x === 'string' ? x : (x?.id ?? null);
 
 /** Le statut Stripe d'un litige, ramené aux cinq états du back-office. */
 function statutLitige(

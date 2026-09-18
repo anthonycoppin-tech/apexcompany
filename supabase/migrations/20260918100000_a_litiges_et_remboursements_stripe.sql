@@ -165,10 +165,17 @@ begin
       || jsonb_build_object('origine', 'back-office');
   end if;
 
+  -- Verrouillée pour le reste de la transaction : sans ça, deux remboursements
+  -- partiels du même paiement annoncés en même temps liraient chacun la même
+  -- somme déjà rendue, concluraient chacun « encore partiel », et le paiement
+  -- se retrouverait intégralement remboursé chez Stripe sans que l'accès ne se
+  -- referme jamais. Le second appel attend que le premier ait posé sa ligne
+  -- dans `refunds` avant de recompter.
   select * into v_payment
   from public.payments
   where provider = p_provider and provider_payment_id = any (p_references)
-  limit 1;
+  limit 1
+  for update;
 
   if not found then
     insert into public.automation_logs (declencheur, entite_type, statut, details)
