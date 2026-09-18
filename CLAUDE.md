@@ -52,8 +52,8 @@ contredit pas.
 - **Les demandes RGPD se traitent depuis la fiche prospect** : copie des données en JSON, et
   effacement en deux temps par `effacer_personne()` (migration `20260917120000`, appliquée), qui
   refuse toute personne ayant une trace d'achat.
-- **Emails transactionnels : à moitié faits.** Registre `emails_envoyes` appliqué et modèles écrits ;
-  l'envoi, la tâche planifiée et `/admin/emails` restent — détail dans `docs/09-CHANTIERS.md`.
+- **Emails transactionnels : écrits (18 septembre), jamais envoyés.** Tâche horaire `api/cron/emails`
+  qui part de l'état de la base, registre `emails_envoyes`, `/admin/emails`. Attend un compte Resend.
 - **`/admin/exports`** sort paiements, remboursements, factures et prospects en CSV pour Excel.
 - **`apps/web` a des tests** : `npm test`, runner intégré de Node, lancé par la CI.
   `lib/messages/catalogue.test.ts` garde la règle « un code dépendant sans preuve ne rend rien » ;
@@ -749,7 +749,7 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   **`/admin/legal`** rassemble l'inventaire des traitements de données — relevé table par
   table, à relire à chaque migration qui en touche une — et ce qu'il faut obtenir pour écrire
   chaque page légale. Une seule réponse débloque la moitié de la liste : qui vend.
-  **Reste un placeholder** : `/admin/emails`, qui attend qu'un envoi d'emails existe.
+  **`/admin/emails`** (18 septembre) : état de l'envoi, registre des emails partis, aperçu des modèles.
   **`/statistiques`** (16 septembre) donne la conversion par réseau au rôle `branding` — une
   page hors de `(admin)`, liée depuis le back-office, vue à l'écran avec de vraies sessions.
   **L'édition du catalogue est écrite** (`/admin/formations/[id]` et `/nouveau`), avec deux

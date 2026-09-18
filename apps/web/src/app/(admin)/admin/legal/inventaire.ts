@@ -102,6 +102,12 @@ export const TRAITEMENTS: Traitement[] = [
     origine: 'Ouverture de l’accès au paiement, résiliation, révocation en fin d’accès.',
   },
   {
+    table: 'emails_envoyes',
+    finalite: 'Le registre des emails automatiques : lequel est parti, quand, et à quelle adresse.',
+    donnees: ['email', 'type d’email', 'dates d’envoi'],
+    origine: 'Tâche planifiée horaire, en clé de service. Supprimé avec le compte.',
+  },
+  {
     table: 'temoignages, formateurs_fiches',
     finalite: 'Le contenu éditorial publié sur le site public.',
     donnees: ['nom affiché', 'propos cités', 'biographie', 'photo'],
@@ -143,6 +149,11 @@ export const SOUS_TRAITANTS: Array<{ nom: string; role: string; aVerifier: strin
     role: 'Communauté et accès. Détient les échanges entre clients et formateurs.',
     aVerifier:
       'Les échanges vivent chez Discord et non chez nous — ce qui est un choix à assumer explicitement dans la politique.',
+  },
+  {
+    nom: 'Resend',
+    role: 'Envoi des emails automatiques. Reçoit l’adresse, le prénom et le contenu de chaque email.',
+    aVerifier: 'Compte non ouvert. La région d’envoi, et l’accord de sous-traitance.',
   },
   {
     nom: 'Cal.com',

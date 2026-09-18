@@ -41,6 +41,12 @@ const SERVICES: Array<{ nom: string; variables: string[]; consequence: string }>
     consequence: 'Sans elles, aucun rendez-vous n’est enregistré en base.',
   },
   {
+    nom: 'Emails',
+    variables: ['RESEND_API_KEY', 'EMAIL_FROM'],
+    consequence:
+      'Sans elles, aucun email automatique ne part (paiement reçu, proposition, relances).',
+  },
+  {
     nom: 'Tâche de révocation',
     variables: ['CRON_SECRET'],
     consequence: 'Sans elle, la révocation quotidienne refuse d’être déclenchée.',

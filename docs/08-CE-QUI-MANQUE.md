@@ -120,6 +120,10 @@ formateur, pas de fiche client à jour, et pas de statistique de rendez-vous non
 
 `RESEND_API_KEY` et `EMAIL_FROM`, ou l'équivalent configuré côté Supabase.
 
+**Les emails automatiques du site** (paiement reçu, proposition, relances) partent par Resend
+directement, depuis une tâche horaire. Sans ces deux variables, rien ne part — et le domaine de
+`EMAIL_FROM` doit être vérifié chez Resend (trois enregistrements DNS), sans quoi Resend refuse.
+
 **Attention, c'est bloquant pour les ventes** : la vérification de l'adresse email est
 obligatoire avant de payer — décision prise, et implémentée. Si l'envoi d'emails ne fonctionne
 pas, **aucun paiement ne peut aboutir**. C'est le comportement voulu, mais il faut avoir essayé
