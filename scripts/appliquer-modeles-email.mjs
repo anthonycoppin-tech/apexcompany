@@ -1,6 +1,6 @@
-// Pose sur un projet Supabase hébergé ce que la connexion par email attend :
-// l'adresse de retour `/connexion/confirmer` et les deux modèles d'email de
-// `supabase/templates/`.
+// Pose sur un projet Supabase hébergé ce que la connexion attend : les adresses
+// de retour `/connexion/confirmer` et `/api/discord/callback`, et les deux
+// modèles d'email de `supabase/templates/`.
 //
 // Pourquoi un script plutôt que le tableau de bord : ces réglages vivent hors
 // du dépôt, et il faudra les refaire à l'identique sur la production. Un
@@ -60,9 +60,15 @@ if (actuel.mailer_otp_exp !== 3600) {
   process.exit(1);
 }
 
-const retour = `${actuel.site_url.replace(/\/$/, '')}/connexion/confirmer`;
+const site = actuel.site_url.replace(/\/$/, '');
+const retour = `${site}/connexion/confirmer`;
+// Le retour de la liaison Discord (`components/bouton-lier-discord.tsx`). Absent
+// de la liste, Supabase renvoie vers la Site URL : la liaison aboutit chez
+// Discord, mais la route qui empile les rôles n'est jamais appelée.
+const retourDiscord = `${site}/api/discord/callback`;
 const autorisees = new Set((actuel.uri_allow_list ?? '').split(',').filter(Boolean));
 autorisees.add(retour);
+autorisees.add(retourDiscord);
 
 const modele = (nom) => readFileSync(`supabase/templates/${nom}.html`, 'utf8');
 
@@ -92,7 +98,9 @@ if (!ecriture.ok) {
   process.exit(1);
 }
 
-console.log(`Projet ${ref} : modèles posés, adresse de retour ${retour} autorisée.`);
+console.log(
+  `Projet ${ref} : modèles posés, adresses de retour ${retour} et ${retourDiscord} autorisées.`,
+);
 if (sansSmtp) {
   console.log(
     'Attention : aucun SMTP. Seuls les membres de l’organisation Supabase recevront ces emails.',

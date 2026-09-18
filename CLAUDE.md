@@ -9,6 +9,7 @@ La spécification fonctionnelle fait foi et vit dans [`docs/`](docs/) :
 `08-CE-QUI-MANQUE.md` (**tout ce que le code attend de l'extérieur** : clés, informations
 juridiques, contenu — à donner au client, pas à un développeur),
 `09-CHANTIERS.md` (**qui travaille sur quoi — à lire et à mettre à jour avant de commencer**).
+`10-MISE-EN-PRODUCTION.md` (la procédure du jour J, pas encore exécutée).
 
 **Avant de coder quoi que ce soit : ouvrir `09-CHANTIERS.md`, prendre un sujet, committer la
 prise et la pousser.** Le verrou est Git, pas l'intention : une prise gardée en local ne
@@ -37,6 +38,9 @@ contredit pas.
   statistiques par réseau étaient `direct` à 100 % pour le parcours prévu.
 - **Emails transactionnels écrits** (tâche horaire, `/admin/emails`), jamais envoyés : attendent
   un compte Resend.
+- **Pages d'erreur en français, en-têtes de sécurité, anti-spam du formulaire** (champ piège et
+  vingt comptes par heure et par adresse). **La procédure de mise en production est écrite**
+  (`docs/10-MISE-EN-PRODUCTION.md`), et a fait trouver une adresse de retour Discord manquante.
 - **Relecture du projet le 18 septembre** : les manques trouvés sont dans les sujets libres de
   `docs/09-CHANTIERS.md`.
 
