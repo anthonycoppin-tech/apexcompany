@@ -52,10 +52,14 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                 | État | Qui         | Depuis   |
-| ------------------------------------- | ---- | ----------- | -------- |
-| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
-| Réconciliation des rôles Discord      | pris | Christopher | 13 sept. |
+| Sujet                                    | État | Qui         | Depuis   |
+| ---------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service    | pris | Christopher | 12 sept. |
+| Réconciliation des rôles Discord         | pris | Christopher | 13 sept. |
+| Pages 404 et d'erreur en français        | pris | Anthony     | 18 sept. |
+| En-têtes de sécurité                     | pris | Anthony     | 18 sept. |
+| Anti-spam du formulaire de qualification | pris | Anthony     | 18 sept. |
+| Procédure de mise en production          | pris | Anthony     | 18 sept. |
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
