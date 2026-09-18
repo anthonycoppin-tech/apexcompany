@@ -50,7 +50,7 @@ export default async function Page() {
 
   const { debut, fin } = bornesDuJour();
 
-  const [encaisse, inscriptions, rdvDuJour, propositions, prospects, impayes, incidents] =
+  const [encaisse, inscriptions, rdvDuJour, propositions, prospects, impayes, incidents, litiges] =
     await Promise.all([
       supabase
         .from('payments')
@@ -74,6 +74,8 @@ export default async function Page() {
         .gte('created_at', ilYAUneSemaine.toISOString())
         .order('created_at', { ascending: false })
         .limit(8),
+      // Ouverts seulement : ceux-là ont une date limite, passée elle vaut perte.
+      supabase.from('disputes').select('id').eq('statut', 'ouvert'),
     ]);
 
   const ca = (encaisse.data ?? []).reduce((total, p) => total + p.montant_cents, 0);
@@ -127,6 +129,13 @@ export default async function Page() {
             detail="abonnements impayés"
             href="/admin/abonnements"
             ton={nbImpayes > 0 ? 'probleme' : 'bon'}
+          />
+          <Tuile
+            libelle="Litiges à répondre"
+            valeur={String(litiges.data?.length ?? 0)}
+            detail="perdus d’office passé le délai"
+            href="/admin/paiements/litiges"
+            ton={(litiges.data?.length ?? 0) > 0 ? 'probleme' : 'bon'}
           />
           <Tuile
             libelle="Incidents techniques"

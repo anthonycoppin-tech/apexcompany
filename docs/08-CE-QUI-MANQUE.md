@@ -92,7 +92,16 @@ démarre pas du tout.
 | Secret du webhook | `STRIPE_WEBHOOK_SECRET`              |
 | Clé publique      | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` |
 
-Le webhook doit pointer vers `https://<le-site>/api/stripe`.
+Le webhook doit pointer vers `https://<le-site>/api/stripe`, et écouter ces événements :
+`checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`,
+`customer.subscription.deleted`, `charge.dispute.created`, `charge.dispute.updated`,
+`charge.dispute.closed`, `refund.created`, `refund.updated`, `refund.failed`. Un événement
+oublié dans cette liste est un événement que le site n'apprendra jamais — un litige, par exemple.
+
+**Le portail client Stripe doit être enregistré une fois** (_Paramètres → Facturation → Portail
+client_, bouton « Enregistrer »), en y autorisant la mise à jour du moyen de paiement. C'est lui
+qui s'ouvre quand un abonné en échec de prélèvement clique « Mettre à jour ma carte » : sans
+cette configuration, le bouton affiche une erreur.
 
 **Sans elles** : aucun paiement ne s'ouvre, aucun encaissement n'est reçu, aucun remboursement
 ne s'exécute.

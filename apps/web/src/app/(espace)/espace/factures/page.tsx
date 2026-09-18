@@ -4,6 +4,7 @@ import { Carte } from '@/components/ui';
 import { dateCourte } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
+import { BoutonCarte } from './bouton-carte';
 import { BoutonResilier } from './bouton-resilier';
 
 const ETATS_ABO: Record<string, string> = {
@@ -69,10 +70,13 @@ export default async function Page() {
                   )}
 
                   {a.statut === 'impayee' && (
-                    <p className="text-sm leading-relaxed text-encre-doux">
-                      Le dernier prélèvement n’est pas passé. Votre accès reste ouvert — vérifiez
-                      votre moyen de paiement.
-                    </p>
+                    <div className="space-y-3">
+                      <p className="text-sm leading-relaxed text-encre-doux">
+                        Le dernier prélèvement n’est pas passé. Votre accès reste ouvert : mettez à
+                        jour votre carte, et le paiement sera retenté automatiquement.
+                      </p>
+                      <BoutonCarte subscriptionId={a.id} />
+                    </div>
                   )}
 
                   {a.statut === 'active' && a.periode_fin && (

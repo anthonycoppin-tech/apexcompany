@@ -691,6 +691,92 @@ async function main() {
   }
   verifier('un remboursement ne peut pas être supprimé', remboursementImmuable, true);
 
+  // ── Ce que Stripe décide sans nous ───────────────────────────────────────
+  console.log('\nLitiges et remboursements venus du prestataire\n');
+
+  const litige = (evt, statut) =>
+    db.query(`select public.enregistrer_litige(
+      'stripe', '${evt}', 'charge.dispute.updated', '{}'::jsonb, 'du_verif',
+      array['ch_inconnu', 'pi_test_seed_b'], 4900, '${statut}', 'fraudulent',
+      now() + interval '7 days') as r`);
+
+  await litige('evt_du_1', 'ouvert');
+  verifier('un litige Stripe est enregistré', await compter(`public.disputes`), 1);
+  verifier(
+    'un litige rejoué sort sans rien faire',
+    (await litige('evt_du_1', 'ouvert')).rows[0].r.deja_traite,
+    true,
+  );
+  await litige('evt_du_2', 'gagne');
+  await litige('evt_du_3', 'ouvert');
+  verifier(
+    'un événement en retard ne rouvre pas un litige clos',
+    (await db.query(`select statut from public.disputes where provider_dispute_id = 'du_verif'`))
+      .rows[0].statut,
+    'gagne',
+  );
+  const litigeInconnu = (
+    await db.query(`select public.enregistrer_litige(
+      'stripe', 'evt_du_4', 'charge.dispute.created', '{}'::jsonb, 'du_orphelin',
+      array['pi_inconnu'], 100, 'ouvert', null, null) as r`)
+  ).rows[0].r;
+  verifier(
+    'un litige sur un paiement inconnu est consigné, pas inventé',
+    litigeInconnu.paiement_introuvable === true && (await compter('public.disputes')) === 1,
+    true,
+  );
+
+  const rembourserChezStripe = (evt, re, montant) =>
+    db.query(`select public.enregistrer_remboursement_prestataire(
+      'stripe', '${evt}', 'refund.created', '{}'::jsonb, '${re}',
+      array['pi_test_seed_b'], ${montant}) as r`);
+  const inscriptionB = `public.inscriptions
+    where order_id = 'd0000000-0000-0000-0000-00000000000b' and statut = 'active'`;
+
+  // Le test de révocation plus haut a terminé cette inscription : on la rouvre.
+  await db.exec(`update public.inscriptions set statut = 'active', date_fin_acces = current_date + 23
+    where id = 'e0000000-0000-0000-0000-00000000000b';`);
+
+  // Le renouvellement mensuel enregistre ce qu'il encaisse — il ne le faisait pas.
+  const renouveler = (evt, ref) =>
+    db.query(`select public.renouveler_abonnement(
+      'stripe', '${evt}', 'invoice.paid', '{}'::jsonb, 'sub_test_seed_b', 4900, '${ref}') as r`);
+  const paiementsB = `public.payments where order_id = 'd0000000-0000-0000-0000-00000000000b'`;
+  const facturesB = `public.invoices where order_id = 'd0000000-0000-0000-0000-00000000000b'`;
+  const facturesAvant = await compter(facturesB);
+  await renouveler('evt_renouv_1', 'in_renouv_1');
+  verifier('un renouvellement enregistre son encaissement', await compter(paiementsB), 2);
+  verifier('et émet sa facture', (await compter(facturesB)) - facturesAvant, 1);
+  verifier(
+    'un renouvellement rejoué nencaisse rien de plus',
+    (await renouveler('evt_renouv_1', 'in_renouv_1')).rows[0].r.deja_traite === true &&
+      (await compter(paiementsB)) === 2,
+    true,
+  );
+
+  const partiel = (await rembourserChezStripe('evt_re_1', 're_partiel', 1000)).rows[0].r;
+  verifier(
+    'un remboursement partiel fait chez Stripe est enregistré sans fermer laccès',
+    partiel.integral === false && (await compter(inscriptionB)) === 1,
+    true,
+  );
+  const integral = (await rembourserChezStripe('evt_re_2', 're_reste', 3900)).rows[0].r;
+  verifier(
+    'le complément qui solde le paiement referme laccès',
+    integral.integral === true && (await compter(inscriptionB)) === 0,
+    true,
+  );
+  verifier(
+    'un remboursement Stripe rejoué sort sans rien faire',
+    (await rembourserChezStripe('evt_re_2', 're_reste', 3900)).rows[0].r.deja_traite,
+    true,
+  );
+  verifier(
+    'un remboursement du back-office annoncé par Stripe est reconnu',
+    (await rembourserChezStripe('evt_re_3', 're_verif', 50000)).rows[0].r.deja_connu,
+    true,
+  );
+
   // ── Suivi commercial du formateur ────────────────────────────────────────
   console.log('\nFormateur A — suivi commercial\n');
   await devenir('33333333-3333-3333-3333-333333333333');

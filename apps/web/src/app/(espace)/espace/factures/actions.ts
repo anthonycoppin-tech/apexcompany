@@ -1,11 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { stripe } from '@/lib/stripe';
 import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
+import { urlSite } from '@/lib/site';
 
 /**
  * Résilier son abonnement, depuis son espace.
@@ -70,4 +72,70 @@ export async function resilierAbonnement(
   revalidatePath('/espace');
 
   return reussi('Résiliation enregistrée.');
+}
+
+/**
+ * Changer de carte après un prélèvement en échec.
+ *
+ * L'écran disait « vérifiez votre moyen de paiement » sans aucun moyen de le
+ * faire : l'abonnement mourait au bout des relances de Stripe, faute d'une
+ * carte à jour. On ouvre le portail client de Stripe directement sur la mise à
+ * jour du moyen de paiement. Stripe retente la facture en échec avec la nouvelle
+ * carte à sa prochaine tentative (pas forcément à l'instant), et `invoice.paid`
+ * fait le reste.
+ *
+ * Le portail plutôt qu'un formulaire de carte ici : aucune donnée de carte ne
+ * transite par le site, donc rien à sécuriser de notre côté. Il demande en
+ * revanche d'avoir enregistré une fois sa configuration dans le tableau de bord
+ * Stripe (`docs/08-CE-QUI-MANQUE.md`) — sans elle, l'appel échoue et le message
+ * ci-dessous s'affiche.
+ */
+export async function ouvrirMiseAJourCarte(
+  _precedent: EtatAction,
+  donnees: FormData,
+): Promise<EtatAction> {
+  const id = (donnees.get('subscription_id') ?? '').toString();
+  if (!id) return echoue('Abonnement introuvable.');
+
+  // Relu sous RLS, comme la résiliation : l'identifiant vient du navigateur.
+  const { data: abonnement } = await (
+    await createClient()
+  )
+    .from('subscriptions')
+    .select('id, provider, provider_subscription_id')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (!abonnement || abonnement.provider !== 'stripe') {
+    return echoue('Cet abonnement n’existe pas ou ne vous appartient pas.');
+  }
+
+  let lien: string;
+  try {
+    const client = stripe();
+    const souscription = await client.subscriptions.retrieve(abonnement.provider_subscription_id);
+    const session = await client.billingPortal.sessions.create({
+      customer:
+        typeof souscription.customer === 'string'
+          ? souscription.customer
+          : souscription.customer.id,
+      return_url: `${urlSite}/espace/factures`,
+      flow_data: {
+        type: 'payment_method_update',
+        after_completion: {
+          type: 'redirect',
+          redirect: { return_url: `${urlSite}/espace/factures` },
+        },
+      },
+    });
+    lien = session.url;
+  } catch {
+    return echoue(
+      'La page de paiement n’a pas pu s’ouvrir. Réessayez dans un instant, ou écrivez-nous.',
+    );
+  }
+
+  // Hors du `try` : `redirect` lève une exception que Next.js intercepte, et
+  // un `catch` l'aurait prise pour un échec.
+  redirect(lien);
 }

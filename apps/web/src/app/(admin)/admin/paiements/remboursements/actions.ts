@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { intentionDuPaiement } from '@/lib/paiement/references-stripe';
 import { stripe } from '@/lib/stripe';
 import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
@@ -74,10 +75,19 @@ export async function traiterRemboursement(
   let referenceStripe: string;
 
   try {
+    // Un paiement d'abonnement est enregistré sous sa facture, pas sous son
+    // intention de paiement : l'appel direct échouait pour tous ceux-là.
+    const intention = await intentionDuPaiement(stripe(), paiement.provider_payment_id);
+    if (!intention) throw new Error('Paiement introuvable chez Stripe.');
+
     const refund = await stripe().refunds.create(
       {
-        payment_intent: paiement.provider_payment_id,
+        payment_intent: intention,
         amount: remboursement.montant_cents,
+        // Relu par le webhook `refund.created` : sans elle, un remboursement
+        // du back-office annoncé avant la fin de cet enregistrement serait pris
+        // pour un remboursement fait dans le tableau de bord Stripe.
+        metadata: { refund_id: remboursement.id },
       },
       // La clé d'idempotence, et c'est elle qui empêche de rembourser deux fois.
       // L'identifiant de la ligne est stable et unique : un rejeu renvoie le

@@ -1315,11 +1315,39 @@ export type Database = {
         Args: { p_lead_id: string; p_simulation?: boolean }
         Returns: Json
       }
+      enregistrer_litige: {
+        Args: {
+          p_deadline?: string
+          p_event_id: string
+          p_event_type: string
+          p_montant_cents: number
+          p_motif?: string
+          p_payload: Json
+          p_provider: Database["public"]["Enums"]["payment_provider"]
+          p_provider_dispute_id: string
+          p_references: string[]
+          p_statut: Database["public"]["Enums"]["dispute_statut"]
+        }
+        Returns: Json
+      }
       enregistrer_remboursement: {
         Args: {
           p_provider_refund_id: string
           p_refund_id: string
           p_traite_par: string
+        }
+        Returns: Json
+      }
+      enregistrer_remboursement_prestataire: {
+        Args: {
+          p_event_id: string
+          p_event_type: string
+          p_montant_cents: number
+          p_payload: Json
+          p_provider: Database["public"]["Enums"]["payment_provider"]
+          p_provider_refund_id: string
+          p_references: string[]
+          p_refund_id?: string
         }
         Returns: Json
       }

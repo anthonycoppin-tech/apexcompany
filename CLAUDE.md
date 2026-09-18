@@ -19,6 +19,27 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
+## Point d'étape — 18 septembre 2026
+
+**Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
+contredit pas.
+
+- **Une migration attend un `db:push`** : `20260918100000_a_litiges_et_remboursements_stripe.sql`,
+  non appliquée faute d'avoir pu prévenir l'autre développeur. Types ajoutés à la main dans
+  `packages/db` ; détail en tête de `docs/09-CHANTIERS.md`.
+- **Les renouvellements d'abonnement n'étaient pas enregistrés** comme encaissements : absents du
+  chiffre d'affaires, des exports et des factures. Corrigé, et `renouveler_abonnement()` a enfin
+  des tests — l'affirmation plus bas qu'elle était testée pour l'idempotence était fausse.
+- **Stripe : litiges et remboursements faits hors du site** sont reçus par le webhook. Un
+  remboursement d'abonnement depuis le back-office échouait toujours ; corrigé.
+- **Un abonné en impayé peut changer sa carte** depuis `/espace/factures` (portail Stripe).
+- **Le réseau d'origine arrive jusqu'au formulaire**, par l'adresse et sans cookie : les
+  statistiques par réseau étaient `direct` à 100 % pour le parcours prévu.
+- **Emails transactionnels écrits** (tâche horaire, `/admin/emails`), jamais envoyés : attendent
+  un compte Resend.
+- **Relecture du projet le 18 septembre** : les manques trouvés sont dans les sujets libres de
+  `docs/09-CHANTIERS.md`.
+
 ## Point d'étape — 17 septembre 2026
 
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne

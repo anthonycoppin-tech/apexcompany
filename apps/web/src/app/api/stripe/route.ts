@@ -2,6 +2,7 @@ import type Stripe from 'stripe';
 
 import { NextResponse } from 'next/server';
 
+import { referencesDuPaiement } from '@/lib/paiement/references-stripe';
 import { stripe } from '@/lib/stripe';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
@@ -79,10 +80,12 @@ export async function POST(request: Request) {
           p_montant_cents: session.amount_total ?? 0,
           p_devise: (session.currency ?? 'eur').toUpperCase(),
           p_provider_order_id: session.id,
+          // Achat unique : l'intention de paiement. Abonnement : la facture du
+          // premier mois — les renouvellements sont enregistrés sous leur
+          // facture aussi, et c'est par elle qu'un litige ou un remboursement
+          // retrouve le paiement (`lib/paiement/references-stripe.ts`).
           p_provider_payment_id:
-            typeof session.payment_intent === 'string'
-              ? session.payment_intent
-              : (session.payment_intent?.id ?? session.id),
+            idDe(session.payment_intent) ?? idDe(session.invoice) ?? session.id,
           // `undefined` et non `null` : ces deux paramètres ont une valeur par
           // défaut côté SQL, et les types générés les déclarent optionnels.
           p_proposition_id: meta.proposition_id ?? undefined,
@@ -171,6 +174,84 @@ export async function POST(request: Request) {
         return NextResponse.json({ recu: true });
       }
 
+      // ── Litiges ─────────────────────────────────────────────────────────
+      // Tous les événements d'un litige passent par la même fonction : elle
+      // crée la ligne au premier, la fait avancer ensuite, et ignore un
+      // événement en retard qui la ferait reculer.
+      case 'charge.dispute.created':
+      case 'charge.dispute.updated':
+      case 'charge.dispute.closed':
+      case 'charge.dispute.funds_withdrawn':
+      case 'charge.dispute.funds_reinstated': {
+        const litige = evenement.data.object;
+        const echeance = litige.evidence_details?.due_by;
+
+        const { data, error } = await supabase.rpc('enregistrer_litige', {
+          p_provider: 'stripe',
+          p_event_id: evenement.id,
+          p_event_type: evenement.type,
+          p_payload: JSON.parse(corps),
+          p_provider_dispute_id: litige.id,
+          p_references: await referencesDuPaiement(
+            stripe(),
+            idDe(litige.payment_intent),
+            idDe(litige.charge),
+          ),
+          p_montant_cents: litige.amount,
+          p_statut: statutLitige(litige.status),
+          p_motif: litige.reason || undefined,
+          p_deadline: echeance ? new Date(echeance * 1000).toISOString() : undefined,
+        });
+
+        if (error) throw error;
+        return NextResponse.json({ recu: true, resultat: data });
+      }
+
+      // ── Remboursement ───────────────────────────────────────────────────
+      // Qu'il vienne du back-office ou du tableau de bord Stripe. Le premier
+      // est reconnu (`metadata.refund_id`, ou son identifiant déjà connu) ;
+      // le second est enregistré, et referme l'accès s'il solde le paiement.
+      case 'refund.created':
+      case 'refund.updated': {
+        const remboursement = evenement.data.object;
+
+        // En attente ou réussi : l'argent part. Échoué ou annulé : rien n'est
+        // rendu, il n'y a rien à refermer.
+        if (remboursement.status !== 'succeeded' && remboursement.status !== 'pending') {
+          return NextResponse.json({ recu: true, ignore: remboursement.status });
+        }
+
+        const { data, error } = await supabase.rpc('enregistrer_remboursement_prestataire', {
+          p_provider: 'stripe',
+          p_event_id: evenement.id,
+          p_event_type: evenement.type,
+          p_payload: JSON.parse(corps),
+          p_provider_refund_id: remboursement.id,
+          p_references: await referencesDuPaiement(
+            stripe(),
+            idDe(remboursement.payment_intent),
+            idDe(remboursement.charge),
+          ),
+          p_montant_cents: remboursement.amount,
+          p_refund_id: remboursement.metadata?.refund_id || undefined,
+        });
+
+        if (error) throw error;
+        return NextResponse.json({ recu: true, resultat: data });
+      }
+
+      // Un remboursement déjà enregistré qui échoue après coup chez la banque :
+      // rare, et rien ne se rouvre tout seul. On le signale pour une décision.
+      case 'refund.failed': {
+        await supabase.from('automation_logs').insert({
+          declencheur: 'stripe.remboursement',
+          entite_type: 'refunds',
+          statut: 'echec',
+          details: { event: evenement.id, remboursement: evenement.data.object.id },
+        });
+        return NextResponse.json({ recu: true });
+      }
+
       default:
         // Stripe envoie bien plus d'événements qu'on n'en traite. Acquitter les
         // autres évite qu'ils s'accumulent en échec dans son tableau de bord.
@@ -191,5 +272,30 @@ export async function POST(request: Request) {
     // 500 volontaire : Stripe rejouera, et l'idempotence rend le rejeu sans
     // danger. Répondre 200 sur un échec ferait disparaître le paiement.
     return NextResponse.json({ erreur: 'Traitement impossible' }, { status: 500 });
+  }
+}
+
+const idDe = (x: string | { id: string } | null | undefined): string | null =>
+  typeof x === 'string' ? x : (x?.id ?? null);
+
+/** Le statut Stripe d'un litige, ramené aux cinq états du back-office. */
+function statutLitige(
+  statut: Stripe.Dispute.Status,
+): 'ouvert' | 'preuves_envoyees' | 'gagne' | 'perdu' | 'clos' {
+  switch (statut) {
+    case 'under_review':
+    case 'warning_under_review':
+      return 'preuves_envoyees';
+    case 'won':
+      return 'gagne';
+    case 'lost':
+      return 'perdu';
+    case 'warning_closed':
+    case 'prevented':
+      return 'clos';
+    default:
+      // `needs_response`, `warning_needs_response`, et tout statut que Stripe
+      // ajouterait : le plus prudent est de le traiter comme à répondre.
+      return 'ouvert';
   }
 }
