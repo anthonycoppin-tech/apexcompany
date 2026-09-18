@@ -4,6 +4,7 @@ import { formaterMontant } from '@apex/db';
 
 import { DonneesStructurees } from '@/components/donnees-structurees';
 import { Temoignages } from '@/components/temoignages';
+import { BoutonQualification } from '@/components/bouton-qualification';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
 import { urlSite } from '@/lib/site';
 import { createClient } from '@/lib/supabase/server';
@@ -172,7 +173,7 @@ export default async function Page() {
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Bouton href="/qualification">Faire le point sur ma situation</Bouton>
+              <BoutonQualification>Faire le point sur ma situation</BoutonQualification>
               <Bouton href="/formations" variante="secondaire">
                 Voir les programmes
               </Bouton>
@@ -365,7 +366,7 @@ export default async function Page() {
             quoi faire ensuite, que ce soit avec nous ou non.
           </p>
           <div className="flex justify-center">
-            <Bouton href="/qualification">Faire le point sur ma situation</Bouton>
+            <BoutonQualification>Faire le point sur ma situation</BoutonQualification>
           </div>
           <AvertissementRisque className="pt-4" />
         </div>

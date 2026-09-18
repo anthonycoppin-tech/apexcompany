@@ -2,7 +2,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { EtatSession } from '@/components/etat-session';
-import { AvertissementRisque, Bouton, Conteneur } from '@/components/ui';
+import { BoutonQualification } from '@/components/bouton-qualification';
+import { AvertissementRisque, Conteneur } from '@/components/ui';
 
 const NAVIGATION = [
   { href: '/formations', libelle: 'Programmes' },
@@ -108,9 +109,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 Deux minutes de questions, puis un échange d’orientation de 30 minutes, offert et
                 sans engagement.
               </p>
-              <Bouton href="/qualification" variante="secondaire" className="px-4 py-2">
+              <BoutonQualification variante="secondaire" className="px-4 py-2">
                 Faire le point
-              </Bouton>
+              </BoutonQualification>
             </div>
           </div>
 

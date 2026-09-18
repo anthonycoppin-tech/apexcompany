@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { type AppRole } from '@apex/db';
 
 import { BoutonDeconnexion } from '@/components/bouton-deconnexion';
+import { BoutonQualification } from '@/components/bouton-qualification';
 import { Bouton } from '@/components/ui';
 import { destinationApresConnexion } from '@/lib/auth/destination';
 import { createClient } from '@/lib/supabase/client';
@@ -70,9 +71,7 @@ export function EtatSession() {
         >
           Se connecter
         </Link>
-        <Bouton href="/qualification" className="px-4 py-2">
-          Faire le point
-        </Bouton>
+        <BoutonQualification className="px-4 py-2">Faire le point</BoutonQualification>
       </>
     );
   }

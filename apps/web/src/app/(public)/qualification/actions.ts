@@ -2,8 +2,6 @@
 
 import { redirect } from 'next/navigation';
 
-import type { Database } from '@apex/db';
-
 import { evaluerEligibilite } from '@/lib/qualification/eligibilite';
 import { echoue, type EtatAction } from '@/lib/messages/types';
 import {
@@ -15,21 +13,7 @@ import {
 import { creerCompteEtSession } from '@/lib/auth/creation-compte';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-
-type LeadSource = Database['public']['Enums']['lead_source'];
-
-/** `?src=ig` sur le lien mis en avant sur les réseaux → valeur d'énumération. */
-const SOURCES: Readonly<Record<string, LeadSource>> = {
-  ig: 'instagram',
-  instagram: 'instagram',
-  yt: 'youtube',
-  youtube: 'youtube',
-  tt: 'tiktok',
-  tiktok: 'tiktok',
-  sc: 'snapchat',
-  snapchat: 'snapchat',
-  parrainage: 'parrainage',
-};
+import { codeSource, SOURCES } from '@/lib/qualification/source';
 
 /**
  * Soumission du formulaire de qualification — la porte d'entrée du tunnel.
@@ -121,8 +105,9 @@ export async function soumettreQualification(
     string
   >;
 
-  const src = lu('src');
-  const source: LeadSource = SOURCES[src] ?? 'direct';
+  // Revalidé ici : le champ caché se falsifie comme le reste du formulaire.
+  const src = codeSource(`src=${encodeURIComponent(lu('src'))}`);
+  const source = src ? SOURCES[src] : 'direct';
 
   const supabase = createServiceRoleClient();
 
