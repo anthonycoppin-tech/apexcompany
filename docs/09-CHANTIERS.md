@@ -32,23 +32,27 @@ dev partagée. Ça n'a pas changé.
 > données liées sont intacts. Ces comptes viennent du seed, pas d'une migration, et le
 > renommage `coach` → `formateur` du 8 septembre ne les avait donc pas touchés.
 
-> **Deux migrations attendent un `db:push`.** Les deux sont sans risque pour l'autre
-> développeur, et aucune n'est urgente — mais elles se poussent ensemble, et il faut se prévenir
-> avant.
+> **Plus aucune migration en attente — vérifié le 21 septembre au soir.** Les 30 migrations du
+> dépôt sont appliquées sur la base hébergée, jusqu'à `20260921100000_a_rebonds_emails.sql`, et
+> `npm run db:types:linked` redonne un `database.types.ts` **identique** à celui du dépôt : ni
+> les deux signatures ajoutées à la main le 18 septembre, ni l'élargissement de la contrainte
+> de `emails_envoyes.statut` n'ont fait diverger les types.
 >
-> `20260918100000_a_litiges_et_remboursements_stripe.sql` (18 septembre). Non appliquée faute
-> d'avoir pu prévenir Christopher. Elle ne fait qu'ajouter deux fonctions et redéfinir
-> `renouveler_abonnement()` à signature égale — rien ne casse en attendant, et rien ne
-> l'appelle tant que Stripe n'est pas branché. **Les deux signatures ont été ajoutées à la main
-> dans `packages/db/src/database.types.ts`** : après le `db:push`, un `npm run
-db:types:linked` doit donner un fichier identique.
+> **Les deux migrations qui attendaient ont été poussées par l'autre développeur**, dans la
+> demi-heure qui a suivi la publication de la seconde sur `main` — sans commit, puisqu'un
+> `db:push` n'en produit aucun. **C'est la limite du verrou de ce fichier** : il protège du
+> travail fait deux fois, pas de la base partagée, où une action laisse une trace visible de
+> personne. Les deux étaient sans risque et le résultat est celui qu'on voulait ; le relever
+> n'est pas un reproche, c'est pour que la prochaine fois on sache où regarder.
 >
-> `20260921100000_a_rebonds_emails.sql` (21 septembre). Élargit la contrainte de
-> `emails_envoyes.statut` à `livre`, `rebond` et `plainte`, et redessine l'index partiel. Elle
-> **ne change rien aux types générés** — `statut` y est un `string`, pas une énumération — donc
-> `database.types.ts` est déjà juste et le `db:types:linked` d'après ne doit rien modifier.
-> Tant qu'elle n'est pas poussée, le webhook `api/resend` échouerait à écrire ces trois états
-> sur la base partagée ; il n'y a pas de webhook branché, donc rien ne le tente.
+> **Comment vérifier, plutôt que de faire confiance** : `npx supabase migration list --linked`
+> compare par **numéro de version, jamais par contenu** — deux fichiers différents portant le
+> même horodatage passent donc pour la même migration, et `db push` saute silencieusement le
+> second, pour toujours. Le contrôle qui ne ment pas est ailleurs : lire ce que la base dit
+> d'elle-même. Les commentaires `comment on table` / `comment on column` ressortent dans
+> l'OpenAPI de PostgREST (`GET /rest/v1/` avec `Accept: application/openapi+json`), et les
+> fonctions y apparaissent en `/rpc/<nom>` — deux lectures seules, sans Docker, qui disent
+> l'état réel du schéma.
 
 ## La règle
 

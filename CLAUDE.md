@@ -61,11 +61,21 @@ dans la procédure de mise en production, avec la précision qui fait perdre une
 monde : **les quatre enregistrements DNS se créent chez le fournisseur du domaine, jamais chez
 Resend**, qui se contente d'afficher les trois premiers et de vérifier qu'ils existent.
 
-### Deux migrations attendent un `db:push`
+### Plus aucune migration en attente, et une leçon sur la base partagée
 
-Celle du 18 septembre (litiges et remboursements Stripe) et `20260921100000_a_rebonds_emails.sql`.
-Aucune n'est urgente, aucune ne casse rien en attendant, et **la seconde ne change pas les types
-générés** (`statut` est un `string`, pas une énumération). Détail en tête de `docs/09-CHANTIERS.md`.
+Les 30 migrations du dépôt sont appliquées sur la base hébergée, et `db:types:linked` redonne un
+`database.types.ts` identique. Les deux qui attendaient — celle du 18 septembre et
+`20260921100000_a_rebonds_emails.sql` — **ont été poussées par l'autre développeur dans la
+demi-heure**, sans commit : un `db:push` n'en produit aucun. Le verrou de `09-CHANTIERS.md`
+protège du travail fait deux fois, **pas de la base partagée**.
+
+**Et une chose à savoir avant de s'y fier** : `supabase migration list --linked` compare par
+**numéro de version, jamais par contenu**. Deux fichiers différents portant le même horodatage
+passent pour la même migration, et `db push` saute le second **silencieusement, pour toujours** —
+il répond « up to date ». Le contrôle qui ne ment pas est de lire ce que la base dit d'elle-même :
+les `comment on table` / `comment on column` ressortent dans l'OpenAPI de PostgREST
+(`GET /rest/v1/`, `Accept: application/openapi+json`) et les fonctions en `/rpc/<nom>`. Deux
+lectures seules, sans Docker — c'est ce qui a permis de trancher ici.
 
 ### Branches nettoyées
 
