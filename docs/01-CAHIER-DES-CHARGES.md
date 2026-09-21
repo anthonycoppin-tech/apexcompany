@@ -630,9 +630,11 @@ Cinq des sept points listés en révision 3 ont été tranchés le 8 septembre 2
    dirigée par **Franck Alexandre**. Une seconde entité est mentionnée, **NEURO TRADE APEX
    LLC**, sans que son rôle soit précisé.
 
-   Ce qu'il n'apprend pas, et qui bloque les pages légales : **laquelle des deux vend aux
-   clients finaux ?** C'est cette entité-là qui figure dans les mentions légales, émet les
-   factures et porte les obligations. Écrire la mauvaise serait pire qu'un espace réservé.
+   **Laquelle des deux vend — tranché le 21 septembre 2026 : APEX COMPANY L.L.C-FZ**
+   (Meydan Free Zone, licence 2645781.01). Les textes légaux de l'ancien site, transmis ce
+   jour-là, la désignent partout comme vendeur et émettrice des factures ; NEURO TRADE APEX
+   LLC n'y figure pas. Cinq des six pages légales sont rédigées à partir de ces textes
+   (`08-CE-QUI-MANQUE.md` §2), sans relecture juridique à ce jour.
 
    Et ce qu'il change : le sujet n'est plus « la TVA hors Europe » mais **la TVA due dans
    l'Union par un vendeur qui n'y est pas établi**. Une société émiratie qui vend de la

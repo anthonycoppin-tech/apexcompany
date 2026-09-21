@@ -25,6 +25,33 @@ types de produit, disparition des cohortes et des replays, espace formateur déd
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
 contredit pas.
 
+### Qui vend est tranché, et les pages légales sont écrites
+
+**C'est APEX COMPANY L.L.C-FZ** (Meydan Free Zone, Dubaï, licence 2645781.01) : les six pages
+légales de l'ancien site, transmises par le client, la désignent partout comme vendeur et
+émettrice des factures. Son identité vit dans `apps/web/src/lib/legal/societe.ts` et **nulle
+part ailleurs** — mentions légales, CGV, données structurées et pied des emails la lisent. **Sa
+licence expire le 19 février 2027.**
+
+Cinq pages sur six sont rédigées à partir de ces textes (`/accessibilite` attend un audit), plus
+une nouvelle, **`/avertissement`** (l'ancien « disclaimer » et l'annexe « Risk Disclosure » des
+CGV ; `/disclaimer` y redirige). Elles ne sont plus retirées de l'indexation. **Aucun juriste ne
+les a relues.** Elles ne s'écartent des textes du client que là où ils étaient faux pour ce
+site — la liste des écarts est dans `docs/08-CE-QUI-MANQUE.md` §2 et `/admin/legal`, dont un qui
+compte : **la rétractation d'un accompagnement ou d'un abonnement se fait au prorata**, seule
+la formation (contenu numérique) la perd à l'accès.
+
+**Le défaut trouvé en chemin est de la même famille que tous les autres** : les CGV faisaient
+accepter les conditions et renoncer à la rétractation « en cochant la case dédiée », et **aucun
+des deux parcours de paiement n'avait de case**. Il y en a deux, requises, revérifiées par
+l'action, et **enregistrées dans `consents` avant l'ouverture de Stripe** — pas de preuve, pas
+de paiement (`lib/legal/acceptation.ts`). Aucune migration : le type `cgv` existait depuis le
+7 septembre sans jamais servir. Toute modification des CGV change `VERSION_TEXTES_LEGAUX`.
+
+Ce que les textes promettent et que le code ne fait pas encore — factures PDF, conservation des
+clients, rétractation au prorata qui ferme l'accès — est dans les sujets libres de
+`docs/09-CHANTIERS.md`.
+
 ### « Envoyé » ne voulait pas dire « reçu », et la page l'affirmait quand même
 
 Même famille que les trois du 13 septembre : **une page qui affirme ce qu'elle ne sait pas.**
@@ -792,20 +819,20 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   `sitemap.xml` tire les fiches du catalogue, `robots.txt` **interdit tout tant que le site n'est
   pas servi en HTTPS depuis son vrai domaine** (`lib/site.ts`), `metadataBase` et les balises Open
   Graph sont posées, et les données structurées couvrent l'organisme, les fiches produit et la FAQ
-  — sans note moyenne ni raison sociale, faute de témoignages et de société désignée.
+  — sans note moyenne faute de témoignages ; la raison sociale y est depuis le 21 septembre.
   **Les témoignages et les fiches formateurs sont branchés** — accueil, fiches produit et
   `/formateurs` les affichent dès qu'ils existent en base, et s'effacent tant qu'ils n'existent
   pas. Un témoignage ne se publie pas sans consentement enregistré ; la forme attendue est
   montrée au client dans `/admin/contenu`, avec des exemples fictifs qui ne quittent jamais le
   back-office.
-  **Les six pages légales ne sont plus des placeholders** : chacune annonce ce qu'elle
-  contiendra, renvoie vers le contact et **se retire de l'indexation** tant qu'elle est dans cet
-  état. `/confidentialite` et `/cookies` disent en plus ce qui est déjà vrai — les données
-  réellement collectées, les services traversés, l'absence de tout traceur. Aucun texte
-  juridique n'y est rédigé, et il n'y en aura pas avant le juriste.
-  **Restent à faire** : le contenu des six pages légales, qui attend les informations de la
-  société ; les témoignages et les biographies eux-mêmes, qui attendent du contenu client ;
-  l'image Open Graph, qui attend la charte du designer.
+  **Les pages légales sont rédigées** (21 septembre) à partir des textes de l'ancien site :
+  mentions légales, CGV, avertissement sur les risques, rétractation et remboursement,
+  confidentialité, cookies. Le vendeur est APEX COMPANY L.L.C-FZ (`lib/legal/societe.ts`). Les
+  CGV s'acceptent par deux cases avant chaque paiement, enregistrées dans `consents`. **Non
+  relues par un juriste.**
+  **Restent à faire** : la relecture juridique, le médiateur, la TVA et le représentant RGPD ;
+  `/accessibilite`, qui attend un audit ; les témoignages et les biographies eux-mêmes, qui
+  attendent du contenu client ; l'image Open Graph, qui attend la charte du designer.
 - [~] **Back-office** : garde admin/owner resserrée, navigation par sections, tableau de bord,
   **CRM prospects** (liste filtrable par étape du pipeline, fiche complète avec affectation et
   statut), **propositions** (avec l'écart au prix catalogue, puisque la remise est libre),

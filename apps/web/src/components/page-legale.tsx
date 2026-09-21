@@ -4,13 +4,15 @@ import type { ReactNode } from 'react';
 import { Carte, Conteneur } from '@/components/ui';
 
 /**
- * La coquille des six pages légales, tant qu'elles ne sont pas écrites.
+ * La coquille d'une page légale qui n'est pas encore écrite.
  *
- * **Ce composant ne rédige rien.** Il n'y a pas de texte juridique ici, et il
- * n'y en aura pas : ni l'identité de la société qui vend, ni son régime de TVA,
- * ni le droit de la consommation applicable ne sont connus (`08-CE-QUI-MANQUE`),
- * et personne dans l'équipe n'est juriste. Un modèle recopié depuis un
- * générateur engagerait la société sur des clauses que personne n'a lues.
+ * **Depuis le 21 septembre 2026, seule `/accessibilite` s'en sert** : les cinq
+ * autres sont rédigées à partir des textes de l'ancien site et passent par
+ * `DocumentLegal`. L'accessibilité attend un audit, et un taux de conformité
+ * ne s'invente pas.
+ *
+ * **Ce composant ne rédige rien.** Un modèle recopié depuis un générateur
+ * engagerait la société sur des clauses que personne n'a lues.
  *
  * Ce qu'il corrige est plus modeste, et n'attendait personne : ces six pages
  * affichaient « Placeholder — écran à construire. Voir docs/02-SITEMAP.md ».

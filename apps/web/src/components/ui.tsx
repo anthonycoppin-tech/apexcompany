@@ -165,7 +165,11 @@ export function AvertissementRisque({ className = '' }: { className?: string }) 
       ApexCompany dispense de la formation. Aucun programme ne constitue un conseil en
       investissement, une recommandation personnalisée ni une promesse de résultat. Les marchés
       financiers présentent un risque de perte en capital, et les performances passées ne préjugent
-      pas des performances futures.
+      pas des performances futures.{' '}
+      <a href="/avertissement" className="underline hover:text-encre-doux">
+        Avertissement complet
+      </a>
+      .
     </p>
   );
 }

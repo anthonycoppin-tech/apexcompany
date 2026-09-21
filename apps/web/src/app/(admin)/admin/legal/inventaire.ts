@@ -3,8 +3,9 @@
  *
  * **Ce n'est pas un registre RGPD** — un registre engage un responsable de
  * traitement nommé, indique une base légale et une durée de conservation par
- * finalité. Rien de tout cela n'est décidé : on ne sait même pas laquelle des
- * deux sociétés vend (`docs/08-CE-QUI-MANQUE.md`).
+ * finalité. Le responsable est connu depuis le 21 septembre 2026 (APEX COMPANY
+ * L.L.C-FZ), et `/confidentialite` affiche bases et durées ; le registre
+ * lui-même reste à tenir par la société.
  *
  * C'est la matière première de ce registre : ce que la plateforme collecte
  * réellement, où ça se range, et chez qui ça transite. Un juriste demande cet
@@ -55,13 +56,16 @@ export const TRAITEMENTS: Traitement[] = [
     finalite: 'Le compte client, créé en même temps que le lead.',
     donnees: ['prénom', 'nom', 'email', 'téléphone', 'photo'],
     origine: 'Création du compte à la fin du formulaire, puis modifications depuis /espace/compte.',
-    aTrancher: 'Ce qu’il advient du compte à la demande de suppression : effacé, ou anonymisé ?',
+    aTrancher:
+      'La politique annonce une conservation de trois ans après le dernier achat ou contact. Rien ne l’applique : la purge ne touche que les prospects, et l’effacement sur demande refuse toute personne ayant acheté.',
   },
   {
     table: 'consents',
-    finalite: 'La preuve du consentement donné au formulaire.',
+    finalite:
+      'La preuve des consentements : politique de confidentialité à la création du compte, CGV et démarrage immédiat à chaque paiement.',
     donnees: ['email', 'date', 'version du texte accepté', 'adresse IP d’origine'],
-    origine: 'Écrit à la création du compte, par la même fonction qui crée le compte.',
+    origine:
+      'Écrit à la création du compte, puis avant chaque ouverture de paiement (type cgv) — pas de preuve, pas de paiement.',
     aTrancher:
       'L’adresse IP est enregistrée depuis le 16 septembre, et vide quand elle n’est pas connaissable — jamais une valeur de repli. Ce qu’elle vaut dépend de l’hébergeur, qui n’est pas choisi : elle n’est une preuve que s’il écrase « x-forwarded-for » par l’adresse réelle de la connexion. Sinon elle reste déclarative, et c’est à dire au juriste plutôt qu’à présenter comme une preuve.',
   },
@@ -93,7 +97,7 @@ export const TRAITEMENTS: Traitement[] = [
     donnees: ['montants', 'dates', 'références des transactions'],
     origine: 'Webhooks du prestataire de paiement, en une seule transaction.',
     aTrancher:
-      'La conservation comptable est imposée par la loi du pays du vendeur, et le vendeur n’est pas désigné. Elle prime sur une demande de suppression — il faut savoir laquelle s’applique.',
+      'Le vendeur est APEX COMPANY L.L.C-FZ (Dubaï). La politique annonce dix ans de conservation comptable, repris de l’ancien texte ; le droit émirien en exige cinq. Elle prime sur une demande de suppression.',
   },
   {
     table: 'inscriptions, subscriptions, propositions',
@@ -135,6 +139,11 @@ export const TRAITEMENTS: Traitement[] = [
  */
 export const SOUS_TRAITANTS: Array<{ nom: string; role: string; aVerifier: string }> = [
   {
+    nom: 'Vercel',
+    role: 'Hébergement du site. Voit passer toutes les requêtes, donc les adresses IP.',
+    aVerifier: 'Recommandé, pas encore souscrit — nommé comme hébergeur dans les mentions légales.',
+  },
+  {
     nom: 'Supabase',
     role: 'Base de données, comptes et authentification. Toutes les tables ci-dessus.',
     aVerifier: 'La région du projet hébergé, et l’accord de sous-traitance à signer.',
@@ -142,7 +151,7 @@ export const SOUS_TRAITANTS: Array<{ nom: string; role: string; aVerifier: strin
   {
     nom: 'Stripe',
     role: 'Encaissement, abonnements, remboursements. Détient les moyens de paiement.',
-    aVerifier: 'Le compte n’est pas encore ouvert : à faire au nom de la société qui vend.',
+    aVerifier: 'Le compte n’est pas encore ouvert : à faire au nom d’APEX COMPANY L.L.C-FZ.',
   },
   {
     nom: 'Discord',

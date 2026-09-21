@@ -6,13 +6,12 @@ import { createClient } from '@/lib/supabase/server';
 /**
  * `/sitemap.xml`.
  *
- * Il ne liste que des pages publiques et réellement remplies. Trois absences
+ * Il ne liste que des pages publiques et réellement remplies. Les absences
  * sont volontaires :
  *
- * - **les six pages légales**, encore à l'état de gabarit — les annoncer
- *   reviendrait à faire noter du vide à un moteur. Elles rejoignent cette liste
- *   le jour où elles sont écrites, ce qui est de toute façon un préalable à la
- *   mise en vente (`docs/08-CE-QUI-MANQUE.md`) ;
+ * - **`/accessibilite`**, seule page légale encore à l'état de gabarit faute
+ *   d'audit — l'annoncer reviendrait à faire noter du vide à un moteur. Les
+ *   cinq autres sont écrites depuis le 21 septembre 2026 et y figurent ;
  * - **`/evenements`**, pour la même raison et une de plus : la billetterie est
  *   reportée après la première livraison (`docs/02-SITEMAP.md`), la page n'est
  *   liée depuis nulle part, et elle n'a pas de contenu ;
@@ -37,6 +36,12 @@ const PAGES: Array<{ chemin: string; priorite: number; frequence: Frequence }> =
   { chemin: '/formateurs', priorite: 0.6, frequence: 'monthly' },
   { chemin: '/faq', priorite: 0.6, frequence: 'monthly' },
   { chemin: '/contact', priorite: 0.5, frequence: 'yearly' },
+  { chemin: '/mentions-legales', priorite: 0.2, frequence: 'yearly' },
+  { chemin: '/cgv', priorite: 0.3, frequence: 'yearly' },
+  { chemin: '/avertissement', priorite: 0.3, frequence: 'yearly' },
+  { chemin: '/remboursement', priorite: 0.3, frequence: 'yearly' },
+  { chemin: '/confidentialite', priorite: 0.2, frequence: 'yearly' },
+  { chemin: '/cookies', priorite: 0.1, frequence: 'yearly' },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

@@ -121,7 +121,7 @@ export default async function Page({
       )}
 
       {payable ? (
-        <BoutonPayer propositionId={proposition.id} />
+        <BoutonPayer propositionId={proposition.id} typeProduit={formation.type_produit} />
       ) : acces?.bloque ? (
         <p className="rounded-douce border border-filet-fort bg-surface p-4 text-sm leading-relaxed">
           {acces.raison}{' '}

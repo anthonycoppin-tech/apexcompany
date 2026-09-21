@@ -250,48 +250,68 @@ encore accès.
 
 ## 2. Informations juridiques
 
-**Les six pages légales sont vides.** Elles ne peuvent pas être écrites sans ces réponses, et
-en inventer serait pire que de les laisser en attente.
+**Cinq pages légales sur six sont rédigées depuis le 21 septembre 2026**, à partir des textes
+de l'ancien site (apexcompany.com, mis à jour le 4 mai 2026) transmis par le client : mentions
+légales, CGV, avertissement sur les risques (ancien « disclaimer » fusionné avec l'annexe
+« Risk Disclosure » des CGV, `/disclaimer` y redirige), rétractation et remboursement,
+confidentialité, cookies. Seule `/accessibilite` reste en attente — il faut un audit.
 
-Depuis le 13 septembre elles ne disent plus « Placeholder — écran à construire » : chacune
-annonce ce qu'elle contiendra, renvoie vers le contact, et **se retire de l'indexation** tant
-qu'elle est dans cet état. `/confidentialite` et `/cookies` disent en plus ce qui est déjà
-vrai — ce que le code collecte, chez qui ça transite, et qu'aucun traceur n'est posé. Rien de
-juridique n'y a été rédigé pour autant : c'est ce tableau qui débloque la rédaction.
+**Qui vend est tranché : APEX COMPANY L.L.C-FZ**, Meydan Free Zone, Dubaï — licence
+2645781.01, immatriculation 2645781, TRN 105376842800001, gérant Franck Alexandre. Les
+textes de l'ancien site la désignent partout comme vendeur et émettrice des factures ;
+NEURO TRADE APEX LLC n'y apparaît jamais. Toutes ces valeurs vivent dans
+`apps/web/src/lib/legal/societe.ts`, et nulle part ailleurs. **La licence expire le
+19 février 2027** : à renouveler, puis à mettre à jour dans ce fichier.
 
-**L'inventaire des traitements est prêt, lui, et il est dans `/admin/legal`** — quelles données
-dans quelle table, écrites par quoi, et ce qui reste à trancher pour chacune. C'est la première
-chose qu'un juriste demande ; l'apporter au rendez-vous évite un aller-retour par question.
+**Ces textes n'ont été relus par aucun juriste.** Ils reprennent ceux du client, et ne s'en
+écartent que là où l'ancien texte était faux pour ce site. `/admin/legal` liste ces écarts
+page par page ; les principaux :
 
-Le contrat de prestation transmis apprend que **APEX COMPANY LLC-FZ** est une société de zone
-franche immatriculée 264 5781 à Dubaï, dirigée par Franck Alexandre, et mentionne une seconde
-entité, **NEURO TRADE APEX LLC**.
+| Ancien texte                                                          | Nouveau                                                                                     | Pourquoi                                                                                                                                      |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rétractation éteinte « dès activation » pour tout                     | Éteinte à l'accès pour une **formation** ; **au prorata** pour accompagnement et abonnement | Un service commencé à la demande du client reste rétractable, la part fournie restant due. Seul un contenu numérique perd le droit à l'accès. |
+| « En cochant la case dédiée »                                         | **Deux cases** avant chaque paiement, acceptation enregistrée                               | Aucun parcours de paiement n'en présentait : acceptation des CGV et renonciation étaient impossibles à prouver.                               |
+| Plateforme européenne RLL (ec.europa.eu/consumers/odr)                | Retirée ; médiateur de la consommation                                                      | La plateforme a fermé le 20 juillet 2025.                                                                                                     |
+| Responsabilité plafonnée au montant payé                              | Plafond retiré                                                                              | Présumé abusif face à un consommateur (droit français).                                                                                       |
+| Six catégories (outils logiciels, agents automatisés, certification…) | Trois produits : abonnement, accompagnement, formation                                      | Seuls ceux-là sont vendus sur ce site.                                                                                                        |
+| Résiliation par email                                                 | Depuis l'espace client, ou par email                                                        | C'est ce que le site fait.                                                                                                                    |
+| Whop, TAP Payments, Circle, Zoom, Brevo, Google Workspace, Netlify    | Supabase, Vercel, Stripe, Discord, Cal.com, Resend                                          | Les sous-traitants réellement branchés.                                                                                                       |
+| Cookies de mesure d'audience et marketing « lorsque applicable »      | Aucun traceur, cookies de session seulement                                                 | Vérifiable dans le code.                                                                                                                      |
+| Objet : « psychologie personnelle, stabilité intérieure »             | Formation au trading, exclusivement éducative                                               | L'ancien texte décrivait une autre activité que celle vendue — et que ses propres CGV.                                                        |
+| Pas de formulaire de rétractation                                     | Formulaire type sur `/remboursement`                                                        | Le vendeur doit le mettre à disposition.                                                                                                      |
 
-| Question                                                        | Pourquoi                                                   |
-| --------------------------------------------------------------- | ---------------------------------------------------------- |
-| **Laquelle des deux sociétés vend aux clients finaux ?**        | Elle figure dans les mentions légales et émet les factures |
-| Qui héberge le site — nom et adresse                            | Mention obligatoire en droit français                      |
-| Directeur de la publication                                     | Mention obligatoire                                        |
-| Adresse de contact, et adresse dédiée aux demandes RGPD         | Obligatoire, et attendue sur la page de contact            |
-| Médiateur de la consommation retenu                             | Obligatoire pour qui vend à des consommateurs français     |
-| Régime de TVA retenu                                            | Voir ci-dessous                                            |
-| Trois ans pour un prospect inactif (CNIL) : le juriste valide ? | Tranché par défaut le 16/09 ; la purge est écrite (16/09)  |
+L'email « Paiement reçu » confirme désormais par écrit la demande de démarrage immédiat et ce
+qu'elle change pour la rétractation, et porte l'identité du vendeur en pied.
 
-### Trois points pour un conseil, pas pour les développeurs
+**L'adresse des demandes juridiques est `payment@apexcompany.com`**, celle que les textes de
+l'ancien site donnent pour tout. `contact@apexcompany.com` (page contact) n'est toujours pas
+confirmée.
 
-Le vendeur est aux Émirats, les clients sont dans l'Union. Ça déplace le sujet, et le contrat
-qui désigne le droit de Dubaï ne l'écarte pas : ces protections suivent le consommateur.
+### Ce qu'il reste à obtenir, avant la première vente
 
-- **La TVA due dans l'Union par un vendeur qui n'y est pas établi** — un régime précis existe
-  (guichet unique dit non-Union). Ce n'est pas la même question que « la TVA hors Europe ».
-- **Le droit de rétractation de quatorze jours**, qui s'applique aux consommateurs européens
-  indépendamment du lieu d'établissement du vendeur dès lors qu'il vise ce marché. Il a des
-  conséquences directes sur les CGV et sur la page de remboursement.
-- **Un représentant dans l'Union au sens du RGPD**, exigé d'un responsable de traitement établi
-  hors Union qui cible des résidents européens.
+| Question                                                        | Pourquoi                                                                                              |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Relecture des cinq textes par un juriste**                    | Ils engagent la société dès la mise en ligne                                                          |
+| **Médiateur de la consommation retenu**                         | Obligatoire pour vendre à des consommateurs français ; les CGV promettent ses coordonnées sur demande |
+| **Régime de TVA dans l'Union**                                  | Les prix sont affichés TTC ; reste à savoir quelle TVA ils contiennent (guichet unique non-Union ?)   |
+| **Représentant dans l'Union (article 27 RGPD)**                 | Exigé d'un responsable établi hors Union qui cible des résidents européens. Aucun n'est désigné       |
+| Hébergeur du site confirmé                                      | Les mentions légales nomment Vercel, recommandé mais pas souscrit                                     |
+| « Organisme de formation » sur l'accueil                        | Appellation encadrée en France (déclaration d'activité) — à garder ou à reformuler                    |
+| Dix ans de conservation comptable                               | Repris de l'ancien texte ; le droit émirien en demande cinq, dix couvre les deux                      |
+| Trois ans pour un prospect inactif (CNIL) : le juriste valide ? | Tranché par défaut le 16/09 ; la purge est écrite                                                     |
 
-Ces questions se posent **avant la première vente**, pas avant la première facture : c'est la
-mise en vente qui les déclenche.
+### Ce que les textes promettent et que le code ne fait pas encore
+
+Du travail de développeur, noté dans `09-CHANTIERS.md`, à faire avant d'ouvrir les ventes :
+
+- **Les factures PDF.** Les CGV disent qu'une facture est émise et disponible dans l'espace ;
+  la ligne existe, le PDF non. L'identité du vendeur est connue, le taux de TVA à y porter ne
+  l'est pas.
+- **La conservation des clients** : « trois ans après le dernier achat ou contact », écrit dans
+  la politique de confidentialité, n'est appliqué par rien. La purge ne touche que les
+  prospects.
+- **La rétractation au prorata** est un remboursement partiel, et un remboursement partiel
+  laisse l'accès ouvert et l'abonnement Stripe actif : il faut les fermer à la main.
 
 ---
 
@@ -350,8 +370,8 @@ en vouvoiement, pour montrer la forme attendue — à relire, corriger ou rééc
 | Nouveau prospect, rendez-vous réservé, etc. | Formateur    | **À décider** : aucun n'existe encore          | —                                      |
 
 Pour chacun, il faut : le **sujet**, le **texte**, la **signature** (nom de la société qui
-vend, adresse de contact) et, côté formateur, **la liste des notifications voulues**. Les
-mentions légales de pied d'email attendent, comme les pages légales, de savoir qui vend.
+vend, adresse de contact) et, côté formateur, **la liste des notifications voulues**. Le
+pied d'email porte l'identité du vendeur depuis le 21 septembre.
 
 **Deux refus qui ne se contournent pas**, et qui valent d'être connus avant de rassembler la
 matière : un témoignage ne se publie pas sans consentement enregistré, et un chiffre ne
@@ -445,19 +465,19 @@ JJ/MM » pour une clé — **jamais par la clé elle-même**.
 
 ### Juridique
 
-| Question                                  | Réponse |
-| ----------------------------------------- | ------- |
-| Société qui vend aux clients finaux       | —       |
-| Numéro d'immatriculation de cette société | —       |
-| Adresse du siège                          | —       |
-| Directeur de la publication               | —       |
-| Hébergeur du site — nom et adresse        | —       |
-| Adresse de contact                        | —       |
-| Adresse pour les demandes RGPD            | —       |
-| Médiateur de la consommation              | —       |
-| Régime de TVA retenu                      | —       |
-| Représentant dans l'Union (RGPD)          | —       |
-| Conseil juridique consulté ?              | —       |
+| Question                                  | Réponse                                                          |
+| ----------------------------------------- | ---------------------------------------------------------------- |
+| Société qui vend aux clients finaux       | APEX COMPANY L.L.C-FZ (textes de l'ancien site, 21/09)           |
+| Numéro d'immatriculation de cette société | 2645781 — licence 2645781.01, **expire le 19/02/2027**           |
+| Adresse du siège                          | Meydan Grandstand, 6th Floor, Meydan Road, Nad Al Sheba, Dubaï   |
+| Directeur de la publication               | Franck Alexandre                                                 |
+| Hébergeur du site — nom et adresse        | Vercel indiqué dans les mentions ; à confirmer à la souscription |
+| Adresse de contact                        | —                                                                |
+| Adresse pour les demandes RGPD            | payment@apexcompany.com (textes de l'ancien site)                |
+| Médiateur de la consommation              | —                                                                |
+| Régime de TVA retenu                      | —                                                                |
+| Représentant dans l'Union (RGPD)          | —                                                                |
+| Conseil juridique consulté ?              | —                                                                |
 
 ### Contenu
 

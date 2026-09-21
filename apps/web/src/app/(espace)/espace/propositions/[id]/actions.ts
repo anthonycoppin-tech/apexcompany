@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
+import { acceptationManquante } from '@/lib/legal/acceptation';
 import { lireAccesExistant } from '@/lib/paiement/acces-existant';
 import { ouvrirCheckout } from '@/lib/paiement/checkout';
 import { echoue, type EtatAction } from '@/lib/messages/types';
@@ -78,6 +79,12 @@ export async function ouvrirPaiement(
       'Vérifiez d’abord votre adresse email : nous vous avons envoyé un lien à la création de votre compte. C’est ce qui garantit que votre facture vous parvient bien.',
     );
   }
+
+  // Les deux cases des CGV et du démarrage immédiat. Vérifiées ici, au dernier
+  // moment, parce que c'est ce paiement-là qu'elles autorisent ; enregistrées
+  // par `ouvrirCheckout`.
+  const manque = acceptationManquante(donnees);
+  if (manque) return echoue(manque);
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 

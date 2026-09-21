@@ -21,7 +21,8 @@ sortie du formulaire de qualification.
 /contact
 /evenements                 Reporté après la première livraison
 
-/mentions-legales  /cgv  /confidentialite  /cookies  /remboursement  /accessibilite
+/mentions-legales  /cgv  /avertissement  /remboursement  /confidentialite  /cookies  /accessibilite
+/disclaimer                 Redirige vers /avertissement (adresse de l’ancien site)
 ```
 
 **Le lien unique des réseaux.** Le besoin d'« un lien stable à mettre en avant » se règle avec

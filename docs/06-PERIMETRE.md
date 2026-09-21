@@ -209,7 +209,7 @@ Ne reste réellement à trancher que :
   zone franche à Dubaï, et le site s'adresse à des consommateurs européens : le sujet n'est
   pas la TVA hors Europe mais la TVA due **dans** l'Union par un vendeur qui n'y est pas
   établi, plus ce qui vient avec — rétractation, médiation, représentant au sens du RGPD.
-  Reste aussi à savoir **laquelle des deux sociétés** (APEX COMPANY LLC-FZ ou NEURO TRADE APEX
-  LLC) vend aux clients finaux : c'est elle qui figure dans les mentions légales et émet les
-  factures. Détail dans `01-CAHIER-DES-CHARGES.md` §8. Conseil juridique et comptable, à
-  consulter avant la mise en vente.
+  **Le vendeur est tranché le 21 septembre 2026 : APEX COMPANY L.L.C-FZ**, et les pages
+  légales sont rédigées à partir des textes de l'ancien site. Restent la TVA, le médiateur et
+  le représentant RGPD. Détail dans `01-CAHIER-DES-CHARGES.md` §8 et `08-CE-QUI-MANQUE.md` §2.
+  Conseil juridique et comptable, à consulter avant la mise en vente.

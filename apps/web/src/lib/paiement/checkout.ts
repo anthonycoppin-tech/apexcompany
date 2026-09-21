@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { ipDeLaRequete } from '@/lib/auth/ip-demande';
+import { versionAcceptation } from '@/lib/legal/acceptation';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { stripe } from '@/lib/stripe';
 
@@ -51,6 +53,27 @@ export async function ouvrirCheckout({
 }): Promise<{ url: string } | { erreur: string }> {
   const abonnement = formation.type_produit === 'abonnement';
   const devise = (formation.devise ?? 'EUR').toLowerCase();
+  const textesAcceptes = versionAcceptation(formation.type_produit);
+
+  // ── La preuve d'acceptation, avant tout paiement ──────────────────────
+  // L'appelant a vérifié les deux cases (`acceptationManquante`) ; on les
+  // enregistre ici, une seule fois pour les deux parcours. **Pas de preuve,
+  // pas de vente** : une vente sans acceptation enregistrée, c'est une
+  // rétractation qui ne s'éteint jamais et des CGV qu'on ne peut pas opposer.
+  // Écrit avant la session Stripe, parce que c'est l'ordre réel des gestes.
+  const { error: erreurPreuve } = await createServiceRoleClient()
+    .from('consents')
+    .insert({
+      user_id: userId,
+      email: email ?? null,
+      type: 'cgv',
+      accorde: true,
+      version_texte: textesAcceptes,
+      ip: await ipDeLaRequete(),
+    });
+  if (erreurPreuve) {
+    return { erreur: 'Le paiement n’a pas pu être ouvert. Réessayez dans un instant.' };
+  }
 
   try {
     const session = await stripe().checkout.sessions.create({
@@ -75,6 +98,7 @@ export async function ouvrirCheckout({
         user_id: userId,
         formation_id: formation.id,
         ...(propositionId ? { proposition_id: propositionId } : {}),
+        textes_acceptes: textesAcceptes,
       },
       success_url: urlSucces,
       cancel_url: urlAnnulation,

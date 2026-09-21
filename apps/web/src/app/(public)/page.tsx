@@ -6,6 +6,7 @@ import { DonneesStructurees } from '@/components/donnees-structurees';
 import { Temoignages } from '@/components/temoignages';
 import { BoutonQualification } from '@/components/bouton-qualification';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
+import { SOCIETE } from '@/lib/legal/societe';
 import { urlSite } from '@/lib/site';
 import { createClient } from '@/lib/supabase/server';
 
@@ -15,17 +16,25 @@ export const metadata = { alternates: { canonical: '/' } };
  * L'organisme, décrit une seule fois pour toutes les pages — c'est l'accueil
  * qui le porte, comme le veut l'usage.
  *
- * Ni adresse, ni raison sociale, ni logo : **laquelle des deux sociétés vend
- * n'est pas tranché** (`docs/08-CE-QUI-MANQUE.md`), et une entité juridique
- * annoncée à tort ici serait reprise telle quelle par les moteurs. Seul le nom
- * de marque, employé partout sur le site, est affirmé. Le reste s'ajoute avec
- * les mentions légales, d'un seul tenant.
+ * La raison sociale et l'adresse viennent de `lib/legal/societe.ts`, comme les
+ * mentions légales : c'est APEX COMPANY L.L.C-FZ qui vend (tranché le
+ * 21 septembre 2026 par les textes de l'ancien site). Toujours pas de logo, qui
+ * attend la charte.
  */
 const DONNEES_ORGANISME = {
   '@context': 'https://schema.org',
   '@type': 'EducationalOrganization',
   name: 'ApexCompany',
   url: urlSite,
+  legalName: SOCIETE.raisonSociale,
+  email: SOCIETE.email,
+  telephone: SOCIETE.telephone,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Meydan Grandstand, 6th Floor, Meydan Road, Nad Al Sheba',
+    addressLocality: 'Dubaï',
+    addressCountry: 'AE',
+  },
   description:
     'Organisme de formation au trading : psychologie de l’exécution, rigueur méthodique et ' +
     'progression par niveau.',

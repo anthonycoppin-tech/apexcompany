@@ -1,42 +1,74 @@
-import { METADONNEES_LEGALES, PageLegale } from '@/components/page-legale';
-import { Carte } from '@/components/ui';
+import { Article, DocumentLegal } from '@/components/document-legal';
+import { SOCIETE } from '@/lib/legal/societe';
 
-export const metadata = { title: 'Politique de cookies', ...METADONNEES_LEGALES };
+export const metadata = {
+  title: 'Politique de cookies',
+  description: 'Les seuls cookies déposés servent à vous garder connecté. Aucun traceur.',
+};
 
 /**
  * `/cookies`.
  *
- * Le fait notable se vérifie en une recherche dans le dépôt, et il vaut la
- * peine d'être dit maintenant : **il n'y a aucun traceur**. Pas de mesure
- * d'audience, pas de pixel publicitaire, aucune dépendance qui en pose un. Les
- * seuls cookies sont ceux de la session Supabase, sans lesquels on ne peut pas
- * rester connecté.
+ * La page de l'ancien site décrivait des cookies de mesure d'audience et de
+ * marketing « lorsque applicable ». Ici, il n'y en a aucun — ça se vérifie en
+ * une recherche dans le dépôt, et c'est ce qui dispense de bandeau de
+ * consentement. Si un outil de mesure arrive un jour, c'est cette page qui
+ * devient fausse en premier, et le bandeau devient obligatoire avec elle.
  *
- * C'est aussi ce qui explique l'absence de bandeau de consentement : il n'y a
- * rien à consentir. Si un outil de mesure arrive un jour, c'est cette phrase
- * qui devient fausse en premier — et le bandeau devient obligatoire avec elle.
+ * Le réseau d'origine est lu dans l'adresse de la page, pas dans un cookie
+ * (18 septembre) : il n'a rien à faire ici.
  */
 export default function Page() {
   return (
-    <PageLegale
+    <DocumentLegal
       titre="Politique de cookies"
-      contiendra="Quels cookies sont déposés, par qui, pour quoi faire, et comment les refuser."
+      chapeau={<p>Ce site ne dépose aucun traceur. Voici tout ce qu’il dépose.</p>}
     >
-      <Carte className="space-y-3">
-        <h2 className="font-semibold">Ce qui est déjà vrai aujourd’hui</h2>
-        <p className="leading-relaxed text-encre-doux">
-          Ce site ne dépose{' '}
-          <strong className="text-encre">aucun cookie de mesure d’audience</strong> et{' '}
-          <strong className="text-encre">aucun traceur publicitaire</strong>. Il n’y a ni Google
-          Analytics, ni pixel de réseau social, ni outil équivalent.
+      <Article titre="1. Les cookies de ce site">
+        <p>
+          Les seuls cookies déposés par le site servent à <strong>vous garder connecté</strong> à
+          votre espace. Ils portent le nom <code>sb-…-auth-token</code>, ne sont déposés qu’une fois
+          connecté, et disparaissent à la déconnexion. Ils sont strictement nécessaires : sans eux,
+          chaque page vous redemanderait de vous identifier. Ils ne demandent donc pas votre
+          consentement.
         </p>
-        <p className="leading-relaxed text-encre-doux">
-          Les seuls cookies déposés servent à vous garder connecté à votre espace. Ils sont
-          indispensables au fonctionnement du site : sans eux, chaque page vous redemanderait de
-          vous identifier. C’est aussi pour cette raison qu’aucun bandeau ne vous est présenté — il
-          n’y a rien à accepter ou à refuser.
+        <p>
+          Il n’y a ni mesure d’audience, ni pixel de réseau social, ni cookie publicitaire. C’est
+          pourquoi aucun bandeau ne vous est présenté : il n’y a rien à accepter ni à refuser.
         </p>
-      </Carte>
-    </PageLegale>
+      </Article>
+
+      <Article titre="2. Les services tiers">
+        <p>
+          Certaines étapes vous font passer par un autre service, qui applique sa propre politique
+          de cookies :
+        </p>
+        <ul>
+          <li>
+            <strong>Cal.com</strong>, dont le calendrier s’affiche dans la page de prise de
+            rendez-vous ;
+          </li>
+          <li>
+            <strong>Stripe</strong>, sur la page de paiement ;
+          </li>
+          <li>
+            <strong>Discord</strong>, quand vous reliez votre compte.
+          </li>
+        </ul>
+      </Article>
+
+      <Article titre="3. Si cela change">
+        <p>
+          Si un outil de mesure d’audience ou de publicité était un jour ajouté, il ne serait activé
+          qu’après votre accord, recueilli par un bandeau, et cette page serait mise à jour avant.
+        </p>
+      </Article>
+
+      <Article titre="4. Contact">
+        <p>
+          <a href={`mailto:${SOCIETE.email}`}>{SOCIETE.email}</a>
+        </p>
+      </Article>
+    </DocumentLegal>
   );
 }

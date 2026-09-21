@@ -15,6 +15,7 @@ const NAVIGATION = [
 const LEGAL = [
   { href: '/mentions-legales', libelle: 'Mentions légales' },
   { href: '/cgv', libelle: 'CGV' },
+  { href: '/avertissement', libelle: 'Avertissement sur les risques' },
   { href: '/confidentialite', libelle: 'Confidentialité' },
   { href: '/cookies', libelle: 'Cookies' },
   { href: '/remboursement', libelle: 'Remboursement' },

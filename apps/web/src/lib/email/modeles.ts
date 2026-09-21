@@ -16,11 +16,19 @@
  * lit pas.
  */
 
+import { SOCIETE } from '../legal/societe.ts';
+
 export type Email = { sujet: string; html: string; texte: string };
 
 export type TypeProduit = 'abonnement' | 'accompagnement' | 'formation';
 
 const NOM = 'ApexCompany';
+
+// Le vendeur en pied de chaque email. Chemin relatif et extension explicite :
+// ce fichier est exécuté tel quel par le runner de tests de Node, qui ne
+// résout pas l'alias `@/`.
+const VENDEUR = `${SOCIETE.raisonSociale}, ${SOCIETE.adresse}`;
+const EMAIL_VENDEUR = SOCIETE.email;
 
 export function echapper(valeur: string): string {
   return valeur
@@ -80,7 +88,7 @@ ${p(bonjour(prenom))}
 ${paragraphes.map(p).join('\n')}
 <p style="margin:24px 0"><a href="${echapper(bouton.lien)}" style="display:inline-block;padding:12px 20px;background:#111827;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">${echapper(bouton.libelle)}</a></p>
 ${apres.map(p).join('\n')}
-<p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#6b7280">L’équipe ${NOM}<br>Cet email vous est envoyé parce que vous avez un compte sur notre site.</p>
+<p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#6b7280">L’équipe ${NOM}<br>Cet email vous est envoyé parce que vous avez un compte sur notre site.<br>${echapper(VENDEUR)}</p>
 </td></tr>
 </table>
 </body>
@@ -94,6 +102,7 @@ ${apres.map(p).join('\n')}
     '',
     ...apres.flatMap((t) => [t, '']),
     `L’équipe ${NOM}`,
+    VENDEUR,
   ].join('\n');
 
   return { sujet, html, texte };
@@ -108,6 +117,21 @@ const descriptionAcces = (type: TypeProduit, dateFin: string | null) => {
   if (dateFin) return `Votre accès est ouvert jusqu’au ${dateLongue(dateFin)}.`;
   return 'Votre accès est ouvert, sans date de fin.';
 };
+
+/**
+ * La confirmation écrite de la demande de démarrage immédiat.
+ *
+ * Le consommateur qui renonce à sa rétractation, ou qui fait commencer un
+ * service avant la fin du délai, doit en recevoir la confirmation sur un
+ * support durable — cet email, le seul qui part à l'achat et une seule fois
+ * (`tache.ts` le clé sur la commande). Même règle que l'article 8 des CGV :
+ * elle dépend du type de produit.
+ */
+export function rappelRetractation(type: TypeProduit): string {
+  return type === 'formation'
+    ? 'Comme vous l’avez demandé en commandant, votre accès a été ouvert immédiatement. Vous avez reconnu perdre ainsi votre droit de rétractation pour ce programme (article 8 de nos conditions générales de vente).'
+    : `Comme vous l’avez demandé en commandant, votre accès a commencé immédiatement. Vous pouvez encore vous rétracter dans les quatorze jours suivant votre paiement, en écrivant à ${EMAIL_VENDEUR} ; la part correspondant à la période écoulée reste alors due (article 8 de nos conditions générales de vente).`;
+}
 
 export function paiementRecu(d: {
   prenom: string | null;
@@ -127,7 +151,10 @@ export function paiementRecu(d: {
       'Votre accès sur Discord est attribué automatiquement dans les minutes qui suivent, à condition que votre compte Discord soit connecté depuis votre espace.',
     ],
     bouton: { libelle: 'Accéder à mon espace', lien: d.lienEspace },
-    apres: ['Votre facture est disponible dans votre espace, rubrique Factures.'],
+    apres: [
+      'Votre facture est disponible dans votre espace, rubrique Factures.',
+      rappelRetractation(d.typeProduit),
+    ],
   });
 }
 

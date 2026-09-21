@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { creerCompteEtSession } from '@/lib/auth/creation-compte';
+import { acceptationManquante } from '@/lib/legal/acceptation';
 import { lireAccesExistant } from '@/lib/paiement/acces-existant';
 import { ouvrirCheckout } from '@/lib/paiement/checkout';
 import { VERSION_CONSENTEMENT } from '@/lib/qualification/questionnaire';
@@ -135,6 +136,12 @@ export async function souscrire(_precedent: EtatAction, donnees: FormData): Prom
   if (!emailVerifie) {
     redirect(`/formations/${slug}/souscrire`);
   }
+
+  // Les deux cases des CGV et du démarrage immédiat. Vérifiées ici, au dernier
+  // moment, parce que c'est ce paiement-là qu'elles autorisent ; enregistrées
+  // par `ouvrirCheckout`.
+  const manque = acceptationManquante(donnees);
+  if (manque) return echoue(manque);
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 

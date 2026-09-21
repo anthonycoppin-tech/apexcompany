@@ -168,6 +168,11 @@ tuile « Suivi des réceptions » passe à « Branché ».
 Saisir les vrais produits dans `/admin/formations`, chacun avec son **rôle Discord de
 production** — l'écran refuse de publier un produit sans rôle, et c'est voulu.
 
+Et avant d'ouvrir les ventes, relire `/admin/legal` : les pages légales sont en ligne dès le
+déploiement, et ce qu'un juriste doit trancher y est listé. **Si l'hébergeur n'est pas
+Vercel**, corriger `HEBERGEUR_SITE` dans `apps/web/src/lib/legal/societe.ts` — les mentions
+légales le nomment.
+
 ## 11. La recette, avant d'annoncer quoi que ce soit
 
 Avec une vraie carte, sur le vrai site, et un compte qui n'est pas de l'équipe :
@@ -177,8 +182,12 @@ Avec une vraie carte, sur le vrai site, et un compte qui n'est pas de l'équipe 
 2. Email de connexion reçu, en français, avec le code.
 3. Liaison Discord → rôle `invité` reçu sur le serveur.
 4. Proposition émise depuis `/formateur` → email « proposition reçue » dans l'heure.
-5. Paiement → accès dans `/espace`, rôle du produit sur Discord, facture dans
-   `/espace/factures`, email « paiement reçu » dans l'heure, ligne dans `/admin/emails`.
+5. Paiement → les deux cases (CGV, démarrage immédiat) refusent de laisser payer tant
+   qu'elles ne sont pas cochées, puis une ligne `consents` de type `cgv` avec l'adresse IP
+   **réelle** — c'est ce qui dit si l'hébergeur écrase `x-forwarded-for` (`/admin/legal`).
+   Accès dans `/espace`, rôle du produit sur Discord, facture dans `/espace/factures`, email
+   « paiement reçu » dans l'heure, avec le rappel de rétractation et l'identité du vendeur en
+   pied, ligne dans `/admin/emails`.
 6. **Cette ligne passe à « Reçu », pas seulement « Envoyé »** — c'est la preuve que le webhook
    de l'étape 9 est bien branché. Et une adresse volontairement fausse
    (`rien@<domaine>.invalid`) doit ressortir en « Rebond », pas rester en « Envoyé ».

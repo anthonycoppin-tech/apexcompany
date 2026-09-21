@@ -35,6 +35,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:chemin*', headers: ENTETES }];
   },
+  // L'ancien site publiait son avertissement sous `/disclaimer`, et ses CGV y
+  // renvoyaient : un lien déjà diffusé ne doit pas tomber sur une 404.
+  async redirects() {
+    return [{ source: '/disclaimer', destination: '/avertissement', permanent: true }];
+  },
 };
 
 export default nextConfig;

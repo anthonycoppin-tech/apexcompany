@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 
+import { CasesAcceptation } from '@/components/cases-acceptation';
 import { MessageLigne } from '@/components/message';
 import { REPOS, messageDe } from '@/lib/messages/types';
 
@@ -83,6 +84,9 @@ export function FormulaireSouscription({
           </label>
         </div>
       )}
+
+      {/* Un produit souscrit ici est toujours un abonnement (vérifié par l'action). */}
+      <CasesAcceptation typeProduit="abonnement" />
 
       <MessageLigne message={messageDe(etat)} />
 
