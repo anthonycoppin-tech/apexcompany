@@ -47,6 +47,12 @@ const SERVICES: Array<{ nom: string; variables: string[]; consequence: string }>
       'Sans elles, aucun email automatique ne part (paiement reçu, proposition, relances).',
   },
   {
+    nom: 'Emails — suivi des réceptions',
+    variables: ['RESEND_WEBHOOK_SECRET'],
+    consequence:
+      'Sans elle, les emails partent mais on ne sait jamais s’ils arrivent : ni rebond, ni plainte.',
+  },
+  {
     nom: 'Tâche de révocation',
     variables: ['CRON_SECRET'],
     consequence: 'Sans elle, la révocation quotidienne refuse d’être déclenchée.',

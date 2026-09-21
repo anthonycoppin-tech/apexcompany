@@ -109,6 +109,7 @@ Créer une **invitation permanente** au serveur → `NEXT_PUBLIC_DISCORD_INVITE_
 | `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`                     | Application Discord, serveur de production                   |
 | `DISCORD_ROLE_INVITE_ID`, `NEXT_PUBLIC_DISCORD_INVITE_URL`  | Serveur de production (étape 4)                              |
 | `RESEND_API_KEY`, `EMAIL_FROM`                              | Resend, sur le domaine vérifié                               |
+| `RESEND_WEBHOOK_SECRET`                                     | Le webhook Resend créé à l'étape 9                           |
 | `CRON_SECRET`                                               | Une chaîne aléatoire longue ; Vercel l'envoie à chaque tâche |
 
 Les variables `PAYPAL_*`, `CLOUDFLARE_*` et `VIDEO_PROVIDER` restent vides : PayPal n'est pas
@@ -145,12 +146,29 @@ brancher sur le même hébergeur, une fois par jour. Sujet de Christopher dans `
 Webhook vers `https://<domaine>/api/cal`, avec le secret de `CAL_WEBHOOK_SECRET`, sur la page
 de réservation de Franck (création, annulation, report).
 
-## 9. Le catalogue
+## 9. Resend — le domaine, DMARC, le webhook
+
+**Les quatre enregistrements DNS se créent chez le fournisseur du domaine, pas chez Resend.**
+Resend affiche les trois premiers (SPF, DKIM, Return-Path) et se contente de vérifier qu'ils
+existent. Le quatrième, **DMARC**, il ne le réclame pas : le domaine s'affichera « vérifié »
+sans lui, les emails partiront, et ils seront filtrés plus souvent — Gmail et Yahoo l'exigent
+depuis 2024, y compris pour du transactionnel. Un `TXT` sur `_dmarc.<domaine>`, en observation
+d'abord (`v=DMARC1; p=none; rua=mailto:dmarc@<domaine>`), resserré en `p=quarantine` une fois
+les rapports lus. Détail dans [`08-CE-QUI-MANQUE.md`](08-CE-QUI-MANQUE.md).
+
+Puis le webhook, dans _Webhooks → Add Webhook_ : URL `https://<domaine>/api/resend`, événements
+`email.delivered`, `email.bounced`, `email.complained`, et le secret affiché (`whsec_...`) dans
+`RESEND_WEBHOOK_SECRET`.
+
+Contrôle : `/admin/emails` cesse d'afficher le bandeau « Envoyé ne veut pas dire reçu », et la
+tuile « Suivi des réceptions » passe à « Branché ».
+
+## 10. Le catalogue
 
 Saisir les vrais produits dans `/admin/formations`, chacun avec son **rôle Discord de
 production** — l'écran refuse de publier un produit sans rôle, et c'est voulu.
 
-## 10. La recette, avant d'annoncer quoi que ce soit
+## 11. La recette, avant d'annoncer quoi que ce soit
 
 Avec une vraie carte, sur le vrai site, et un compte qui n'est pas de l'équipe :
 
@@ -161,7 +179,10 @@ Avec une vraie carte, sur le vrai site, et un compte qui n'est pas de l'équipe 
 4. Proposition émise depuis `/formateur` → email « proposition reçue » dans l'heure.
 5. Paiement → accès dans `/espace`, rôle du produit sur Discord, facture dans
    `/espace/factures`, email « paiement reçu » dans l'heure, ligne dans `/admin/emails`.
-6. Remboursement depuis le back-office → accès fermé, rôle retiré.
-7. Le lendemain : les journaux des tâches planifiées dans Vercel, et `/admin/logs`.
+6. **Cette ligne passe à « Reçu », pas seulement « Envoyé »** — c'est la preuve que le webhook
+   de l'étape 9 est bien branché. Et une adresse volontairement fausse
+   (`rien@<domaine>.invalid`) doit ressortir en « Rebond », pas rester en « Envoyé ».
+7. Remboursement depuis le back-office → accès fermé, rôle retiré.
+8. Le lendemain : les journaux des tâches planifiées dans Vercel, et `/admin/logs`.
 
 Chaque étape qui échoue ici est une étape qui aurait échoué chez un client.

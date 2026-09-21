@@ -18,6 +18,16 @@ export type ResultatEnvoi = { ok: true; id: string } | { ok: false; erreur: stri
 
 export const envoiConfigure = () => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
 
+/**
+ * Le webhook qui rapporte livraisons, rebonds et plaintes (`api/resend`).
+ *
+ * Il se configure séparément de la clé d'envoi, et son absence ne se voit
+ * nulle part : les emails partent, le registre les note `envoye`, et rien ne
+ * dira jamais qu'ils ne sont pas arrivés. D'où cette lecture, affichée sur
+ * `/admin/emails` — ne pas savoir est un état qu'il faut montrer.
+ */
+export const suiviConfigure = () => Boolean(process.env.RESEND_WEBHOOK_SECRET);
+
 export async function envoyer(
   destinataire: string,
   email: Email,

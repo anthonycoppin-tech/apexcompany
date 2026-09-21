@@ -20,10 +20,62 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
-## Point d'étape — 18 septembre 2026
+## Point d'étape — 21 septembre 2026
 
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
 contredit pas.
+
+### « Envoyé » ne voulait pas dire « reçu », et la page l'affirmait quand même
+
+Même famille que les trois du 13 septembre : **une page qui affirme ce qu'elle ne sait pas.**
+`emails_envoyes.statut` s'arrêtait à `envoye`, qui veut seulement dire « Resend a accepté la
+requête ». Une adresse morte, une boîte pleine ou un client qui clique sur « indésirable »
+laissaient la ligne intacte — et `/admin/emails`, la page qu'on ouvre justement quand quelqu'un
+dit n'avoir rien reçu, affichait « Envoyé ».
+
+Le webhook `api/resend` pose trois états de plus : `livre`, `rebond`, `plainte`. Trois choses
+valent d'être retenues :
+
+- **`rebond` et `plainte` sont des états à part, pas un `echec` avec un message.** `echec` veut
+  dire « on réessaie » dans `peutReprendre()` : y ranger un rebond relancerait trois fois une
+  adresse qui n'existe pas, ce qui abîme la réputation du domaine expéditeur — donc la
+  délivrabilité de tout le reste, **liens de connexion compris**, dont dépend tout le parcours
+  d'achat.
+- **L'ordre d'arrivée n'est pas garanti**, et une plainte arrive forcément après la livraison
+  qui l'a provoquée. Un rang (`lib/email/rebonds.ts`) empêche un `livre` tardif d'effacer une
+  plainte ; sans lui, le dernier arrivé gagnerait et la plainte disparaîtrait.
+- **Un rebond hors registre est journalisé quand même.** Les emails de connexion partent par le
+  SMTP de Supabase et n'ont pas de ligne ici, mais leurs rebonds arrivent sur ce webhook.
+  Depuis le 17 septembre un client n'a pas de mot de passe : si son lien rebondit, il est
+  dehors, et rien d'autre ne le signalerait.
+
+Tant que `RESEND_WEBHOOK_SECRET` manque, **`/admin/emails` le dit** plutôt que de laisser lire
+« Envoyé » comme « arrivé » — le même garde-fou que les chiffres de l'accueil.
+
+### DMARC n'était nulle part, et c'est un manque côté client
+
+Ni dans les docs ni dans le code. Or **Resend ne le réclame pas** : le domaine s'affiche
+« vérifié » sans lui, les emails partent, et ils se font filtrer — Gmail et Yahoo l'exigent
+depuis 2024, y compris pour du transactionnel. Il est maintenant dans `08-CE-QUI-MANQUE.md` et
+dans la procédure de mise en production, avec la précision qui fait perdre une heure à tout le
+monde : **les quatre enregistrements DNS se créent chez le fournisseur du domaine, jamais chez
+Resend**, qui se contente d'afficher les trois premiers et de vérifier qu'ils existent.
+
+### Deux migrations attendent un `db:push`
+
+Celle du 18 septembre (litiges et remboursements Stripe) et `20260921100000_a_rebonds_emails.sql`.
+Aucune n'est urgente, aucune ne casse rien en attendant, et **la seconde ne change pas les types
+générés** (`statut` est un `string`, pas une énumération). Détail en tête de `docs/09-CHANTIERS.md`.
+
+### Branches nettoyées
+
+Il ne reste que `main`. `claude/systeme-de-messages` était fusionnée par la PR #20,
+`claude/confident-newton-2w22x1` entièrement dans `main`, et `claude/quirky-goldberg-v91bjn`
+portait un vouvoiement que le chantier du 16 septembre avait déjà refait.
+
+## Point d'étape — 18 septembre 2026
+
+**Reste vrai pour tout ce que le point d'étape du 21 septembre ne contredit pas.**
 
 - **Une migration attend un `db:push`** : `20260918100000_a_litiges_et_remboursements_stripe.sql`,
   non appliquée faute d'avoir pu prévenir l'autre développeur. Types ajoutés à la main dans

@@ -1,13 +1,14 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Le registre des emails transactionnels
 --
--- Deux garanties : un même email ne se réserve qu'une fois, et personne
--- d'autre que le staff ne lit les adresses qui y sont consignées.
+-- Trois garanties : un même email ne se réserve qu'une fois, personne d'autre
+-- que le staff ne lit les adresses qui y sont consignées, et le registre
+-- connaît les états que pose le webhook Resend — `livre`, `rebond`, `plainte`.
 -- scripts/verifier-schema.mjs rejoue les mêmes vérifications sur PGlite.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(4);
+select plan(8);
 
 insert into public.emails_envoyes (modele, cle, user_id, destinataire)
 values ('paiement', 'd0000000-0000-0000-0000-00000000000a',
@@ -20,6 +21,35 @@ select throws_ok(
   '23505',
   null,
   'un même email ne se réserve qu''une fois'
+);
+
+-- Les états du webhook. `livre` dit ce que `envoye` ne disait pas — que le
+-- destinataire l'a bien reçu ; `rebond` et `plainte` sont terminaux, et c'est
+-- `peutReprendre()` qui garantit qu'on ne les retente pas.
+select lives_ok(
+  $$update public.emails_envoyes set statut = 'livre'
+    where cle = 'd0000000-0000-0000-0000-00000000000a'$$,
+  'le registre accepte l''état « livre »'
+);
+
+select lives_ok(
+  $$update public.emails_envoyes set statut = 'rebond'
+    where cle = 'd0000000-0000-0000-0000-00000000000a'$$,
+  'le registre accepte l''état « rebond »'
+);
+
+select lives_ok(
+  $$update public.emails_envoyes set statut = 'plainte'
+    where cle = 'd0000000-0000-0000-0000-00000000000a'$$,
+  'le registre accepte l''état « plainte »'
+);
+
+select throws_ok(
+  $$update public.emails_envoyes set statut = 'perdu'
+    where cle = 'd0000000-0000-0000-0000-00000000000a'$$,
+  '23514',
+  null,
+  'le registre refuse un état inventé'
 );
 
 set local role authenticated;

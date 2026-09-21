@@ -28,7 +28,14 @@ export function peutReprendre(ligne: LigneRegistre, maintenant = new Date()): bo
   if (ligne.statut === 'en_cours') {
     return maintenant.getTime() - new Date(ligne.updated_at).getTime() > EN_COURS_ABANDONNE_MS;
   }
-  // `envoye`, et toute valeur inconnue : on ne renvoie jamais.
+  // `envoye`, `livre`, et toute valeur inconnue : on ne renvoie jamais.
+  //
+  // **`rebond` et `plainte` tombent ici, et c'est voulu.** Ce sont les deux
+  // états que le webhook pose (`lib/email/rebonds.ts`), et les retenter est
+  // précisément ce qu'il ne faut pas faire : relancer trois fois une adresse
+  // qui n'existe pas, ou quelqu'un qui vient de nous signaler comme
+  // indésirables, abîme la réputation du domaine expéditeur — donc la
+  // délivrabilité de tous les autres emails, y compris les liens de connexion.
   return false;
 }
 

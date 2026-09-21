@@ -1,5 +1,5 @@
 import { EnTete, Pastille, Tableau, Tuile, Vide, type Ton } from '@/components/admin';
-import { envoiConfigure } from '@/lib/email/envoi';
+import { envoiConfigure, suiviConfigure } from '@/lib/email/envoi';
 import {
   finAccesProche,
   paiementRecu,
@@ -73,8 +73,17 @@ const MODELES: Record<string, { libelle: string; quand: string; exemple: () => E
   },
 };
 
+/**
+ * « Envoyé » et « Reçu » ne sont pas la même chose, et c'est tout l'intérêt de
+ * les distinguer ici : `envoye` dit seulement que Resend a accepté la requête.
+ * Tant que le webhook n'est pas branché, aucune ligne ne dépasse cet état — le
+ * bandeau plus bas le dit, pour qu'on ne lise pas « Envoyé » comme « arrivé ».
+ */
 function etat(statut: string, tentatives: number): { libelle: string; ton: Ton } {
-  if (statut === 'envoye') return { libelle: 'Envoyé', ton: 'bon' };
+  if (statut === 'livre') return { libelle: 'Reçu', ton: 'bon' };
+  if (statut === 'envoye') return { libelle: 'Envoyé', ton: 'attente' };
+  if (statut === 'rebond') return { libelle: 'Rebond', ton: 'probleme' };
+  if (statut === 'plainte') return { libelle: 'Indésirable', ton: 'probleme' };
   if (statut === 'en_cours') return { libelle: 'En cours', ton: 'attente' };
   if (tentatives >= TENTATIVES_MAX) return { libelle: 'Abandonné', ton: 'probleme' };
   return { libelle: `Échec (${tentatives}/${TENTATIVES_MAX})`, ton: 'attente' };
@@ -92,7 +101,10 @@ export default async function Page() {
   const abandonnes = envois.filter(
     (l) => l.statut === 'echec' && l.tentatives >= TENTATIVES_MAX,
   ).length;
+  const recus = envois.filter((l) => l.statut === 'livre').length;
+  const refuses = envois.filter((l) => l.statut === 'rebond' || l.statut === 'plainte').length;
   const configure = envoiConfigure();
+  const suivi = suiviConfigure();
 
   return (
     <>
@@ -109,7 +121,17 @@ export default async function Page() {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      {configure && !suivi && (
+        <p className="rounded-carte border border-filet bg-fond p-4 text-sm text-encre-doux">
+          <strong className="text-encre">« Envoyé » ne veut pas dire « reçu ».</strong>{' '}
+          <code>RESEND_WEBHOOK_SECRET</code> n’est pas renseignée : le webhook{' '}
+          <code>api/resend</code> ne tourne pas, et aucune ligne ne dépassera l’état « Envoyé ». Un
+          rebond ou une plainte restera invisible. Mise en place dans{' '}
+          <code>docs/08-CE-QUI-MANQUE.md</code>.
+        </p>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Tuile
           libelle="Envoi"
           valeur={configure ? 'Branché' : 'Non branché'}
@@ -117,15 +139,21 @@ export default async function Page() {
           detail="Resend, tâche toutes les heures"
         />
         <Tuile
-          libelle="Envoyés"
-          valeur={String(envois.filter((l) => l.statut === 'envoye').length)}
-          detail="Parmi les 100 derniers"
+          libelle="Suivi des réceptions"
+          valeur={suivi ? 'Branché' : 'Non branché'}
+          ton={suivi ? 'bon' : 'probleme'}
+          detail="Webhook Resend : livraisons, rebonds, plaintes"
         />
         <Tuile
-          libelle="Abandonnés"
-          valeur={String(abandonnes)}
-          ton={abandonnes > 0 ? 'probleme' : 'neutre'}
-          detail={`Après ${TENTATIVES_MAX} tentatives : à traiter à la main`}
+          libelle="Reçus"
+          valeur={suivi ? String(recus) : '—'}
+          detail={suivi ? 'Confirmés par le destinataire' : 'Inconnu sans le webhook'}
+        />
+        <Tuile
+          libelle="À traiter"
+          valeur={String(refuses + abandonnes)}
+          ton={refuses + abandonnes > 0 ? 'probleme' : 'neutre'}
+          detail={`Rebonds, plaintes, et abandons après ${TENTATIVES_MAX} tentatives`}
         />
       </div>
 

@@ -1027,6 +1027,30 @@ async function main() {
   verifier('le staff lit le registre', await compter('public.emails_envoyes'), 1);
   await enTantQuAdministrateur();
 
+  // Les états que pose le webhook Resend. `livre` sépare « accepté par le
+  // prestataire » de « arrivé chez le destinataire » ; `rebond` et `plainte`
+  // sont terminaux et ne se retentent jamais (`lib/email/registre.ts`).
+  for (const statut of ['livre', 'rebond', 'plainte']) {
+    let pose = 'refusé';
+    try {
+      await db.exec(`update public.emails_envoyes set statut = '${statut}'
+        where cle = 'd0000000-0000-0000-0000-00000000000a'`);
+      pose = 'accepté';
+    } catch {
+      pose = 'refusé';
+    }
+    verifier(`le registre accepte l’état « ${statut} »`, pose, 'accepté');
+  }
+
+  let inventé = 'accepté';
+  try {
+    await db.exec(`update public.emails_envoyes set statut = 'perdu'
+      where cle = 'd0000000-0000-0000-0000-00000000000a'`);
+  } catch (err) {
+    inventé = err.code;
+  }
+  verifier('le registre refuse un état inventé', inventé, '23514');
+
   // ── Filet : aucune table sans RLS ────────────────────────────────────────
   console.log('\nCouverture RLS\n');
   const sansRls = await db.query(`

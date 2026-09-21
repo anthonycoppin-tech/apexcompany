@@ -128,11 +128,63 @@ formateur, pas de fiche client à jour, et pas de statistique de rendez-vous non
 
 ### Envoi d'emails
 
-`RESEND_API_KEY` et `EMAIL_FROM`, ou l'équivalent configuré côté Supabase.
+`RESEND_API_KEY`, `EMAIL_FROM` et `RESEND_WEBHOOK_SECRET`, ou l'équivalent configuré côté
+Supabase.
 
 **Les emails automatiques du site** (paiement reçu, proposition, relances) partent par Resend
-directement, depuis une tâche horaire. Sans ces deux variables, rien ne part — et le domaine de
+directement, depuis une tâche horaire. Sans ces variables, rien ne part — et le domaine de
 `EMAIL_FROM` doit être vérifié chez Resend (trois enregistrements DNS), sans quoi Resend refuse.
+
+#### Les quatre enregistrements DNS — et où ils se créent
+
+**Tous les quatre se créent chez le fournisseur du nom de domaine** (ou chez celui qui héberge
+la zone DNS, si les serveurs de noms ont été délégués — Cloudflare, par exemple). **Aucun ne se
+crée chez Resend.** Resend se contente d'afficher les trois premiers, puis de vérifier leur
+présence ; c'est la confusion la plus fréquente sur ce sujet, et elle fait perdre une heure.
+
+| Enregistrement                         | Qui le dicte     | À quoi il sert                                      |
+| -------------------------------------- | ---------------- | --------------------------------------------------- |
+| SPF                                    | Resend l'affiche | Autorise Resend à écrire au nom du domaine          |
+| DKIM                                   | Resend l'affiche | Signe chaque email, prouve qu'il n'a pas été altéré |
+| Return-Path (MX + SPF du sous-domaine) | Resend l'affiche | Reçoit les rebonds                                  |
+| **DMARC**                              | **à nous**       | Dit aux boîtes quoi faire si SPF et DKIM échouent   |
+
+**DMARC est le seul que Resend ne réclame pas, et le seul dont l'absence ne se voit nulle
+part** : le tableau de bord Resend affichera « domaine vérifié » sans lui, et les emails
+partiront. Ils seront simplement filtrés plus souvent. Depuis les règles communes de Gmail et
+Yahoo entrées en vigueur en 2024, un domaine expéditeur sans enregistrement DMARC se fait
+classer en indésirable, voire rejeter — y compris pour du transactionnel.
+
+C'est un enregistrement `TXT` sur le nom `_dmarc.<le-domaine>`. Commencer en observation, le
+temps de vérifier que rien de légitime n'est pris au passage :
+
+```
+v=DMARC1; p=none; rua=mailto:dmarc@<le-domaine>
+```
+
+Puis, une fois les rapports lus et le trafic légitime identifié, resserrer en
+`p=quarantine`. **Ne pas poser `p=reject` d'emblée** : si un email légitime part encore
+d'ailleurs (l'ancien site, un outil de facturation, une boîte pro), il disparaît sans trace.
+
+#### Le webhook des réceptions — `RESEND_WEBHOOK_SECRET`
+
+**À faire une fois le compte Resend créé**, dans _Webhooks → Add Webhook_ :
+
+1. URL : `https://<le-site>/api/resend`.
+2. Événements à cocher : `email.delivered`, `email.bounced`, `email.complained`. Les autres
+   sont ignorés par la route, inutile de les activer.
+3. Copier le secret affiché (`whsec_...`) dans `RESEND_WEBHOOK_SECRET`.
+
+**Sans lui, les emails partent mais on ne sait jamais s'ils arrivent.** Le registre s'arrête à
+`envoye`, qui veut seulement dire « Resend a accepté la requête » : une adresse morte, une
+boîte pleine ou un client qui clique sur « indésirable » restent invisibles, et `/admin/emails`
+affiche « Envoyé » pour un email que personne n'a reçu — c'est pourtant la page qu'on ouvre
+quand quelqu'un dit n'avoir rien reçu. La page le dit elle-même tant que la variable manque.
+
+Le cas le plus grave est celui des **emails de connexion** : ils partent par le SMTP de
+Supabase et n'ont pas de ligne au registre, mais leurs rebonds arrivent quand même sur ce
+webhook, qui les consigne dans `/admin/logs`. Depuis le 17 septembre un client n'a pas de mot
+de passe — si son lien de connexion rebondit, il est dehors, et rien d'autre ne le signalerait.
 
 **Attention, c'est bloquant pour les ventes** : la vérification de l'adresse email est
 obligatoire avant de payer — décision prise, et implémentée. Si l'envoi d'emails ne fonctionne
@@ -359,6 +411,9 @@ juridique, qui est une dépense ponctuelle.
 4. **Cal.com**, avec la vérification des webhooks.
 5. **Stripe**, puis un vrai parcours d'achat de bout en bout — c'est le test qui compte.
 6. **L'envoi d'emails**, à vérifier avant d'ouvrir les ventes, sous peine de les bloquer toutes.
+   Les quatre enregistrements DNS **dès que le domaine existe**, sans attendre le reste : ils se
+   propagent en quelques heures, et DMARC gagne à rester en observation quelques jours avant
+   d'être resserré.
 7. **Le planificateur** de la révocation quotidienne.
 8. **Le juridique**, en parallèle et sans attendre : c'est ce qui a le plus long délai.
 
@@ -382,6 +437,9 @@ JJ/MM » pour une clé — **jamais par la clé elle-même**.
 | Webhooks Cal.com disponibles ?        | —                | —               | —    |
 | Clés Stripe et webhook                | —                | —               | —    |
 | Envoi d'emails configuré              | —                | —               | —    |
+| SPF, DKIM, Return-Path posés          | —                | —               | —    |
+| **DMARC posé** (`_dmarc.<domaine>`)   | —                | —               | —    |
+| Webhook Resend et son secret          | —                | —               | —    |
 | Planificateur de la révocation        | —                | —               | —    |
 | Nom de domaine et hébergement du site | —                | —               | —    |
 
