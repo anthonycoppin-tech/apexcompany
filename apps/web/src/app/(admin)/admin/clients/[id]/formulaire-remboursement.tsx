@@ -18,16 +18,24 @@ import { demanderRemboursement } from '../../paiements/remboursements/actions';
  * `demande_par` et `traite_par` existent précisément pour porter cette trace :
  * savoir qui a demandé et qui a validé vaut mieux que de découvrir un
  * remboursement sans savoir d'où il vient.
+ *
+ * Pour un accompagnement encore dans son délai de rétractation, la page
+ * calcule le montant dû au client (`lib/paiement/retractation.ts`) et le
+ * propose tout prêt. Une fois exécuté, le remboursement referme l'accès comme
+ * n'importe quel autre.
  */
 export function FormulaireRemboursement({
   paymentId,
   montantMax,
+  retractation,
 }: {
   paymentId: string;
   montantMax: string;
+  retractation: { montantEuros: string; explication: string } | null;
 }) {
   const [etat, action, enCours] = useActionState(demanderRemboursement, REPOS);
-  const [ouvert, setOuvert] = useState(false);
+  const [ouvert, setOuvert] = useState<false | 'libre' | 'retractation'>(false);
+  const prerempli = ouvert === 'retractation' && retractation;
 
   if (etat.statut === 'succes') {
     return (
@@ -39,13 +47,27 @@ export function FormulaireRemboursement({
 
   if (!ouvert) {
     return (
-      <button
-        type="button"
-        onClick={() => setOuvert(true)}
-        className="text-xs text-encre-doux underline"
-      >
-        Demander un remboursement
-      </button>
+      <span className="mt-1 block space-y-1">
+        {retractation && (
+          <span className="block max-w-xs text-xs leading-relaxed text-encre-doux">
+            {retractation.explication}{' '}
+            <button
+              type="button"
+              onClick={() => setOuvert('retractation')}
+              className="font-medium text-accent underline"
+            >
+              Préparer la rétractation
+            </button>
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={() => setOuvert('libre')}
+          className="text-xs text-encre-doux underline"
+        >
+          Demander un remboursement
+        </button>
+      </span>
     );
   }
 
@@ -60,6 +82,7 @@ export function FormulaireRemboursement({
           type="text"
           inputMode="decimal"
           placeholder={montantMax}
+          defaultValue={prerempli ? prerempli.montantEuros : undefined}
           className="w-28 rounded-douce border border-filet-fort p-1.5 text-sm tabular-nums"
         />
         <span className="block text-encre-doux">
@@ -72,6 +95,7 @@ export function FormulaireRemboursement({
         <input
           name="motif"
           required
+          defaultValue={prerempli ? 'Rétractation — article 8 des CGV' : undefined}
           className="w-full rounded-douce border border-filet-fort p-1.5 text-sm"
         />
       </label>

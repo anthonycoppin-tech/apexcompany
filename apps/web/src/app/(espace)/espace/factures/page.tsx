@@ -27,7 +27,7 @@ export default async function Page() {
   const [factures, abonnements] = await Promise.all([
     supabase
       .from('invoices')
-      .select('id, numero, emise_at, pdf_url, orders(montant_cents, devise, formations(titre))')
+      .select('id, numero, emise_at, orders(montant_cents, devise, formations(titre))')
       .order('emise_at', { ascending: false }),
     supabase
       .from('subscriptions')
@@ -120,15 +120,16 @@ export default async function Page() {
                       {f.orders ? formaterMontant(f.orders.montant_cents, f.orders.devise) : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      {/* Le PDF n'est généré qu'à l'émission ; tant qu'il manque,
-                          la ligne reste lisible plutôt que d'offrir un lien mort. */}
-                      {f.pdf_url ? (
-                        <a href={f.pdf_url} className="font-semibold text-accent hover:underline">
-                          Télécharger
-                        </a>
-                      ) : (
-                        <span className="text-encre-faible">en préparation</span>
-                      )}
+                      {/* Générée à la demande depuis la base (`/facture/[id]`) : il
+                          n'y a plus de fichier à attendre. */}
+                      <a
+                        href={`/facture/${f.id}`}
+                        target="_blank"
+                        rel="noopener"
+                        className="font-semibold text-accent hover:underline"
+                      >
+                        Ouvrir
+                      </a>
                     </td>
                   </tr>
                 ))}

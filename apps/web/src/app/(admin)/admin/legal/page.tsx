@@ -54,7 +54,7 @@ const PAGES: Array<{ href: string; titre: string; questions: string[] }> = [
     titre: 'Rétractation et remboursement',
     questions: [
       'Rédigée, avec le formulaire type de rétractation, absent de l’ancien site.',
-      'Une rétractation d’accompagnement au prorata est un remboursement partiel : il ne ferme pas l’accès. À faire à la main.',
+      'Rétractation d’accompagnement : la fiche client calcule le montant et pré-remplit la demande ; le remboursement exécuté depuis le back-office referme l’accès.',
     ],
   },
   {

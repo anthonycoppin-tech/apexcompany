@@ -48,9 +48,16 @@ l'action, et **enregistrées dans `consents` avant l'ouverture de Stripe** — p
 de paiement (`lib/legal/acceptation.ts`). Aucune migration : le type `cgv` existait depuis le
 7 septembre sans jamais servir. Toute modification des CGV change `VERSION_TEXTES_LEGAUX`.
 
-Ce que les textes promettent et que le code ne fait pas encore — factures PDF, conservation des
-clients, rétractation au prorata qui ferme l'accès — est dans les sujets libres de
-`docs/09-CHANTIERS.md`.
+**Fait le 22 septembre** : les factures (`/facture/[id]`, générées à la demande depuis la base,
+imprimables en PDF — **mention de TVA en attente** du comptable, `regimeTva()`), et le montant
+de rétractation d'un accompagnement calculé sur la fiche client. Un remboursement lancé du
+back-office referme l'accès même partiel : il n'y avait rien d'autre à construire. Reste la
+conservation des clients (`docs/09-CHANTIERS.md`).
+
+**Piège de recette** : `next dev` répond 404 aux routes dynamiques imbriquées sur ce poste
+(`/admin/clients/[id]`, `/admin/crm/leads/[id]`, `/formations/[slug]/souscrire`), sans rien
+dans le journal. Ce n'est pas le code : un `next build` puis `next start` les sert. Recetter
+sur un build de production.
 
 ### « Envoyé » ne voulait pas dire « reçu », et la page l'affirmait quand même
 

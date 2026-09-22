@@ -1,7 +1,8 @@
 import { formaterMontant } from '@apex/db';
 
-import { EnTete, Pastille, Tableau, Tuile, Vide } from '@/components/admin';
+import { EnTete, Tableau, Tuile, Vide } from '@/components/admin';
 import { dateCourte } from '@/lib/format';
+import { regimeTva } from '@/lib/legal/societe';
 import { createClient } from '@/lib/supabase/server';
 
 /**
@@ -17,9 +18,9 @@ import { createClient } from '@/lib/supabase/server';
  * remboursement soit une ligne de plus dans `refunds` plutôt qu'une facture
  * effacée.
  *
- * Le PDF, lui, n'est pas encore généré : la colonne existe, le fichier non.
- * Tant que c'est le cas, la ligne reste lisible plutôt que d'offrir un lien
- * mort.
+ * La facture elle-même se génère à la demande (`/facture/[id]`), depuis la
+ * base : `pdf_url` n'est plus lue. La tuile TVA dit si les factures portent
+ * déjà leur mention fiscale, qui attend le comptable.
  */
 export default async function Page() {
   const supabase = await createClient();
@@ -27,14 +28,14 @@ export default async function Page() {
   const { data: factures } = await supabase
     .from('invoices')
     .select(
-      'id, numero, emise_at, pdf_url, orders(montant_cents, devise, formations(titre), profiles(prenom, nom, email))',
+      'id, numero, emise_at, orders(montant_cents, devise, formations(titre), profiles(prenom, nom, email))',
     )
     .order('emise_at', { ascending: false })
     .limit(200);
 
   const liste = factures ?? [];
   const total = liste.reduce((t, f) => t + (f.orders?.montant_cents ?? 0), 0);
-  const sansPdf = liste.filter((f) => !f.pdf_url).length;
+  const tva = regimeTva();
 
   return (
     <>
@@ -43,17 +44,17 @@ export default async function Page() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Tuile libelle="Total facturé" valeur={formaterMontant(total)} />
         <Tuile
-          libelle="Sans PDF"
-          valeur={String(sansPdf)}
-          detail="la génération reste à écrire"
-          ton={sansPdf > 0 ? 'attente' : 'bon'}
+          libelle="TVA sur les factures"
+          valeur={tva ? `${tva.tauxPourcent} %` : 'en attente'}
+          detail={tva ? tva.mention : 'régime à trancher avec le comptable — regimeTva()'}
+          ton={tva ? 'bon' : 'attente'}
         />
       </div>
 
       {liste.length ? (
         <div className="rounded-carte border border-filet bg-fond p-5">
           <Tableau
-            colonnes={['Numéro', 'Émise le', 'Client', 'Objet', 'Montant', 'PDF']}
+            colonnes={['Numéro', 'Émise le', 'Client', 'Objet', 'Montant', 'Facture']}
             largeurMin="56rem"
           >
             {liste.map((f) => (
@@ -75,13 +76,14 @@ export default async function Page() {
                   {f.orders ? formaterMontant(f.orders.montant_cents, f.orders.devise) : '—'}
                 </td>
                 <td className="py-2.5">
-                  {f.pdf_url ? (
-                    <a href={f.pdf_url} className="text-accent hover:underline">
-                      Ouvrir
-                    </a>
-                  ) : (
-                    <Pastille ton="attente">à générer</Pastille>
-                  )}
+                  <a
+                    href={`/facture/${f.id}`}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-accent hover:underline"
+                  >
+                    Ouvrir
+                  </a>
                 </td>
               </tr>
             ))}

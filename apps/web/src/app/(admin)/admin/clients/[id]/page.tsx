@@ -4,8 +4,9 @@ import { notFound } from 'next/navigation';
 import { formaterMontant } from '@apex/db';
 
 import { EnTete, Pastille, Tableau, Vide, type Ton } from '@/components/admin';
-import { dateCourte, dateHeure } from '@/lib/format';
+import { dateCourte, dateHeure, jourParis } from '@/lib/format';
 import { STATUTS_INSCRIPTION, nomComplet } from '@/lib/formateur/suivi';
+import { retractationAccompagnement } from '@/lib/paiement/retractation';
 import { createClient } from '@/lib/supabase/server';
 
 import { BoutonReattribuer } from '../bouton-reattribuer';
@@ -52,20 +53,20 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       supabase
         .from('inscriptions')
         .select(
-          'id, statut, date_debut, date_fin_acces, formateur_id, formations(titre, type_produit)',
+          'id, order_id, statut, date_debut, date_fin_acces, formateur_id, formations(titre, type_produit)',
         )
         .eq('user_id', id)
         .order('date_debut', { ascending: false }),
       supabase
         .from('orders')
         .select(
-          'id, montant_cents, devise, statut, provider, provider_order_id, created_at, formations(titre), payments(id, statut, paid_at, provider_payment_id)',
+          'id, montant_cents, devise, statut, provider, provider_order_id, created_at, formations(titre, type_produit), payments(id, statut, paid_at, provider_payment_id)',
         )
         .eq('user_id', id)
         .order('created_at', { ascending: false }),
       supabase
         .from('invoices')
-        .select('id, numero, emise_at, pdf_url, orders!inner(user_id, montant_cents, devise)')
+        .select('id, numero, emise_at, orders!inner(user_id, montant_cents, devise)')
         .eq('orders.user_id', id)
         .order('emise_at', { ascending: false }),
       supabase
@@ -233,6 +234,20 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             >
               {commandes.data.map((c) => {
                 const paiement = c.payments?.[0];
+                const inscription = (inscriptions.data ?? []).find((i) => i.order_id === c.id);
+                // Seulement pour un accompagnement encore dans son délai : le
+                // montant est calculé, jamais laissé au calcul mental.
+                const retractation =
+                  paiement?.paid_at && inscription
+                    ? retractationAccompagnement({
+                        typeProduit: c.formations?.type_produit ?? '',
+                        montantCents: c.montant_cents,
+                        payeLe: jourParis(new Date(paiement.paid_at)),
+                        debut: inscription.date_debut,
+                        fin: inscription.date_fin_acces,
+                        aujourdhui: jourParis(),
+                      })
+                    : null;
 
                 return (
                   <tr key={c.id} className="border-b border-filet align-top last:border-0">
@@ -262,6 +277,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                             <FormulaireRemboursement
                               paymentId={paiement.id}
                               montantMax={(c.montant_cents / 100).toString()}
+                              retractation={
+                                retractation
+                                  ? {
+                                      montantEuros: (retractation.rembourseCents / 100).toFixed(2),
+                                      explication: `Rétractation possible jusqu’au ${dateCourte(retractation.limite)} : ${retractation.joursEcoules} jours sur ${retractation.joursTotal} écoulés, ${formaterMontant(retractation.retenuCents, c.devise)} retenus, ${formaterMontant(retractation.rembourseCents, c.devise)} à rembourser.`,
+                                    }
+                                  : null
+                              }
                             />
                           )}
                         </>
@@ -283,7 +306,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <h2 className="text-sm font-semibold text-encre-doux">Factures</h2>
         {factures.data?.length ? (
           <div className="rounded-carte border border-filet bg-fond p-5">
-            <Tableau colonnes={['Numéro', 'Émise le', 'Montant', 'PDF']} largeurMin="38rem">
+            <Tableau colonnes={['Numéro', 'Émise le', 'Montant', 'Facture']} largeurMin="38rem">
               {factures.data.map((f) => (
                 <tr key={f.id} className="border-b border-filet last:border-0">
                   <td className="py-2.5 pr-4 font-mono tabular-nums">{f.numero}</td>
@@ -292,13 +315,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                     {f.orders ? formaterMontant(f.orders.montant_cents, f.orders.devise) : '—'}
                   </td>
                   <td className="py-2.5">
-                    {f.pdf_url ? (
-                      <a href={f.pdf_url} className="text-accent hover:underline">
-                        Ouvrir
-                      </a>
-                    ) : (
-                      <span className="text-encre-faible">à générer</span>
-                    )}
+                    <a
+                      href={`/facture/${f.id}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-accent hover:underline"
+                    >
+                      Ouvrir
+                    </a>
                   </td>
                 </tr>
               ))}

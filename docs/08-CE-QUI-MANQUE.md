@@ -304,14 +304,17 @@ confirmée.
 
 Du travail de développeur, noté dans `09-CHANTIERS.md`, à faire avant d'ouvrir les ventes :
 
-- **Les factures PDF.** Les CGV disent qu'une facture est émise et disponible dans l'espace ;
-  la ligne existe, le PDF non. L'identité du vendeur est connue, le taux de TVA à y porter ne
-  l'est pas.
+- **Les factures** — faites le 22 septembre : `/facture/[id]`, générée à la demande depuis la
+  base, imprimable et enregistrable en PDF, ouverte depuis l'espace client et le back-office.
+  **Il leur manque la mention de TVA**, qui attend le comptable : elles le disent en toutes
+  lettres tant que `regimeTva()` (`lib/legal/societe.ts`) renvoie `null`.
 - **La conservation des clients** : « trois ans après le dernier achat ou contact », écrit dans
   la politique de confidentialité, n'est appliqué par rien. La purge ne touche que les
   prospects.
-- **La rétractation d'un accompagnement au prorata** est un remboursement partiel, et un
-  remboursement partiel laisse l'accès ouvert : il faut le fermer à la main.
+- **La rétractation d'un accompagnement** fonctionne : la fiche client calcule le montant et
+  pré-remplit la demande, et un remboursement lancé depuis le back-office referme l'accès,
+  même partiel. (Seul un remboursement partiel fait directement dans Stripe laisse l'accès
+  ouvert — c'est voulu, pour un geste commercial.)
 
 ---
 
