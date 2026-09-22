@@ -976,7 +976,7 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
 - **Qui vend** — **tranché le 21 septembre 2026** : APEX COMPANY L.L.C-FZ, désignée par les
   textes légaux de l'ancien site (`lib/legal/societe.ts`).
 - **TVA** — **tranché le 22 septembre 2026 : pas de TVA européenne à facturer, calcul par
-  Stripe Tax.** **Fait**, migration en attente de `db:push`.
+  Stripe Tax.** **Fait**, migration appliquée.
 - **Abonnement** — **tranché le 22 septembre 2026** : il se résilie, il ne se rembourse pas ; la
   rétractation s'éteint à l'accès, comme pour une formation. Seul l'accompagnement se rétracte
   au prorata.
