@@ -2,7 +2,6 @@ import { formaterMontant } from '@apex/db';
 
 import { EnTete, Tableau, Tuile, Vide } from '@/components/admin';
 import { dateCourte } from '@/lib/format';
-import { regimeTva } from '@/lib/legal/societe';
 import { createClient } from '@/lib/supabase/server';
 
 /**
@@ -19,8 +18,9 @@ import { createClient } from '@/lib/supabase/server';
  * effacée.
  *
  * La facture elle-même se génère à la demande (`/facture/[id]`), depuis la
- * base : `pdf_url` n'est plus lue. La tuile TVA dit si les factures portent
- * déjà leur mention fiscale, qui attend le comptable.
+ * base : `pdf_url` n'est plus lue. Leur TVA est celle que Stripe Tax a
+ * calculée pour l'encaissement (22 septembre) ; la tuile compte celles qui
+ * n'en ont pas.
  */
 export default async function Page() {
   const supabase = await createClient();
@@ -28,14 +28,16 @@ export default async function Page() {
   const { data: factures } = await supabase
     .from('invoices')
     .select(
-      'id, numero, emise_at, orders(montant_cents, devise, formations(titre), profiles(prenom, nom, email))',
+      'id, numero, emise_at, payments(tva_cents), orders(montant_cents, devise, formations(titre), profiles(prenom, nom, email))',
     )
     .order('emise_at', { ascending: false })
     .limit(200);
 
   const liste = factures ?? [];
   const total = liste.reduce((t, f) => t + (f.orders?.montant_cents ?? 0), 0);
-  const tva = regimeTva();
+  // Une facture sans TVA calculée est un encaissement d'avant Stripe Tax, ou une
+  // facture de renouvellement qu'on n'a pas su rattacher à son prélèvement.
+  const sansTva = liste.filter((f) => f.payments?.tva_cents == null).length;
 
   return (
     <>
@@ -44,10 +46,10 @@ export default async function Page() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Tuile libelle="Total facturé" valeur={formaterMontant(total)} />
         <Tuile
-          libelle="TVA sur les factures"
-          valeur={tva ? `${tva.tauxPourcent} %` : 'en attente'}
-          detail={tva ? tva.mention : 'régime à trancher avec le comptable — regimeTva()'}
-          ton={tva ? 'bon' : 'attente'}
+          libelle="Sans TVA calculée"
+          valeur={String(sansTva)}
+          detail="encaissements d’avant Stripe Tax"
+          ton={sansTva > 0 ? 'attente' : 'bon'}
         />
       </div>
 

@@ -747,11 +747,40 @@ async function main() {
   await renouveler('evt_renouv_1', 'in_renouv_1');
   verifier('un renouvellement enregistre son encaissement', await compter(paiementsB), 2);
   verifier('et émet sa facture', (await compter(facturesB)) - facturesAvant, 1);
+
   verifier(
     'un renouvellement rejoué nencaisse rien de plus',
     (await renouveler('evt_renouv_1', 'in_renouv_1')).rows[0].r.deja_traite === true &&
       (await compter(paiementsB)) === 2,
     true,
+  );
+
+  // La TVA calculée par Stripe Tax s'écrit avec l'encaissement, et la facture
+  // pointe vers le prélèvement qu'elle constate — sans quoi toutes les factures
+  // d'un abonnement se confondent.
+  await db.query(`select public.renouveler_abonnement(
+    'stripe', 'evt_renouv_tva', 'invoice.paid', '{}'::jsonb, 'sub_test_seed_b', 4900,
+    'in_renouv_tva', 233, 'ae')`);
+  const tva = (
+    await db.query(`select p.tva_cents, p.pays_client, i.id is not null as facture
+      from public.payments p left join public.invoices i on i.payment_id = p.id
+      where p.provider_payment_id = 'in_renouv_tva'`)
+  ).rows[0];
+  verifier(
+    'un renouvellement enregistre sa TVA et son pays, et sa facture le désigne',
+    tva?.tva_cents === 233 && tva?.pays_client === 'AE' && tva?.facture === true,
+    true,
+  );
+  verifier(
+    'une TVA supérieure au montant est refusée',
+    await db
+      .query(
+        `update public.payments set tva_cents = montant_cents + 1
+        where provider_payment_id = 'in_renouv_tva'`,
+      )
+      .then(() => 'acceptée')
+      .catch(() => 'refusée'),
+    'refusée',
   );
 
   const partiel = (await rembourserChezStripe('evt_re_1', 're_partiel', 1000)).rows[0].r;

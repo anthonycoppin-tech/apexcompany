@@ -587,6 +587,7 @@ export type Database = {
           id: string
           numero: string
           order_id: string
+          payment_id: string | null
           pdf_url: string | null
         }
         Insert: {
@@ -595,6 +596,7 @@ export type Database = {
           id?: string
           numero: string
           order_id: string
+          payment_id?: string | null
           pdf_url?: string | null
         }
         Update: {
@@ -603,6 +605,7 @@ export type Database = {
           id?: string
           numero?: string
           order_id?: string
+          payment_id?: string | null
           pdf_url?: string | null
         }
         Relationships: [
@@ -611,6 +614,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
         ]
@@ -883,9 +893,11 @@ export type Database = {
           montant_cents: number
           order_id: string
           paid_at: string | null
+          pays_client: string | null
           provider: Database["public"]["Enums"]["payment_provider"]
           provider_payment_id: string | null
           statut: Database["public"]["Enums"]["payment_statut"]
+          tva_cents: number | null
           updated_at: string
         }
         Insert: {
@@ -896,9 +908,11 @@ export type Database = {
           montant_cents: number
           order_id: string
           paid_at?: string | null
+          pays_client?: string | null
           provider: Database["public"]["Enums"]["payment_provider"]
           provider_payment_id?: string | null
           statut?: Database["public"]["Enums"]["payment_statut"]
+          tva_cents?: number | null
           updated_at?: string
         }
         Update: {
@@ -909,9 +923,11 @@ export type Database = {
           montant_cents?: number
           order_id?: string
           paid_at?: string | null
+          pays_client?: string | null
           provider?: Database["public"]["Enums"]["payment_provider"]
           provider_payment_id?: string | null
           statut?: Database["public"]["Enums"]["payment_statut"]
+          tva_cents?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -1371,9 +1387,11 @@ export type Database = {
           p_event_type: string
           p_montant_cents?: number
           p_payload: Json
+          p_pays_client?: string
           p_provider: Database["public"]["Enums"]["payment_provider"]
           p_provider_payment_id?: string
           p_subscription_id: string
+          p_tva_cents?: number
         }
         Returns: Json
       }
@@ -1396,11 +1414,13 @@ export type Database = {
           p_formation_id: string
           p_montant_cents: number
           p_payload: Json
+          p_pays_client?: string
           p_proposition_id?: string
           p_provider: Database["public"]["Enums"]["payment_provider"]
           p_provider_order_id: string
           p_provider_payment_id: string
           p_subscription_id?: string
+          p_tva_cents?: number
           p_user_id: string
         }
         Returns: Json

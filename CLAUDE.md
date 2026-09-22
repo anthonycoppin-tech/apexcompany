@@ -49,10 +49,20 @@ de paiement (`lib/legal/acceptation.ts`). Aucune migration : le type `cgv` exist
 7 septembre sans jamais servir. Toute modification des CGV change `VERSION_TEXTES_LEGAUX`.
 
 **Fait le 22 septembre** : les factures (`/facture/[id]`, générées à la demande depuis la base,
-imprimables en PDF — **mention de TVA en attente** du comptable, `regimeTva()`), et le montant
-de rétractation d'un accompagnement calculé sur la fiche client. Un remboursement lancé du
-back-office referme l'accès même partiel : il n'y avait rien d'autre à construire. Reste la
-conservation des clients (`docs/09-CHANTIERS.md`).
+imprimables en PDF), et le montant de rétractation d'un accompagnement calculé sur la fiche
+client. Un remboursement lancé du back-office referme l'accès même partiel : il n'y avait rien
+d'autre à construire. La conservation des clients est relâchée (effet en 2029, attend le
+juriste — `docs/09-CHANTIERS.md`).
+
+**La TVA passe par Stripe Tax** (tranché le 22 septembre : pas de TVA européenne). Chaque
+paiement demande le calcul automatique, taxe incluse dans le prix affiché ; le webhook passe la
+TVA et le pays à `traiter_paiement()` / `renouveler_abonnement()`, qui les écrivent sur
+l'encaissement **dans la même transaction**, et la facture les lit par `invoices.payment_id`.
+**Une TVA non calculée n'est jamais écrite comme une TVA nulle** (`lib/paiement/taxe-stripe.ts`).
+**Deux conséquences** : sans Stripe Tax activé dans le tableau de bord, aucun paiement ne
+s'ouvre ; et **la migration `20260922100000_a_tva_stripe_tax.sql` attend un `db:push`** — d'ici
+là, `/facture/[id]` et `/admin/documents` lisent des colonnes absentes de la base partagée et
+répondent en erreur.
 
 **Piège de recette** : `next dev` répond 404 aux routes dynamiques imbriquées sur ce poste
 (`/admin/clients/[id]`, `/admin/crm/leads/[id]`, `/formations/[slug]/souscrire`), sans rien
@@ -964,6 +974,13 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   salon planning est en lecture seule (l'équipe publie, les membres lisent) ; un rôle
   `Formateur` voit tous les salons de produit, attribué à la main et **jamais géré par le
   bot** — la réconciliation ne touche que les rôles du site.
+- **Qui vend** — **tranché le 21 septembre 2026** : APEX COMPANY L.L.C-FZ, désignée par les
+  textes légaux de l'ancien site (`lib/legal/societe.ts`).
+- **TVA** — **tranché le 22 septembre 2026 : pas de TVA européenne à facturer, calcul par
+  Stripe Tax.** **Fait**, migration en attente de `db:push`.
+- **Abonnement** — **tranché le 22 septembre 2026** : il se résilie, il ne se rembourse pas ; la
+  rétractation s'éteint à l'accès, comme pour une formation. Seul l'accompagnement se rétracte
+  au prorata.
 - **Conservation des prospects** — **tranché le 16 septembre 2026, sur la recommandation de
   la CNIL** : trois ans après le dernier contact venant du prospect, puis suppression.
   L'adresse IP du consentement suit le consentement qu'elle prouve. Un juriste peut

@@ -36,7 +36,7 @@ const PAGES: Array<{ href: string; titre: string; questions: string[] }> = [
       'Rédigée, et acceptée par deux cases à cocher avant chaque paiement — preuve enregistrée dans consents.',
       'Rétractation : éteinte à l’accès pour une formation et un abonnement (qui se résilie, sans remboursement de la période en cours — décidé le 22 septembre), au prorata pour un accompagnement. À valider : un abonnement qui inclut des séances en direct pourrait être requalifié en service.',
       'Médiateur de la consommation : aucun désigné. Le texte promet ses coordonnées sur demande — il faut en choisir un.',
-      'Régime de TVA dans l’Union : les prix sont affichés TTC, mais le régime reste à trancher avec un comptable.',
+      'TVA : pas de TVA européenne (décidé le 22 septembre). Stripe Tax calcule ce qui est dû — la TVA émiratie pour un client établi aux Émirats — et l’inclut dans le prix affiché.',
       'Plafond de responsabilité au montant payé retiré (présumé abusif face à un consommateur). À confirmer.',
       'Outils logiciels, agents automatisés et certification interne retirés : ils ne sont pas vendus sur ce site.',
     ],

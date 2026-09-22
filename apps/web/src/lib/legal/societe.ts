@@ -69,16 +69,3 @@ export const HEBERGEUR_DONNEES = {
  */
 export const VERSION_TEXTES_LEGAUX = '2026-09-22';
 export const MISE_A_JOUR_LISIBLE = '22 septembre 2026';
-
-/**
- * Le régime de TVA porté sur les factures (`lib/facture/modele.ts`).
- *
- * **`null` tant que le comptable n'a pas répondu** : la facture le dit alors en
- * toutes lettres, plutôt que d'afficher une TVA inventée. Attention au jour où
- * on le remplit : sous le guichet unique non-Union, le taux est celui du pays
- * **du client** — un seul taux ici ne suffira pas, il faudra le déduire de la
- * zone du client. D'où une fonction, pas une constante.
- */
-export function regimeTva(): { tauxPourcent: number; mention: string } | null {
-  return null;
-}

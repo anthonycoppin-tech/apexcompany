@@ -125,6 +125,12 @@ export default function Page() {
           affiché au moment de la commande, ou celui de la proposition personnalisée.
         </p>
         <p>
+          Aucune TVA européenne n’est facturée. La TVA éventuellement due — celle des Émirats arabes
+          unis, pour un client qui y est établi — est calculée selon le pays indiqué lors du
+          paiement et <strong>incluse dans le prix affiché</strong> : le client paie toujours le
+          prix annoncé, et sa facture en détaille la part de TVA.
+        </p>
+        <p>
           Le paiement s’effectue par carte bancaire, par l’intermédiaire du prestataire de paiement
           Stripe. Apex n’a jamais connaissance des données de carte. Les formations et les
           accompagnements se paient en une fois, à la commande ; l’abonnement est prélevé chaque

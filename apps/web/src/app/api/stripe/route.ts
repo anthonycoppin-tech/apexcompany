@@ -3,6 +3,7 @@ import type Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 
 import { idDe, referencesDuPaiement } from '@/lib/paiement/references-stripe';
+import { taxeDeFacture, taxeDeSession } from '@/lib/paiement/taxe-stripe';
 import { stripe } from '@/lib/stripe';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
@@ -70,6 +71,10 @@ export async function POST(request: Request) {
           return NextResponse.json({ recu: true });
         }
 
+        // La TVA de Stripe Tax s'écrit avec l'encaissement, dans la même
+        // transaction : une facture émise ne se corrige pas après coup.
+        const taxe = taxeDeSession(session);
+
         const { data, error } = await supabase.rpc('traiter_paiement', {
           p_provider: 'stripe',
           p_event_id: evenement.id,
@@ -93,6 +98,8 @@ export async function POST(request: Request) {
             typeof session.subscription === 'string'
               ? session.subscription
               : (session.subscription?.id ?? undefined),
+          p_tva_cents: taxe.tvaCents ?? undefined,
+          p_pays_client: taxe.pays ?? undefined,
         });
 
         if (error) throw error;
@@ -128,6 +135,8 @@ export async function POST(request: Request) {
           p_subscription_id: abonnement,
           p_montant_cents: facture.amount_paid ?? null,
           p_provider_payment_id: facture.id ?? null,
+          p_tva_cents: taxeDeFacture(facture).tvaCents ?? undefined,
+          p_pays_client: taxeDeFacture(facture).pays ?? undefined,
         });
 
         if (error) throw error;

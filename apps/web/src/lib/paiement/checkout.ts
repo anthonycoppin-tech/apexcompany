@@ -87,6 +87,8 @@ export async function ouvrirCheckout({
             currency: devise,
             unit_amount: montantCents,
             product_data: { name: formation.titre },
+            // Le prix affiché est le prix payé : la taxe éventuelle est dedans.
+            tax_behavior: 'inclusive' as const,
             // Le prix récurrent est déclaré à la volée : un abonnement mensuel
             // n'a pas besoin d'un catalogue tenu en double chez Stripe, et un
             // catalogue en double est un catalogue qui diverge.
@@ -94,6 +96,13 @@ export async function ouvrirCheckout({
           },
         },
       ],
+      // Stripe Tax (22 septembre 2026) : pas de TVA européenne. Stripe applique ce
+      // qu'imposent les immatriculations déclarées dans son tableau de bord — la
+      // TVA émiratie pour un client établi aux Émirats. Il demande le pays — et le code
+      // postal quand il en a besoin — sur sa page de paiement, et le montant
+      // calculé revient par le webhook, qui l'écrit avec l'encaissement.
+      // S'applique aussi aux prélèvements mensuels d'un abonnement.
+      automatic_tax: { enabled: true },
       metadata: {
         user_id: userId,
         formation_id: formation.id,

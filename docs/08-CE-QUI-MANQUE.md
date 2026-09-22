@@ -104,6 +104,10 @@ client_, bouton « Enregistrer »), en y autorisant la mise à jour du moyen de 
 qui s'ouvre quand un abonné en échec de prélèvement clique « Mettre à jour ma carte » : sans
 cette configuration, le bouton affiche une erreur.
 
+**Stripe Tax doit être activé** (_Paramètres → Taxes_), avec l'adresse de la société à Dubaï et
+son immatriculation aux Émirats, sans immatriculation dans l'Union. **Sans lui, aucun paiement
+ne s'ouvre** : le site demande le calcul automatique de la taxe à chaque paiement.
+
 **Sans elles** : aucun paiement ne s'ouvre, aucun encaissement n'est reçu, aucun remboursement
 ne s'exécute.
 
@@ -293,7 +297,6 @@ confirmée.
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Relecture des cinq textes par un juriste**                    | Ils engagent la société dès la mise en ligne                                                          |
 | **Médiateur de la consommation retenu**                         | Obligatoire pour vendre à des consommateurs français ; les CGV promettent ses coordonnées sur demande |
-| **Régime de TVA dans l'Union**                                  | Les prix sont affichés TTC ; reste à savoir quelle TVA ils contiennent (guichet unique non-Union ?)   |
 | **Représentant dans l'Union (article 27 RGPD)**                 | Exigé d'un responsable établi hors Union qui cible des résidents européens. Aucun n'est désigné       |
 | Hébergeur du site confirmé                                      | Les mentions légales nomment Vercel, recommandé mais pas souscrit                                     |
 | « Organisme de formation » sur l'accueil                        | Appellation encadrée en France (déclaration d'activité) — à garder ou à reformuler                    |
@@ -306,8 +309,9 @@ Du travail de développeur, noté dans `09-CHANTIERS.md`, à faire avant d'ouvri
 
 - **Les factures** — faites le 22 septembre : `/facture/[id]`, générée à la demande depuis la
   base, imprimable et enregistrable en PDF, ouverte depuis l'espace client et le back-office.
-  **Il leur manque la mention de TVA**, qui attend le comptable : elles le disent en toutes
-  lettres tant que `regimeTva()` (`lib/legal/societe.ts`) renvoie `null`.
+  **Leur TVA est celle que Stripe Tax calcule** pour chaque encaissement (22 septembre) : pas
+  de TVA européenne, la TVA émiratie pour un client établi aux Émirats, incluse dans le prix.
+  Stripe Tax est à activer dans le tableau de bord (`10-MISE-EN-PRODUCTION.md` §7).
 - **La conservation des clients** : « trois ans après le dernier achat ou contact », écrit dans
   la politique de confidentialité, n'est appliqué par rien. La purge ne touche que les
   prospects.
@@ -397,8 +401,8 @@ c'est ce qui le rend croyable, et ce qui permettra de voir qu'il a vieilli.
 **Aucune ne reste ouverte côté produit** depuis le 16 septembre 2026 : vidéos exclusives sur
 une plateforme externe (hors projet), vouvoiement, pas de PayPal en v1, pas de Supabase Pro
 pour le développement, salons Discord par défaut, prospects conservés trois ans. Détail et
-raisons dans `CLAUDE.md`. Reste le régime de vente et de TVA, qui est une question de juriste
-(section 2).
+raisons dans `CLAUDE.md`. Le vendeur est tranché le 21 septembre (APEX COMPANY L.L.C-FZ) et la
+TVA le 22 : pas de TVA européenne, Stripe Tax calcule le reste (section 2).
 
 ---
 
@@ -478,7 +482,7 @@ JJ/MM » pour une clé — **jamais par la clé elle-même**.
 | Adresse de contact                        | —                                                                |
 | Adresse pour les demandes RGPD            | payment@apexcompany.com (textes de l'ancien site)                |
 | Médiateur de la consommation              | —                                                                |
-| Régime de TVA retenu                      | —                                                                |
+| Régime de TVA retenu                      | Pas de TVA européenne ; Stripe Tax (22/09)                       |
 | Représentant dans l'Union (RGPD)          | —                                                                |
 | Conseil juridique consulté ?              | —                                                                |
 

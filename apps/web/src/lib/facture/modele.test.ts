@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { factureHtml, ventilation, type DonneesFacture } from './modele.ts';
+import { factureHtml, tauxAffiche, type DonneesFacture } from './modele.ts';
 
 const base: DonneesFacture = {
   numero: 'F-2026-000042',
@@ -11,7 +11,7 @@ const base: DonneesFacture = {
   typeProduit: 'accompagnement',
   montantCents: 249_000,
   devise: 'EUR',
-  tva: null,
+  tva: { tvaCents: 0, pays: 'FR' },
 };
 
 describe('la facture', () => {
@@ -30,33 +30,31 @@ describe('la facture', () => {
     }
   });
 
-  it('dit que la TVA est en attente plutôt que d’en inventer une', () => {
+  it('dit qu’aucune TVA n’est facturée quand Stripe Tax en calcule zéro', () => {
     const html = factureHtml(base);
-    assert.match(html, /Mention de TVA en attente/);
-    assert.doesNotMatch(html, /Total HT/);
+    assert.match(html, /TVA 0 %/);
+    assert.match(html, /Aucune TVA n’est facturée pour ce client \(FR\)/);
   });
 
-  it('ventile HT et TVA quand le régime est connu', () => {
-    const html = factureHtml({
-      ...base,
-      tva: { tauxPourcent: 20, mention: 'TVA acquittée via le guichet unique.' },
-    });
-    assert.match(html, /Total HT/);
-    assert.match(html, /TVA 20 %/);
-    assert.doesNotMatch(html, /en attente/);
+  it('ventile HT et TVA émiratie quand il y en a', () => {
+    // 5 % inclus dans 2 490 € : 118,57 € de TVA.
+    const html = factureHtml({ ...base, tva: { tvaCents: 11_857, pays: 'AE' } });
+    assert.match(html, /Total HT<\/td><td class="n">2 371,43 €/);
+    assert.match(html, /TVA 5 %/);
+    assert.match(html, /TVA des Émirats arabes unis/);
   });
 
-  it('ventile en centimes entiers qui retombent sur le prix payé', () => {
-    for (const [ttc, taux] of [
-      [249_000, 20],
-      [99_999, 19],
-      [1, 21],
-      [4_700, 5.5],
-    ] as const) {
-      const v = ventilation(ttc, taux);
-      assert.ok(Number.isInteger(v.htCents) && Number.isInteger(v.tvaCents));
-      assert.equal(v.htCents + v.tvaCents, ttc);
-    }
+  it('ne fait pas passer une TVA non calculée pour une TVA nulle', () => {
+    const html = factureHtml({ ...base, tva: null });
+    assert.match(html, /TVA non calculée/);
+    assert.doesNotMatch(html, /TVA 0 %|Total HT/);
+  });
+
+  it('déduit le taux des montants, au dixième', () => {
+    assert.equal(tauxAffiche(249_000, 11_857), '5');
+    assert.equal(tauxAffiche(10_000, 0), '0');
+    assert.equal(tauxAffiche(12_000, 2_000), '20');
+    assert.equal(tauxAffiche(10_550, 550), '5,5');
   });
 
   it('échappe ce qui vient de la base', () => {

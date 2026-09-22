@@ -7,7 +7,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(11);
+select plan(14);
 
 select public.enregistrer_litige(
   'stripe', 'evt_du_1', 'charge.dispute.created', '{}'::jsonb, 'du_test',
@@ -109,6 +109,36 @@ select is(
     'stripe', 'evt_renouv_1', 'invoice.paid', '{}'::jsonb, 'sub_test_seed_b', 4900, 'in_renouv_1'
   ) ->> 'deja_traite')::boolean, true,
   'un renouvellement rejoué n''encaisse rien de plus'
+);
+
+-- ── La TVA de Stripe Tax, écrite avec l'encaissement (22 septembre) ──────────
+
+select public.renouveler_abonnement(
+  'stripe', 'evt_renouv_tva', 'invoice.paid', '{}'::jsonb, 'sub_test_seed_b', 4900,
+  'in_renouv_tva', 233, 'ae'
+);
+
+select is(
+  (select tva_cents || '/' || pays_client from public.payments
+   where provider_payment_id = 'in_renouv_tva'),
+  '233/AE',
+  'un renouvellement enregistre sa TVA et son pays'
+);
+
+select is(
+  (select count(*) from public.invoices i
+   join public.payments p on p.id = i.payment_id
+   where p.provider_payment_id = 'in_renouv_tva')::int,
+  1,
+  'et sa facture désigne ce prélèvement'
+);
+
+select throws_ok(
+  $$update public.payments set tva_cents = montant_cents + 1
+    where provider_payment_id = 'in_renouv_tva'$$,
+  '23514',
+  null,
+  'une TVA supérieure au montant est refusée'
 );
 
 select * from finish();

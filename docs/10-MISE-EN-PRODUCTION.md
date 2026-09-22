@@ -140,6 +140,12 @@ brancher sur le même hébergeur, une fois par jour. Sujet de Christopher dans `
   `08-CE-QUI-MANQUE.md`** : un événement oublié, c'est un litige que le site n'apprendra jamais.
 - Enregistrer une fois le **portail client**, avec la mise à jour du moyen de paiement
   autorisée — c'est lui qu'ouvre « Mettre à jour ma carte ».
+- **Activer Stripe Tax** (_Paramètres → Taxes_) : adresse d'origine de la société à Dubaï,
+  **immatriculation aux Émirats** avec le TRN, et **aucune immatriculation dans l'Union** —
+  pas de TVA européenne, décidé le 22 septembre. Code fiscal par défaut des produits : un
+  service numérique ou éducatif, à choisir avec le comptable. **Sans Stripe Tax activé, aucun
+  paiement ne s'ouvre** : le site le demande à chaque session, et Stripe refuse alors de la
+  créer — le client lit « Le paiement n'a pas pu être ouvert ».
 
 ## 8. Cal.com
 

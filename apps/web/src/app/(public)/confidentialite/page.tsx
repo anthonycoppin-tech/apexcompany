@@ -44,7 +44,7 @@ const COLLECTE: Array<{ quand: string; quoi: string }> = [
   },
   {
     quand: 'Quand vous payez',
-    quoi: 'Le programme acheté, le montant, les dates, les références de la transaction, la facture, et le cas échéant les remboursements et contestations. Votre numéro de carte ne nous parvient jamais : il est saisi chez Stripe.',
+    quoi: 'Le programme acheté, le montant, les dates, les références de la transaction, la facture, et le cas échéant les remboursements et contestations. Le pays — et parfois le code postal — que vous indiquez sur la page de paiement, qui détermine la taxe applicable. Votre numéro de carte ne nous parvient jamais : il est saisi chez Stripe.',
   },
   {
     quand: 'Quand vous acceptez nos textes',

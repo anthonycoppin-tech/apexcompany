@@ -26,8 +26,12 @@ export type DonneesFacture = {
   typeProduit: string;
   montantCents: number;
   devise: string;
-  /** `null` tant que le régime n'est pas tranché — voir `REGIME_TVA`. */
-  tva: { tauxPourcent: number; mention: string } | null;
+  /**
+   * La TVA calculée par Stripe Tax pour cet encaissement, incluse dans
+   * `montantCents`. `null` : non calculée — un encaissement d'avant Stripe Tax,
+   * ou une facture qu'on ne sait pas rattacher à son encaissement.
+   */
+  tva: { tvaCents: number; pays: string | null } | null;
 };
 
 const TYPES: Record<string, string> = {
@@ -45,13 +49,13 @@ const dateLongue = (iso: string) =>
   });
 
 /**
- * HT et TVA déduits du TTC, en centimes entiers. L'arrondi porte sur le HT,
- * la TVA en est le complément : la somme retombe toujours exactement sur le
- * prix payé.
+ * Le taux affiché, déduit des montants : Stripe Tax donne la taxe, pas le
+ * taux, et un taux change. Arrondi au dixième — 5 % aux Émirats.
  */
-export function ventilation(ttcCents: number, tauxPourcent: number) {
-  const htCents = Math.round((ttcCents * 100) / (100 + tauxPourcent));
-  return { htCents, tvaCents: ttcCents - htCents };
+export function tauxAffiche(ttcCents: number, tvaCents: number): string {
+  const htCents = ttcCents - tvaCents;
+  if (tvaCents <= 0 || htCents <= 0) return '0';
+  return String(Math.round((tvaCents * 1000) / htCents) / 10).replace('.', ',');
 }
 
 export function factureHtml(d: DonneesFacture): string {
@@ -60,15 +64,15 @@ export function factureHtml(d: DonneesFacture): string {
   const libelle = `${TYPES[d.typeProduit] ?? 'Programme'} — ${d.produit}`;
 
   const lignesTva = d.tva
-    ? (() => {
-        const v = ventilation(d.montantCents, d.tva.tauxPourcent);
-        return `<tr><td>Total HT</td><td class="n">${m(v.htCents)}</td></tr>
-<tr><td>TVA ${e(String(d.tva.tauxPourcent).replace('.', ','))} %</td><td class="n">${m(v.tvaCents)}</td></tr>`;
-      })()
+    ? `<tr><td>Total HT</td><td class="n">${m(d.montantCents - d.tva.tvaCents)}</td></tr>
+<tr><td>TVA ${e(tauxAffiche(d.montantCents, d.tva.tvaCents))} %</td><td class="n">${m(d.tva.tvaCents)}</td></tr>`
     : '';
-  const mentionTva = d.tva
-    ? `<p class="petit">${e(d.tva.mention)}</p>`
-    : `<p class="attente">Mention de TVA en attente : le régime applicable aux ventes vers l’Union européenne n’est pas encore arrêté.</p>`;
+  const pays = d.tva?.pays ? ` (${e(d.tva.pays)})` : '';
+  const mentionTva = !d.tva
+    ? `<p class="attente">TVA non calculée pour cet encaissement, antérieur au calcul automatique.</p>`
+    : d.tva.tvaCents > 0
+      ? `<p class="petit">TVA des Émirats arabes unis, calculée selon le pays du client${pays} et incluse dans le prix payé.</p>`
+      : `<p class="petit">Aucune TVA n’est facturée pour ce client${pays}.</p>`;
 
   return `<!doctype html>
 <html lang="fr">

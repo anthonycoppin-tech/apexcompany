@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { factureHtml } from '@/lib/facture/modele';
-import { regimeTva } from '@/lib/legal/societe';
 import { createClient } from '@/lib/supabase/server';
 
 /**
@@ -31,7 +30,7 @@ export async function GET(requete: NextRequest, { params }: { params: Promise<{ 
   const { data: facture } = await supabase
     .from('invoices')
     .select(
-      'numero, emise_at, orders(montant_cents, devise, formations(titre, type_produit), profiles(prenom, nom, email))',
+      'numero, emise_at, payments(montant_cents, devise, tva_cents, pays_client), orders(montant_cents, devise, formations(titre, type_produit), profiles(prenom, nom, email))',
     )
     .eq('id', id)
     .maybeSingle();
@@ -42,6 +41,9 @@ export async function GET(requete: NextRequest, { params }: { params: Promise<{ 
   }
 
   const client = commande.profiles;
+  // L'encaissement que la facture constate : pour un abonnement, c'est lui qui
+  // donne le montant du mois et sa TVA, la commande étant commune à tous.
+  const paiement = facture.payments;
   const html = factureHtml({
     numero: facture.numero,
     emiseLe: facture.emise_at,
@@ -51,9 +53,12 @@ export async function GET(requete: NextRequest, { params }: { params: Promise<{ 
     },
     produit: commande.formations?.titre ?? 'Programme',
     typeProduit: commande.formations?.type_produit ?? '',
-    montantCents: commande.montant_cents,
-    devise: commande.devise,
-    tva: regimeTva(),
+    montantCents: paiement?.montant_cents ?? commande.montant_cents,
+    devise: paiement?.devise ?? commande.devise,
+    tva:
+      paiement?.tva_cents != null
+        ? { tvaCents: paiement.tva_cents, pays: paiement.pays_client }
+        : null,
   });
 
   return new NextResponse(html, {
