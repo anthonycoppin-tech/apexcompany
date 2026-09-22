@@ -66,10 +66,13 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 
 ## En cours
 
-| Sujet                                 | État | Qui         | Depuis   |
-| ------------------------------------- | ---- | ----------- | -------- |
-| Intégration Discord — mise en service | pris | Christopher | 12 sept. |
-| Réconciliation des rôles Discord      | pris | Christopher | 13 sept. |
+| Sujet                                       | État | Qui         | Depuis   |
+| ------------------------------------------- | ---- | ----------- | -------- |
+| Intégration Discord — mise en service       | pris | Christopher | 12 sept. |
+| Réconciliation des rôles Discord            | pris | Christopher | 13 sept. |
+| Factures consultables et imprimables        | pris | Anthony     | 22 sept. |
+| Montant de rétractation sur la fiche client | pris | Anthony     | 22 sept. |
+| Conservation des clients (purge)            | pris | Anthony     | 22 sept. |
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
@@ -154,12 +157,9 @@ perd ses rôles, et rien ne les lui rend.
 Par ordre d'intérêt décroissant. Ce sont les sujets sur lesquels on peut se lancer
 immédiatement.
 
-| Sujet                                          | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                                                       |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Factures PDF**                               | Les CGV disent qu'une facture est émise et disponible dans l'espace ; `invoices.pdf_url` reste vide. Le vendeur est connu depuis le 21 septembre, le taux de TVA ne l'est pas : écrire la génération avec la TVA en paramètre, qui se remplira quand le comptable aura répondu. **Avant la première vente.**                                                   |
-| **Rétractation au prorata, côté back-office**  | Les CGV (art. 8) l'accordent pour un accompagnement ou un abonnement. C'est un remboursement partiel, qui laisse l'accès ouvert et l'abonnement Stripe actif (`enregistrer_remboursement_prestataire`, 18 sept.). Il faut un geste « rétractation » qui calcule le prorata, rembourse, ferme l'accès et résilie — ou au minimum un runbook dans `/admin/aide`. |
-| **Conservation des clients**                   | `/confidentialite` annonce trois ans après le dernier achat ou contact. Rien ne l'applique : la purge ne touche que les prospects, et `effacer_personne()` refuse qui a acheté. À écrire en gardant les pièces comptables (dix ans).                                                                                                                           |
-| **Voir les deux rendus dépendants de Discord** | Reste le seul rendu testable qu'on n'a pas vu : `discord-lie` avec `roleEnFile` vrai puis faux. Depuis le 17 septembre, toute liaison réempile les rôles dus : relier `client.a` montre donc la branche `succes`. La branche `alerte` se voit en retirant `DISCORD_ROLE_INVITE_ID` de `apps/web/.env.local` le temps d'un essai.                               |
+| Sujet                                          | Pourquoi ça vaut le coup                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Voir les deux rendus dépendants de Discord** | Reste le seul rendu testable qu'on n'a pas vu : `discord-lie` avec `roleEnFile` vrai puis faux. Depuis le 17 septembre, toute liaison réempile les rôles dus : relier `client.a` montre donc la branche `succes`. La branche `alerte` se voit en retirant `DISCORD_ROLE_INVITE_ID` de `apps/web/.env.local` le temps d'un essai. |
 
 ## Bloqué, et par quoi
 
