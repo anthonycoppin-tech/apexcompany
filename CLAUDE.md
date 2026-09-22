@@ -59,10 +59,9 @@ paiement demande le calcul automatique, taxe incluse dans le prix affiché ; le 
 TVA et le pays à `traiter_paiement()` / `renouveler_abonnement()`, qui les écrivent sur
 l'encaissement **dans la même transaction**, et la facture les lit par `invoices.payment_id`.
 **Une TVA non calculée n'est jamais écrite comme une TVA nulle** (`lib/paiement/taxe-stripe.ts`).
-**Deux conséquences** : sans Stripe Tax activé dans le tableau de bord, aucun paiement ne
-s'ouvre ; et **la migration `20260922100000_a_tva_stripe_tax.sql` attend un `db:push`** — d'ici
-là, `/facture/[id]` et `/admin/documents` lisent des colonnes absentes de la base partagée et
-répondent en erreur.
+**À savoir** : sans Stripe Tax activé dans le tableau de bord, aucun paiement ne s'ouvre. La
+migration `20260922100000_a_tva_stripe_tax.sql` est appliquée sur la base partagée et vérifiée
+par son contenu ; types régénérés, identiques.
 
 **Piège de recette** : `next dev` répond 404 aux routes dynamiques imbriquées sur ce poste
 (`/admin/clients/[id]`, `/admin/crm/leads/[id]`, `/formations/[slug]/souscrire`), sans rien

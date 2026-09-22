@@ -32,13 +32,14 @@ dev partagée. Ça n'a pas changé.
 > données liées sont intacts. Ces comptes viennent du seed, pas d'une migration, et le
 > renommage `coach` → `formateur` du 8 septembre ne les avait donc pas touchés.
 
-> **Une migration attend un `db:push` — 22 septembre.** `20260922100000_a_tva_stripe_tax.sql`
-> ajoute `payments.tva_cents`, `payments.pays_client` et `invoices.payment_id`, et remplace les
-> signatures de `traiter_paiement()` et `renouveler_abonnement()` (deux paramètres optionnels de
-> plus : les appels existants restent valables). Types ajoutés à la main dans `packages/db`.
-> **D'ici au `db:push`, `/facture/[id]` et `/admin/documents` répondent en erreur sur la base
-> partagée**, puisqu'ils lisent ces colonnes. Après le push : `npm run db:types:linked`, qui
-> doit redonner le même fichier.
+> **Dépôt et base alignés — vérifié le 22 septembre.** `20260922100000_a_tva_stripe_tax.sql`
+> (TVA de Stripe Tax sur `payments`, `invoices.payment_id`, nouvelles signatures de
+> `traiter_paiement()` et `renouveler_abonnement()`) était déjà appliquée quand on a voulu la
+> pousser — par l'autre développeur, comme le 21. **Vérifiée par le contenu, pas par le
+> numéro** : colonnes et commentaires lus dans l'OpenAPI, paramètres `p_tva_cents` /
+> `p_pays_client` présents sur les deux fonctions, facture du seed rattachée à son
+> encaissement. `db:types:linked` redonne le fichier écrit à la main, à l'identique.
+> `/facture/[id]` et `/admin/documents` vus en vrai sur la base partagée.
 
 > **Plus aucune migration en attente — vérifié le 21 septembre au soir.** Les 30 migrations du
 > dépôt sont appliquées sur la base hébergée, jusqu'à `20260921100000_a_rebonds_emails.sql`, et
