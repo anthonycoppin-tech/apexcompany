@@ -128,8 +128,8 @@ const descriptionAcces = (type: TypeProduit, dateFin: string | null) => {
  * elle dépend du type de produit.
  */
 export function rappelRetractation(type: TypeProduit): string {
-  return type === 'formation'
-    ? 'Comme vous l’avez demandé en commandant, votre accès a été ouvert immédiatement. Vous avez reconnu perdre ainsi votre droit de rétractation pour ce programme (article 8 de nos conditions générales de vente).'
+  return type !== 'accompagnement'
+    ? 'Comme vous l’avez demandé en commandant, votre accès a été ouvert immédiatement. Vous avez reconnu perdre ainsi votre droit de rétractation (article 8 de nos conditions générales de vente).'
     : `Comme vous l’avez demandé en commandant, votre accès a commencé immédiatement. Vous pouvez encore vous rétracter dans les quatorze jours suivant votre paiement, en écrivant à ${EMAIL_VENDEUR} ; la part correspondant à la période écoulée reste alors due (article 8 de nos conditions générales de vente).`;
 }
 

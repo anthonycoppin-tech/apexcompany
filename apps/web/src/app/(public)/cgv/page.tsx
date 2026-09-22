@@ -15,11 +15,12 @@ export const metadata = {
  *
  * - **Trois produits, pas six.** Outils logiciels, agents automatisés et
  *   certification interne ne sont pas vendus ici.
- * - **La rétractation d'un service n'est pas éteinte par l'accès.** L'ancien
- *   texte l'éteignait « dès activation » pour tout. C'est vrai d'un contenu
- *   numérique (la formation), pas d'un service (accompagnement, abonnement) :
- *   le client qui a demandé un démarrage immédiat peut encore se rétracter, et
- *   doit alors la part déjà fournie.
+ * - **La rétractation d'un accompagnement n'est pas éteinte par l'accès.**
+ *   L'ancien texte l'éteignait « dès activation » pour tout. C'est défendable
+ *   pour un accès à des contenus (formation, abonnement — ce dernier se résilie
+ *   et ne se rembourse pas, décidé le 22 septembre), pas pour un suivi par un
+ *   formateur : le client qui a demandé un démarrage immédiat peut encore se
+ *   rétracter, et doit alors la part déjà fournie.
  * - **La plateforme européenne de règlement en ligne des litiges n'existe
  *   plus** depuis le 20 juillet 2025. Le lien est retiré.
  * - **Le plafond de responsabilité au montant payé est retiré** : face à un
@@ -154,7 +155,7 @@ export default function Page() {
           moment, sans justification, <strong>depuis son espace</strong> (rubrique Factures) ou par
           email à {email}. La résiliation prend effet à la fin de la période déjà payée : l’accès
           reste ouvert jusque-là, et aucun prélèvement n’a lieu ensuite. La période en cours n’est
-          pas remboursée, hors exercice du droit de rétractation.
+          pas remboursée.
         </p>
         <p>
           Si un prélèvement échoue, l’accès reste ouvert jusqu’à la fin de la période payée. Le
@@ -185,13 +186,13 @@ export default function Page() {
           programme, parce que tous les programmes commencent dès le paiement, à la demande expresse
           du client.
         </p>
-        <SousTitre>Formation — contenu numérique</SousTitre>
+        <SousTitre>Formation et abonnement — accès à des contenus</SousTitre>
         <p>
-          En cochant la case prévue avant de payer, le client demande l’accès immédiat au programme
-          et reconnaît qu’il{' '}
-          <strong>perd son droit de rétractation dès que cet accès est ouvert</strong>.
+          En cochant la case prévue avant de payer, le client demande l’accès immédiat et reconnaît
+          qu’il <strong>perd son droit de rétractation dès que cet accès est ouvert</strong>. Un
+          abonnement reste résiliable à tout moment, dans les conditions de l’article 7.
         </p>
-        <SousTitre>Accompagnement et abonnement — prestations de service</SousTitre>
+        <SousTitre>Accompagnement — prestation de service</SousTitre>
         <p>
           En cochant la case prévue avant de payer, le client demande que la prestation commence
           avant la fin du délai de rétractation. Il{' '}

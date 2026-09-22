@@ -50,14 +50,15 @@ export default function Page() {
         </p>
         <ul>
           <li>
-            <strong>Formation</strong> : l’accès est immédiat et vous avez reconnu perdre votre
-            droit de rétractation dès son ouverture. Aucun remboursement n’est donc dû au titre de
-            la rétractation une fois l’accès ouvert.
+            <strong>Formation et abonnement</strong> : l’accès est immédiat et vous avez reconnu
+            perdre votre droit de rétractation dès son ouverture. Aucun remboursement n’est donc dû
+            au titre de la rétractation une fois l’accès ouvert. Un abonnement se résilie à tout
+            moment : vous gardez votre accès jusqu’à la fin de la période payée.
           </li>
           <li>
-            <strong>Accompagnement et abonnement</strong> : vous pouvez vous rétracter pendant
-            quatorze jours. Nous conservons la part correspondant à la période écoulée jusqu’à votre
-            demande, et vous remboursons le reste.
+            <strong>Accompagnement</strong> : vous pouvez vous rétracter pendant quatorze jours.
+            Nous conservons la part correspondant à la période écoulée jusqu’à votre demande, et
+            vous remboursons le reste.
           </li>
         </ul>
         <p>
@@ -80,8 +81,7 @@ export default function Page() {
           Il est effectué dans les quatorze jours suivant la réception de votre demande, par le même
           moyen de paiement que celui utilisé pour l’achat, sans frais pour vous. Selon votre
           banque, quelques jours supplémentaires peuvent s’écouler avant que la somme n’apparaisse
-          sur votre compte. La rétractation met fin à votre accès au programme, et à l’abonnement
-          s’il s’agit d’un abonnement.
+          sur votre compte. La rétractation met fin à votre accès au programme.
         </p>
       </Article>
 

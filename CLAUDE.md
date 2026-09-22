@@ -38,8 +38,8 @@ une nouvelle, **`/avertissement`** (l'ancien « disclaimer » et l'annexe « Ris
 CGV ; `/disclaimer` y redirige). Elles ne sont plus retirées de l'indexation. **Aucun juriste ne
 les a relues.** Elles ne s'écartent des textes du client que là où ils étaient faux pour ce
 site — la liste des écarts est dans `docs/08-CE-QUI-MANQUE.md` §2 et `/admin/legal`, dont un qui
-compte : **la rétractation d'un accompagnement ou d'un abonnement se fait au prorata**, seule
-la formation (contenu numérique) la perd à l'accès.
+compte : **la rétractation d'un accompagnement se fait au prorata** ; la formation et
+l'abonnement la perdent à l'accès — un abonnement se résilie et ne se rembourse pas (22 septembre).
 
 **Le défaut trouvé en chemin est de la même famille que tous les autres** : les CGV faisaient
 accepter les conditions et renoncer à la rétractation « en cochant la case dédiée », et **aucun

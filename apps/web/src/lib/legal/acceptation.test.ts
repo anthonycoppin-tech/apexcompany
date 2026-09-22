@@ -14,8 +14,8 @@ import {
  * La règle de l'article 8 des CGV, gardée en trois endroits qui doivent dire la
  * même chose : la case cochée avant de payer, la version enregistrée en base,
  * et l'email de confirmation. Une formation est un contenu numérique, dont la
- * rétractation s'éteint à l'accès ; le reste est un service, qui se quitte au
- * prorata. Si l'un des trois change de camp seul, la preuve ne prouve plus ce
+ * rétractation s'éteint à l'accès, comme pour un abonnement (22 septembre) ;
+ * l'accompagnement est un service, qui se quitte au prorata. Si l'un des trois change de camp seul, la preuve ne prouve plus ce
  * que le client a lu.
  */
 const cases = (cgv: boolean, demarrage: boolean) => {
@@ -45,17 +45,17 @@ describe('les cases avant paiement', () => {
 });
 
 describe('la règle de rétractation, par type de produit', () => {
-  it('une formation renonce, les services gardent le prorata — partout', () => {
-    assert.match(texteDemarrage('formation'), /perdre mon droit de rétractation/);
-    assert.match(versionAcceptation('formation'), /renonciation$/);
-    assert.match(rappelRetractation('formation'), /perdre ainsi votre droit de rétractation/);
-
-    for (const type of ['accompagnement', 'abonnement'] as const) {
-      assert.doesNotMatch(texteDemarrage(type), /perdre/);
-      assert.match(texteDemarrage(type), /reste due/);
-      assert.match(versionAcceptation(type), /prorata$/);
-      assert.match(rappelRetractation(type), /pouvez encore vous rétracter/);
+  it('formation et abonnement renoncent, l’accompagnement garde le prorata — partout', () => {
+    for (const type of ['formation', 'abonnement'] as const) {
+      assert.match(texteDemarrage(type), /perdre mon droit de rétractation/);
+      assert.match(versionAcceptation(type), /renonciation$/);
+      assert.match(rappelRetractation(type), /perdre ainsi votre droit de rétractation/);
     }
+
+    assert.doesNotMatch(texteDemarrage('accompagnement'), /perdre/);
+    assert.match(texteDemarrage('accompagnement'), /reste due/);
+    assert.match(versionAcceptation('accompagnement'), /prorata$/);
+    assert.match(rappelRetractation('accompagnement'), /pouvez encore vous rétracter/);
   });
 
   it('la version enregistrée date les textes acceptés', () => {

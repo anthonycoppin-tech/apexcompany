@@ -34,7 +34,7 @@ const PAGES: Array<{ href: string; titre: string; questions: string[] }> = [
     titre: 'Conditions générales de vente',
     questions: [
       'Rédigée, et acceptée par deux cases à cocher avant chaque paiement — preuve enregistrée dans consents.',
-      'Rétractation : éteinte à l’accès pour une formation, au prorata pour un accompagnement ou un abonnement. L’ancien texte l’éteignait partout dès l’activation. À valider.',
+      'Rétractation : éteinte à l’accès pour une formation et un abonnement (qui se résilie, sans remboursement de la période en cours — décidé le 22 septembre), au prorata pour un accompagnement. À valider : un abonnement qui inclut des séances en direct pourrait être requalifié en service.',
       'Médiateur de la consommation : aucun désigné. Le texte promet ses coordonnées sur demande — il faut en choisir un.',
       'Régime de TVA dans l’Union : les prix sont affichés TTC, mais le régime reste à trancher avec un comptable.',
       'Plafond de responsabilité au montant payé retiré (présumé abusif face à un consommateur). À confirmer.',
@@ -54,7 +54,7 @@ const PAGES: Array<{ href: string; titre: string; questions: string[] }> = [
     titre: 'Rétractation et remboursement',
     questions: [
       'Rédigée, avec le formulaire type de rétractation, absent de l’ancien site.',
-      'Une rétractation au prorata est un remboursement partiel : il ne ferme ni l’accès ni l’abonnement Stripe. À faire à la main.',
+      'Une rétractation d’accompagnement au prorata est un remboursement partiel : il ne ferme pas l’accès. À faire à la main.',
     ],
   },
   {

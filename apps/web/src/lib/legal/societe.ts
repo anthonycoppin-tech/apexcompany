@@ -67,5 +67,5 @@ export const HEBERGEUR_DONNEES = {
  * texte que le client a réellement accepté — git garde les versions, la base
  * garde laquelle s'appliquait.
  */
-export const VERSION_TEXTES_LEGAUX = '2026-09-21';
-export const MISE_A_JOUR_LISIBLE = '21 septembre 2026';
+export const VERSION_TEXTES_LEGAUX = '2026-09-22';
+export const MISE_A_JOUR_LISIBLE = '22 septembre 2026';
