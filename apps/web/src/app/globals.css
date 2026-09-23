@@ -3,63 +3,108 @@
 /*
  * Design system — tokens partagés.
  *
- * Une charte graphique est en cours chez un designer. Tout ce qui est ci-dessous
- * est donc écrit pour être REMPLACÉ sans toucher à une seule page : les écrans
- * n'utilisent que des utilitaires dérivés de ces variables (`bg-surface`,
- * `text-encre-doux`, `border-filet`), jamais une couleur littérale. Changer la
- * charte, c'est changer ce fichier.
+ * La charte est arrêtée depuis le 23 septembre 2026. Elle a été donnée sous la
+ * forme d'une bannière — dégradé bleu nuit → indigo → violet, titre blanc en
+ * capitales italiques — et les valeurs ci-dessous en sont tirées par
+ * échantillonnage du fichier, pas à l'œil : #030944, #111bcc, #3416e8,
+ * #6a0cda, #9201cf.
  *
- * Direction retenue en attendant : clair, aéré, contrasté — la référence citée
- * est Mindeo. Le noir et doré du site actuel est explicitement écarté.
+ * C'est l'inverse de la direction tenue jusqu'au 22 septembre (« clair, aéré,
+ * contrasté, à l'image de Mindeo »). Le pari de ce fichier tient quand même :
+ * les noms de tokens n'ont pas changé, donc les 109 écrans se sont repeints
+ * sans être touchés. Seules les valeurs ont bougé.
  *
- * Un seul thème, clair. Un thème sombre est une décision de charte, pas une
- * décision technique : le jour où il arrive, il se pose ici et nulle part
- * ailleurs.
+ * Un seul thème, sombre. Il n'y a pas de bascule clair/sombre et il n'y en a
+ * pas besoin : le site a une identité, pas une préférence.
+ *
+ * Trois endroits ne suivent PAS ces tokens, et c'est voulu :
+ * `lib/email/modeles.ts` (un client mail ne connaît pas les variables CSS),
+ * `lib/facture/modele.ts` (une facture s'imprime, donc elle reste claire) et
+ * la couleur de marque Discord ci-dessous.
  */
 
 @theme {
-  /* ── Fonds et encre ───────────────────────────────────────────────────── */
-  --color-fond: #ffffff;
-  --color-surface: #f5f7fa;
-  --color-surface-forte: #eef1f6;
-  --color-encre: #11161f;
-  --color-encre-doux: #565f70;
-  --color-encre-faible: #8a92a1;
-  --color-filet: #e2e6ed;
-  --color-filet-fort: #cbd2dd;
+  /* ── Fonds et encre ───────────────────────────────────────────────────
+   * Le fond est un bleu nuit presque noir, pas un gris : c'est le bout sombre
+   * du dégradé de la bannière, et c'est lui qui fait que le violet chante au
+   * lieu de vibrer. Les trois niveaux montent en clarté, jamais en saturation
+   * — une carte plus saturée que la page se lit comme une alerte.
+   */
+  --color-fond: #080b1c;
+  --color-surface: #101534;
+  --color-surface-forte: #1a2050;
+  --color-encre: #f4f5ff;
+  --color-encre-doux: #b0b6dd;
+  --color-encre-faible: #7b82ae;
+  --color-filet: #242b56;
+  --color-filet-fort: #3a4382;
 
   /* ── Accent ────────────────────────────────────────────────────────────
    * Un seul accent, utilisé avec retenue : boutons principaux, liens, chiffres
    * clés. Un accent partout n'est plus un accent.
+   *
+   * Il est volontairement plus clair que l'indigo de la bannière (#3416e8).
+   * Celui-ci est magnifique en aplat de fond, mais il ne passe pas en texte sur
+   * un fond sombre — 2,4:1, illisible. Le nôtre donne 5,9:1 dans les deux sens,
+   * ce qui est la seule façon de garder UN token pour le texte ET le remplissage.
+   *
+   * `accent-fort` est plus CLAIR que `accent`, et non plus foncé comme en thème
+   * clair : sur fond sombre, un survol qui assombrit donne l'impression que le
+   * bouton s'éteint.
    */
-  --color-accent: #14508c;
-  --color-accent-fort: #0e3a66;
-  --color-accent-doux: #eaf1f9;
-  --color-accent-contraste: #ffffff;
+  --color-accent: #8f7dff;
+  --color-accent-fort: #a897ff;
+  --color-accent-doux: #191d45;
 
-  /* ── Fond sombre, pour les sections qui doivent trancher ──────────────── */
-  --color-nuit: #0e1420;
-  --color-nuit-douce: #1a2130;
+  /* Le texte posé SUR un aplat d'accent. Sombre, et c'est tout le sujet :
+   * `bg-accent text-accent-contraste` donnait du blanc sur bleu foncé en thème
+   * clair, il donne du bleu nuit sur violet clair ici. Les neuf emplacements
+   * qui l'utilisent sont tous des aplats d'accent — vérifié avant de basculer
+   * la valeur, parce qu'un seul usage sur fond sombre l'aurait rendu invisible.
+   */
+  --color-accent-contraste: #080b1c;
+
+  /* ── Dégradé de la bannière ────────────────────────────────────────────
+   * La signature de la marque. Réservée aux grandes surfaces — hero, bandeau
+   * de section — jamais à un bouton ni à une carte : un dégradé répété cesse
+   * d'être une signature et devient un motif.
+   */
+  --color-degrade-debut: #111bcc;
+  --color-degrade-milieu: #3416e8;
+  --color-degrade-fin: #9201cf;
+
+  /* ── Surfaces qui doivent trancher ─────────────────────────────────────
+   * En thème clair, `nuit` tranchait en étant plus sombre que la page. Ici la
+   * page est déjà sombre : ces deux-là tranchent par la SATURATION, en virant
+   * au violet profond. Même rôle, mécanique inverse.
+   */
+  --color-nuit: #1a0b3d;
+  --color-nuit-douce: #2a1259;
 
   /* ── Sémantique — distincte de l'accent, volontairement ─────────────────
    * Les deux tons `-doux` sont les fonds des bandeaux de message. Un bandeau a
    * besoin d'un fond : sans lui il ne se distingue du texte courant que par une
    * bordure, et se lit comme un encadré décoratif plutôt que comme le retour
    * d'une action qu'on vient de faire.
+   *
+   * Les deux tons pleins sont clairs pour être lisibles en texte sur le fond
+   * sombre ; un aplat `bg-succes` ou `bg-alerte` se complète donc par
+   * `text-fond`, jamais par `text-white`.
    */
-  --color-succes: #1f6f4a;
-  --color-succes-doux: #eaf5ef;
-  --color-alerte: #a84420;
-  --color-alerte-doux: #fbeeea;
+  --color-succes: #3ddc97;
+  --color-succes-doux: #0d2b22;
+  --color-alerte: #ff8a6b;
+  --color-alerte-doux: #33150f;
 
   /* ── Marque tierce ─────────────────────────────────────────────────────
    * La couleur officielle de Discord. Elle est ici, et pas en dur dans le
    * bouton, pour que la règle « aucune couleur littérale dans une page »
    * reste vraie sans exception à retenir.
    *
-   * En revanche, elle ne bouge pas avec la charte : un bouton « Connecter mon
-   * Discord » se reconnaît à sa couleur, et la repeindre aux couleurs du site
-   * lui ferait perdre ce que sa présence a d'évident.
+   * Elle ne bouge pas avec la charte : un bouton « Connecter mon Discord » se
+   * reconnaît à sa couleur, et la repeindre aux couleurs du site lui ferait
+   * perdre ce que sa présence a d'évident. C'est aussi le seul aplat du site
+   * qui garde `text-white`, parce que c'est la paire imposée par la marque.
    */
   --color-discord: #5865f2;
   --color-discord-fort: #4752c4;
@@ -68,6 +113,11 @@
    * Deux familles : une pour les titres, une pour le texte courant. Les
    * variables sont posées par next/font dans le layout racine, ce qui évite
    * une requête vers Google au chargement.
+   *
+   * La famille de titre porte une VRAIE italique, ce qui n'était pas le cas
+   * avant : la bannière est en capitales italiques, et une italique synthétisée
+   * par le navigateur penche les lettres sans les redessiner — ça se voit
+   * immédiatement sur des capitales grasses.
    */
   --font-titre: var(--police-titre), 'Segoe UI', system-ui, sans-serif;
   --font-texte: var(--police-texte), 'Segoe UI', system-ui, sans-serif;
@@ -134,5 +184,43 @@
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+@layer components {
+  /*
+   * Le traitement de la bannière : capitales italiques lourdes.
+   *
+   * Il est ici et pas dans `@layer base` parce qu'il ne s'applique PAS à tous
+   * les titres — seulement à ceux qui portent l'identité (hero, bandeau de
+   * section). Un site entièrement en capitales italiques ne se lit plus.
+   *
+   * Le `letter-spacing` repasse en positif : le -0.02em des titres courants
+   * est juste pour des bas-de-casse et serre trop des capitales, qui n'ont pas
+   * de jambages pour créer l'espace.
+   */
+  .titre-banniere {
+    font-family: var(--font-titre);
+    font-style: italic;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+
+  /*
+   * Le dégradé de la marque, en fond de grande surface.
+   *
+   * Posé en `background-image` plutôt qu'en classes `from-`/`via-`/`to-` pour
+   * qu'il n'existe qu'à UN endroit : trois arrêts recopiés à la main dans
+   * chaque section finiraient par diverger, et c'est exactement ce que ce
+   * fichier existe pour empêcher.
+   */
+  .fond-degrade {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-degrade-debut) 0%,
+      var(--color-degrade-milieu) 42%,
+      var(--color-degrade-fin) 100%
+    );
   }
 }

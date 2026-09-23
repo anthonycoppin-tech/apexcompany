@@ -68,7 +68,7 @@ export default async function Page({
           className={`rounded-douce border px-3 py-1.5 text-sm ${
             filtreValide
               ? 'border-filet text-encre-doux hover:bg-fond'
-              : 'border-encre bg-encre text-white'
+              : 'border-encre bg-encre text-fond'
           }`}
         >
           Tous · {tous?.length ?? 0}
@@ -79,7 +79,7 @@ export default async function Page({
             href={`/admin/crm/leads?statut=${etape.valeur}`}
             className={`rounded-douce border px-3 py-1.5 text-sm ${
               filtreValide === etape.valeur
-                ? 'border-encre bg-encre text-white'
+                ? 'border-encre bg-encre text-fond'
                 : 'border-filet text-encre-doux hover:bg-fond'
             }`}
           >

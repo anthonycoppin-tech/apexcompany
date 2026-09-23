@@ -78,7 +78,7 @@ export default function Page() {
         {/* La vraie section du site, avec des exemples : c'est ce rendu-là qui
             fait comprendre la longueur attendue, mieux qu'une consigne. */}
         <div className="overflow-hidden rounded-carte border border-filet">
-          <Temoignages temoignages={TEMOIGNAGES_EXEMPLE} fond="clair" />
+          <Temoignages temoignages={TEMOIGNAGES_EXEMPLE} fond="page" />
         </div>
       </section>
 

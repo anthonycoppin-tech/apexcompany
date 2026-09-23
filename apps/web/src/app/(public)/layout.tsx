@@ -40,7 +40,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col">
       <a
         href="#contenu"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-douce focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-douce focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-contraste"
       >
         Aller au contenu
       </a>

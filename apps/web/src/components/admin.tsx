@@ -40,7 +40,7 @@ const tons: Record<Ton, string> = {
   neutre: 'bg-surface-forte text-encre-doux',
   bon: 'bg-succes/10 text-succes',
   attente: 'bg-alerte/10 text-alerte',
-  probleme: 'bg-alerte text-white',
+  probleme: 'bg-alerte text-fond',
 };
 
 export function Pastille({ ton = 'neutre', children }: { ton?: Ton; children: ReactNode }) {

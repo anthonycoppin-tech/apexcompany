@@ -43,8 +43,8 @@ export default async function Page() {
   // La section d'équipe s'insère au milieu de la page et décale l'alternance
   // des fonds : sans ça, deux sections de même couleur se retrouvent collées
   // selon qu'il existe ou non des fiches publiées.
-  const apresEquipe = equipe.length > 0 ? 'surface' : 'clair';
-  const final = equipe.length > 0 ? 'clair' : 'surface';
+  const apresEquipe = equipe.length > 0 ? 'surface' : 'page';
+  const final = equipe.length > 0 ? 'page' : 'surface';
 
   return (
     <>

@@ -288,7 +288,7 @@ export default async function Page({
             aria-current={p.valeur === choisie.valeur ? 'page' : undefined}
             className={`rounded-douce border px-3 py-1.5 text-sm ${
               p.valeur === choisie.valeur
-                ? 'border-encre bg-encre text-white'
+                ? 'border-encre bg-encre text-fond'
                 : 'border-filet text-encre-doux hover:bg-fond'
             }`}
           >

@@ -42,17 +42,21 @@ export function Conteneur({
 
 export function Section({
   children,
-  fond = 'clair',
+  fond = 'page',
   className = '',
 }: {
   children: ReactNode;
-  fond?: 'clair' | 'surface' | 'nuit';
+  fond?: 'page' | 'surface' | 'nuit' | 'degrade';
   className?: string;
 }) {
+  // `page` s'appelait `clair` jusqu'au 23 septembre 2026. Le nom décrivait la
+  // couleur, et la couleur a changé : il décrit maintenant le rôle, qui lui ne
+  // changera pas — c'est le fond de la page, quel qu'il soit.
   const fonds = {
-    clair: 'bg-fond',
+    page: 'bg-fond',
     surface: 'bg-surface',
-    nuit: 'bg-nuit text-white',
+    nuit: 'bg-nuit text-encre',
+    degrade: 'fond-degrade text-encre',
   } as const;
 
   return (
@@ -69,12 +73,11 @@ export function Surtitre({ children }: { children: ReactNode }) {
   );
 }
 
-type Variante = 'principal' | 'secondaire' | 'clair';
+type Variante = 'principal' | 'secondaire';
 
 const variantes: Record<Variante, string> = {
   principal: 'bg-accent text-accent-contraste hover:bg-accent-fort',
   secondaire: 'border border-filet-fort text-encre hover:bg-surface',
-  clair: 'bg-white text-encre hover:bg-surface-forte',
 };
 
 const classesBouton = (variante: Variante, className: string) =>

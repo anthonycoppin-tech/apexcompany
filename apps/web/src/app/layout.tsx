@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Manrope } from 'next/font/google';
+import { Archivo, Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
 
 import { urlSite } from '@/lib/site';
@@ -12,12 +12,19 @@ import './globals.css';
  * transfert d'adresse IP des visiteurs vers un tiers — ce qui simplifie la
  * page de confidentialité autant que le temps de rendu.
  *
- * Manrope pour les titres, Inter pour le texte. Le designer changera
- * probablement ce couple ; il ne se change qu'ici et dans `globals.css`.
+ * Archivo pour les titres, Inter pour le texte. Ce couple ne se change qu'ici
+ * et dans `globals.css`.
+ *
+ * Archivo a remplacé Manrope le 23 septembre 2026 pour une seule raison :
+ * **elle a une vraie italique.** La charte est donnée par une bannière en
+ * capitales italiques grasses, et Manrope n'était chargée qu'en romain — le
+ * navigateur aurait synthétisé l'italique en penchant les lettres sans les
+ * redessiner. Sur des capitales à ce poids, ça ne passe pas inaperçu.
  */
-const titre = Manrope({
+const titre = Archivo({
   subsets: ['latin'],
   weight: ['600', '700', '800'],
+  style: ['normal', 'italic'],
   variable: '--police-titre',
   display: 'swap',
 });

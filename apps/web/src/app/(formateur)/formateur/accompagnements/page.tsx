@@ -137,7 +137,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
             aria-current={v.valeur === choisie ? 'page' : undefined}
             className={`rounded-douce border px-3 py-1.5 text-sm ${
               v.valeur === choisie
-                ? 'border-encre bg-encre text-white'
+                ? 'border-encre bg-encre text-fond'
                 : 'border-filet text-encre-doux hover:bg-fond'
             }`}
           >

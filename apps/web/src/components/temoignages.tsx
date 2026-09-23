@@ -31,7 +31,7 @@ export function Temoignages({
 }: {
   temoignages: TemoignageAffiche[];
   titre?: string;
-  fond?: 'clair' | 'surface';
+  fond?: 'page' | 'surface';
 }) {
   if (temoignages.length === 0) return null;
 

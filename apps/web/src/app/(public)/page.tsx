@@ -172,7 +172,7 @@ export default async function Page() {
           <div className="space-y-7">
             <Surtitre>Approche neuro-éducative</Surtitre>
 
-            <h1 className="text-4xl leading-[1.08] font-extrabold sm:text-5xl lg:text-6xl">
+            <h1 className="titre-banniere text-4xl leading-[1.08] sm:text-5xl lg:text-6xl">
               Maîtrisez la rigueur <span className="text-accent">cognitive</span> et technique
             </h1>
 
@@ -292,14 +292,19 @@ export default async function Page() {
       </Section>
 
       {/* ── La communauté ────────────────────────────────────────────────── */}
-      <Section fond="nuit">
+      {/* La seule surface du site qui porte le dégradé de la marque, avec le
+          hero. Deux suffisent : un dégradé qui revient à chaque section cesse
+          d'être une signature et devient un papier peint. Tout le texte posé
+          dessus est en `encre` pleine — `encre-doux` tombe à 3,4:1 sur le bout
+          violet du dégradé, donc illisible là où il l'est le plus. */}
+      <Section fond="degrade">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div className="space-y-5">
-            <p className="text-xs font-semibold tracking-[0.14em] text-white/60 uppercase">
+            <p className="text-xs font-semibold tracking-[0.14em] text-encre uppercase">
               La communauté
             </p>
-            <h2 className="text-3xl font-extrabold sm:text-4xl">Tout se passe au même endroit</h2>
-            <p className="text-lg leading-relaxed text-white/70">
+            <h2 className="titre-banniere text-3xl sm:text-4xl">Tout se passe au même endroit</h2>
+            <p className="text-lg leading-relaxed text-encre">
               Les sessions en direct, les échanges avec les formateurs et les replays vivent sur un
               serveur Discord privé. Votre accès s’ouvre automatiquement dès votre inscription, et
               se ferme à la fin de votre programme.
@@ -321,7 +326,7 @@ export default async function Page() {
             ].map(([titre, texte]) => (
               <li key={titre} className="rounded-carte bg-nuit-douce p-5">
                 <p className="font-semibold">{titre}</p>
-                <p className="mt-1 text-sm leading-relaxed text-white/60">{texte}</p>
+                <p className="mt-1 text-sm leading-relaxed text-encre-doux">{texte}</p>
               </li>
             ))}
           </ul>
@@ -355,7 +360,7 @@ export default async function Page() {
       {/* Juste avant l'appel à l'action : la preuve sociale se lit au moment où
           l'on décide, pas trois écrans plus haut. La section s'efface d'elle-même
           tant qu'aucun témoignage n'est publié. */}
-      <Temoignages temoignages={temoignages ?? []} fond="clair" />
+      <Temoignages temoignages={temoignages ?? []} fond="page" />
 
       {/* ── Appel final ──────────────────────────────────────────────────── */}
       {/* Deux sections optionnelles le précèdent — les chiffres et les
@@ -364,7 +369,7 @@ export default async function Page() {
           quatre. Seul le cas « chiffres affichés, aucun témoignage » demande de
           basculer. */}
       <Section
-        fond={chiffresPublies.length > 0 && (temoignages ?? []).length === 0 ? 'clair' : 'surface'}
+        fond={chiffresPublies.length > 0 && (temoignages ?? []).length === 0 ? 'page' : 'surface'}
       >
         <div className="mx-auto max-w-2xl space-y-6 text-center">
           <h2 className="text-3xl font-extrabold sm:text-4xl">

@@ -36,3 +36,6 @@ coverage/
 .vercel
 playwright-report/
 test-results/
+
+# Réglages Claude Code personnels — ne concernent que le poste qui les écrit.
+.claude/settings.local.json
