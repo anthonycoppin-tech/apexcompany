@@ -17,11 +17,11 @@ const ETATS: Record<string, { libelle: string; ton: Ton }> = {
  * `/admin/paiements/remboursements` — les demandes et leur suite.
  *
  * **Le remboursement s'exécute depuis ici**, et l'opération ne se défait pas.
- * Elle appelle Stripe puis enregistre — jamais l'inverse : enregistrer d'abord
+ * Elle appelle le prestataire puis enregistre — jamais l'inverse : enregistrer d'abord
  * laisserait, en cas d'échec, une ligne « remboursée » sans argent rendu.
  *
  * Rembourser deux fois est le seul risque qui compte, et il se pare à deux
- * endroits : une clé d'idempotence chez Stripe, construite sur l'identifiant de
+ * endroits : une clé d'idempotence envoyée au prestataire, construite sur l'identifiant de
  * la ligne, et `provider_refund_id` ici, dont la présence prouve que
  * l'opération a abouti.
  *

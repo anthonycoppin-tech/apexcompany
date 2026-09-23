@@ -3,9 +3,15 @@
  * exports, qui doivent dire la même chose.
  */
 
-export const PRESTATAIRES: Record<string, string> = { stripe: 'Stripe', paypal: 'PayPal' };
+export const PRESTATAIRES: Record<string, string> = {
+  whop: 'Whop',
+  // Gardés parce que des encaissements passés les portent : un libellé retiré
+  // ferait afficher le code brut sur d'anciennes lignes, pas un écran vide.
+  stripe: 'Stripe',
+  paypal: 'PayPal',
+};
 
-/** Les moyens que Stripe renvoie dans `payment_method_types`. */
+/** Les moyens de paiement, tels que les prestataires les nomment. */
 export const METHODES: Record<string, string> = {
   card: 'carte',
   sepa_debit: 'prélèvement SEPA',

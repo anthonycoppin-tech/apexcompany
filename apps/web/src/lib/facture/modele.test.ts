@@ -30,7 +30,7 @@ describe('la facture', () => {
     }
   });
 
-  it('dit qu’aucune TVA n’est facturée quand Stripe Tax en calcule zéro', () => {
+  it('dit qu’aucune TVA n’est facturée quand le prestataire en calcule zéro', () => {
     const html = factureHtml(base);
     assert.match(html, /TVA 0 %/);
     assert.match(html, /Aucune TVA n’est facturée pour ce client \(FR\)/);

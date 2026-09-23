@@ -36,7 +36,7 @@ const PAGES: Array<{ href: string; titre: string; questions: string[] }> = [
       'Rédigée, et acceptée par deux cases à cocher avant chaque paiement — preuve enregistrée dans consents.',
       'Rétractation : éteinte à l’accès pour une formation et un abonnement (qui se résilie, sans remboursement de la période en cours — décidé le 22 septembre), au prorata pour un accompagnement. À valider : un abonnement qui inclut des séances en direct pourrait être requalifié en service.',
       'Médiateur de la consommation : aucun désigné. Le texte promet ses coordonnées sur demande — il faut en choisir un.',
-      'TVA : pas de TVA européenne (décidé le 22 septembre). Stripe Tax calcule ce qui est dû — la TVA émiratie pour un client établi aux Émirats — et l’inclut dans le prix affiché.',
+      'TVA : le calcul revient à Whop depuis le 23 septembre, et le mode fiscal du compte n’est pas confirmé. Tant qu’il ne l’est pas, une TVA non rapportée par Whop reste nulle part — jamais écrite comme une TVA de zéro — et la facture le dit en toutes lettres. Sous le mode « Whop collecte et reverse », Whop devient merchant of record : à relire avec un juriste avant d’ouvrir les ventes.',
       'Plafond de responsabilité au montant payé retiré (présumé abusif face à un consommateur). À confirmer.',
       'Outils logiciels, agents automatisés et certification interne retirés : ils ne sont pas vendus sur ce site.',
     ],

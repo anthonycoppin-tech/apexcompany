@@ -70,7 +70,7 @@ const RUBRIQUES: Array<{ titre: string; questions: Array<[string, string]> }> = 
     questions: [
       [
         'Comment se fait le paiement ?',
-        'Depuis votre espace, à partir de la proposition qui vous a été faite. Le paiement est sécurisé par Stripe : nous ne voyons jamais vos coordonnées bancaires. Une facture est émise automatiquement et reste disponible dans votre espace.',
+        'Depuis votre espace, à partir de la proposition qui vous a été faite. Le paiement est sécurisé par Whop : nous ne voyons jamais vos coordonnées bancaires. Une facture est émise automatiquement et reste disponible dans votre espace.',
       ],
       [
         'Puis-je résilier mon abonnement ?',

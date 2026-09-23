@@ -12,6 +12,23 @@ dev partagée. Ça n'a pas changé.
 
 ## À faire avant de coder — état de la base partagée
 
+> **⚠ Deux migrations attendent un `db:push`, au 23 septembre.**
+> `20260923100000_a_prestataire_whop.sql` (la valeur `whop` dans l'énumération des prestataires)
+> et `20260923110000_a_rattrapage_whop.sql` (`formations.whop_plan_id`). Les deux passent
+> `npm run db:check` — 130 vérifications, 0 échec — et **n'ont volontairement pas été poussées** :
+> la base est partagée, et l'encadré plus bas demande de prévenir avant. C'est à faire, pas à
+> oublier.
+>
+> **Le premier fichier ne contient qu'une ligne, et il faut que ça reste vrai.** PostgreSQL
+> accepte `alter type … add value` dans une transaction depuis la version 12 mais refuse
+> d'**utiliser** la valeur avant qu'elle soit validée ; chaque migration s'exécutant dans sa
+> propre transaction, toute écriture mentionnant `whop` doit vivre dans un fichier ultérieur.
+>
+> **`packages/db/src/database.types.ts` a été complété à la main** — la valeur d'énumération et
+> les trois occurrences de `whop_plan_id` —, comme le 18 septembre. Un `npm run db:types:linked`
+> après le push doit redonner exactement le même fichier ; s'il diffère, c'est que le push n'a
+> pas fait ce qu'on croit.
+
 > **Dépôt et base hébergée sont alignés** — vérifié le 16 septembre au soir : les 24 migrations
 > sont appliquées, jusqu'à `20260916140000_a_remboursements_immuables.sql`, et les types régénérés
 > depuis la base. `purger_prospects_inactifs(true)` y répond : zéro candidat, ce qui est

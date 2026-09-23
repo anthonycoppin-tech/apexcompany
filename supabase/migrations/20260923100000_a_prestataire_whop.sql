@@ -1,0 +1,27 @@
+-- Whop rejoint les prestataires de paiement.
+--
+-- Décidé le 23 septembre 2026 : Whop remplace Stripe pour l'encaissement. Le
+-- compte est actif, et le client a déjà diffusé seize liens de paiement.
+--
+-- **C'est la seule migration que le changement de prestataire demande**, et
+-- c'est ce qui rend l'opération raisonnable : la couche métier ne connaît pas
+-- Stripe. Les cinq fonctions du chemin de l'argent reçoivent `p_provider` en
+-- paramètre, et `enregistrer_litige()` comme `enregistrer_remboursement_
+-- prestataire()` prennent `p_references text[]` — c'est le handler qui
+-- rassemble les identifiants candidats, la base prend celui qu'elle connaît.
+-- Aucune signature ne change, aucune colonne n'est ajoutée ici.
+--
+-- Ce que Whop NE fait PAS chez nous, et c'est volontaire : attribuer les rôles
+-- Discord. Il sait le faire — c'est son produit d'origine — mais l'accès reste
+-- piloté par `inscriptions.date_fin_acces` et la file `discord_sync_queue`.
+-- Déléguer l'accès au prestataire, c'est perdre la révocation en fin d'accès,
+-- la prolongation au rachat et la réconciliation, qui sont à nous.
+--
+-- **Ce fichier ne contient qu'une ligne, et il faut que ça reste vrai.**
+-- PostgreSQL accepte `alter type ... add value` dans une transaction depuis la
+-- version 12, mais refuse d'UTILISER la valeur ajoutée avant que celle-ci soit
+-- validée. Chaque fichier de migration s'exécutant dans sa propre transaction,
+-- toute écriture mentionnant 'whop' doit donc vivre dans un fichier ultérieur,
+-- sous peine d'un `unsafe use of new value of enum type` à l'application.
+
+alter type public.payment_provider add value 'whop';

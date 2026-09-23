@@ -18,9 +18,8 @@ import { createClient } from '@/lib/supabase/server';
  * effacée.
  *
  * La facture elle-même se génère à la demande (`/facture/[id]`), depuis la
- * base : `pdf_url` n'est plus lue. Leur TVA est celle que Stripe Tax a
- * calculée pour l'encaissement (22 septembre) ; la tuile compte celles qui
- * n'en ont pas.
+ * base : `pdf_url` n'est plus lue. Leur TVA est celle que le prestataire a
+ * calculée pour l'encaissement ; la tuile compte celles qui n'en ont pas.
  */
 export default async function Page() {
   const supabase = await createClient();
@@ -35,8 +34,9 @@ export default async function Page() {
 
   const liste = factures ?? [];
   const total = liste.reduce((t, f) => t + (f.orders?.montant_cents ?? 0), 0);
-  // Une facture sans TVA calculée est un encaissement d'avant Stripe Tax, ou une
-  // facture de renouvellement qu'on n'a pas su rattacher à son prélèvement.
+  // Une facture sans TVA calculée est un encaissement dont le prestataire n'a
+  // rien rapporté — d'avant le calcul automatique, ou d'un renouvellement qu'on
+  // n'a pas su rattacher à son prélèvement. Jamais une TVA de zéro.
   const sansTva = liste.filter((f) => f.payments?.tva_cents == null).length;
 
   return (
@@ -48,7 +48,7 @@ export default async function Page() {
         <Tuile
           libelle="Sans TVA calculée"
           valeur={String(sansTva)}
-          detail="encaissements d’avant Stripe Tax"
+          detail="TVA non rapportée par le prestataire"
           ton={sansTva > 0 ? 'attente' : 'bon'}
         />
       </div>

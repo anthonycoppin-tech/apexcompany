@@ -10,7 +10,7 @@ const EXPORTS = [
   {
     type: 'paiements',
     titre: 'Paiements',
-    description: 'Chaque encaissement, avec le client, le produit et les références Stripe.',
+    description: 'Chaque encaissement, avec le client, le produit et les références du prestataire.',
   },
   {
     type: 'remboursements',

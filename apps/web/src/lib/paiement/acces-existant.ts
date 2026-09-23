@@ -16,11 +16,11 @@ export type AccesExistant =
  *
  * **Le cas qui a motivé ce fichier** : une proposition d'abonnement restée
  * ouverte chez quelqu'un qui est déjà abonné. Rien ne l'arrêtait, et un second
- * abonnement Stripe prélève deux fois par mois — pour un seul accès, puisque
+ * abonnement prélève deux fois par mois — pour un seul accès, puisque
  * l'inscription est unique par produit.
  *
  * Trois réponses, une par type de produit :
- * - **abonnement** déjà actif (ou impayé, donc toujours en cours chez Stripe) :
+ * - **abonnement** déjà actif (ou impayé, donc toujours en cours chez le prestataire) :
  *   bloqué ;
  * - **formation** déjà acquise : bloqué, l'accès est à vie ;
  * - **accompagnement** en cours : permis, c'est un renouvellement, et

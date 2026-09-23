@@ -8,7 +8,7 @@ import { REPOS, messageDe } from '@/lib/messages/types';
 
 import { ouvrirMiseAJourCarte } from './actions';
 
-/** Ouvre la mise à jour du moyen de paiement chez Stripe, pour un abonnement en échec. */
+/** Ouvre le portail de gestion de l'abonnement chez Whop, pour un abonnement en échec. */
 export function BoutonCarte({ subscriptionId }: { subscriptionId: string }) {
   const [etat, action, enCours] = useActionState(ouvrirMiseAJourCarte, REPOS);
 

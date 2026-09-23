@@ -5,9 +5,8 @@ import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { stripe } from '@/lib/stripe';
+import { whopAppel } from '@/lib/whop';
 import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
-import { urlSite } from '@/lib/site';
 
 /**
  * Résilier son abonnement, depuis son espace.
@@ -16,10 +15,19 @@ import { urlSite } from '@/lib/site';
  * et selon les cas une non-conformité.** D'où ce bouton, qui n'est pas un
  * confort d'interface.
  *
- * La résiliation est **à effet différé** : `cancel_at_period_end` chez Stripe,
- * et rien n'est coupé ici. L'accès court jusqu'à la fin du mois déjà payé, et
- * c'est la révocation quotidienne qui le referme le moment venu. Couper tout de
- * suite reviendrait à ne pas rendre le mois encaissé.
+ * La résiliation est **à effet différé** : on demande à Whop de ne plus
+ * renouveler, et rien n'est coupé ici. L'accès court jusqu'à la fin du mois
+ * déjà payé, et c'est la révocation quotidienne qui le referme le moment venu.
+ * Couper tout de suite reviendrait à ne pas rendre le mois encaissé.
+ *
+ * **Et c'est vrai même si Whop se trompe.** Le nom exact du paramètre de
+ * `/memberships/{id}/cancel` n'est pas documenté ; s'il était ignoré et que
+ * Whop éteignait l'adhésion sur-le-champ, le client ne perdrait quand même
+ * rien : l'accès du site et le rôle Discord sont pilotés par
+ * `inscriptions.date_fin_acces`, pas par l'état de l'adhésion chez le
+ * prestataire. C'est le bénéfice concret d'avoir gardé la maîtrise de l'accès
+ * au lieu de la déléguer à l'encaisseur — un arbitrage qui paraissait
+ * théorique le 23 septembre et qui se paie ici.
  *
  * L'appartenance est vérifiée par la RLS, en relisant l'abonnement avec le
  * client à session : un identifiant venu du navigateur ne donne accès qu'à ce
@@ -48,10 +56,18 @@ export async function resilierAbonnement(
     return echoue('Cet abonnement est déjà résilié.');
   }
 
+  if (abonnement.provider !== 'whop') {
+    return echoue(
+      'Cet abonnement a été souscrit chez un ancien prestataire. Écrivez-nous et nous le ' +
+        'résilions pour vous.',
+    );
+  }
+
   try {
-    await stripe().subscriptions.update(abonnement.provider_subscription_id, {
-      cancel_at_period_end: true,
-    });
+    await whopAppel(
+      `/memberships/${encodeURIComponent(abonnement.provider_subscription_id)}/cancel`,
+      { methode: 'POST', corps: { cancel_at_period_end: true } },
+    );
   } catch {
     return echoue('La résiliation n’a pas pu être enregistrée. Réessayez dans un instant.');
   }
@@ -78,17 +94,20 @@ export async function resilierAbonnement(
  * Changer de carte après un prélèvement en échec.
  *
  * L'écran disait « vérifiez votre moyen de paiement » sans aucun moyen de le
- * faire : l'abonnement mourait au bout des relances de Stripe, faute d'une
- * carte à jour. On ouvre le portail client de Stripe directement sur la mise à
- * jour du moyen de paiement. Stripe retente la facture en échec avec la nouvelle
- * carte à sa prochaine tentative (pas forcément à l'instant), et `invoice.paid`
- * fait le reste.
+ * faire : l'abonnement mourait au bout des relances du prestataire, faute d'une
+ * carte à jour. On envoie donc le client sur le portail que Whop tient pour
+ * chaque adhésion — il y change sa carte, consulte son historique et peut
+ * résilier. Le prélèvement en échec est retenté avec la nouvelle carte à la
+ * tentative suivante (pas forcément à l'instant), et `payment.succeeded` fait
+ * le reste.
  *
  * Le portail plutôt qu'un formulaire de carte ici : aucune donnée de carte ne
- * transite par le site, donc rien à sécuriser de notre côté. Il demande en
- * revanche d'avoir enregistré une fois sa configuration dans le tableau de bord
- * Stripe (`docs/08-CE-QUI-MANQUE.md`) — sans elle, l'appel échoue et le message
- * ci-dessous s'affiche.
+ * transite par le site, donc rien à sécuriser de notre côté.
+ *
+ * **Le lien se lit sur l'adhésion, il ne se fabrique pas.** Whop pose un
+ * `manage_url` propre à chaque adhésion ; l'écrire à la main à partir d'un
+ * identifiant produirait une URL plausible qui mènerait ailleurs — ou nulle
+ * part. On le lit, et s'il n'y est pas on le dit.
  */
 export async function ouvrirMiseAJourCarte(
   _precedent: EtatAction,
@@ -106,29 +125,21 @@ export async function ouvrirMiseAJourCarte(
     .eq('id', id)
     .maybeSingle();
 
-  if (!abonnement || abonnement.provider !== 'stripe') {
+  if (!abonnement || abonnement.provider !== 'whop') {
     return echoue('Cet abonnement n’existe pas ou ne vous appartient pas.');
   }
 
   let lien: string;
   try {
-    const client = stripe();
-    const souscription = await client.subscriptions.retrieve(abonnement.provider_subscription_id);
-    const session = await client.billingPortal.sessions.create({
-      customer:
-        typeof souscription.customer === 'string'
-          ? souscription.customer
-          : souscription.customer.id,
-      return_url: `${urlSite}/espace/factures`,
-      flow_data: {
-        type: 'payment_method_update',
-        after_completion: {
-          type: 'redirect',
-          redirect: { return_url: `${urlSite}/espace/factures` },
-        },
-      },
-    });
-    lien = session.url;
+    const adhesion = await whopAppel<{ manage_url?: unknown }>(
+      `/memberships/${encodeURIComponent(abonnement.provider_subscription_id)}`,
+    );
+
+    if (typeof adhesion.manage_url !== 'string' || !adhesion.manage_url) {
+      throw new Error('Adhésion sans lien de gestion.');
+    }
+
+    lien = adhesion.manage_url;
   } catch {
     return echoue(
       'La page de paiement n’a pas pu s’ouvrir. Réessayez dans un instant, ou écrivez-nous.',

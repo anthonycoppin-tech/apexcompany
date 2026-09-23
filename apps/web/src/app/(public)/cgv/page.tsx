@@ -132,7 +132,7 @@ export default function Page() {
         </p>
         <p>
           Le paiement s’effectue par carte bancaire, par l’intermédiaire du prestataire de paiement
-          Stripe. Apex n’a jamais connaissance des données de carte. Les formations et les
+          Whop. Apex n’a jamais connaissance des données de carte. Les formations et les
           accompagnements se paient en une fois, à la commande ; l’abonnement est prélevé chaque
           mois, à la date anniversaire de la souscription.
         </p>

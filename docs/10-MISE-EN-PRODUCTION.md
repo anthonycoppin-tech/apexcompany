@@ -102,8 +102,8 @@ Créer une **invitation permanente** au serveur → `NEXT_PUBLIC_DISCORD_INVITE_
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Projet de production → _Settings → API_                      |
 | `SUPABASE_SERVICE_ROLE_KEY`                                 | Idem. **Jamais préfixée `NEXT_PUBLIC_`**                     |
 | `NEXT_PUBLIC_SITE_URL`                                      | Le domaine, en `https://`, sans barre finale                 |
-| `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`   | Stripe, clés **live**                                        |
-| `STRIPE_WEBHOOK_SECRET`                                     | Le point de terminaison créé à l'étape 7                     |
+| `WHOP_API_KEY`, `WHOP_ACCOUNT_ID`                           | Whop → _Developer_ et _Settings_ (`biz_…`)                   |
+| `WHOP_WEBHOOK_SECRET`                                       | Le point de terminaison créé à l'étape 7, `ws_…` **tel quel** |
 | `NEXT_PUBLIC_CAL_LIEN`, `CAL_WEBHOOK_SECRET`                | Cal.com (étape 8)                                            |
 | `AUDIT_CONSEILLER_USER_ID`                                  | L'identifiant du compte de Franck (étape 3)                  |
 | `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`                     | Application Discord, serveur de production                   |
@@ -134,18 +134,27 @@ Variables : celles de `apps/bot/.env.example`, avec les valeurs de production.
 **La réconciliation des rôles n'est planifiée nulle part** (`npm run discord:reconcile`) : à
 brancher sur le même hébergeur, une fois par jour. Sujet de Christopher dans `09-CHANTIERS.md`.
 
-## 7. Stripe
+## 7. Whop
 
-- Point de terminaison `https://<domaine>/api/stripe`, avec **la liste d'événements de
+- Point de terminaison `https://<domaine>/api/whop`, avec **la liste d'événements de
   `08-CE-QUI-MANQUE.md`** : un événement oublié, c'est un litige que le site n'apprendra jamais.
-- Enregistrer une fois le **portail client**, avec la mise à jour du moyen de paiement
-  autorisée — c'est lui qu'ouvre « Mettre à jour ma carte ».
-- **Activer Stripe Tax** (_Paramètres → Taxes_) : adresse d'origine de la société à Dubaï,
-  **immatriculation aux Émirats** avec le TRN, et **aucune immatriculation dans l'Union** —
-  pas de TVA européenne, décidé le 22 septembre. Code fiscal par défaut des produits : un
-  service numérique ou éducatif, à choisir avec le comptable. **Sans Stripe Tax activé, aucun
-  paiement ne s'ouvre** : le site le demande à chaque session, et Stripe refuse alors de la
-  créer — le client lit « Le paiement n'a pas pu être ouvert ».
+- **Recopier `WHOP_WEBHOOK_SECRET` tel quel, préfixe `ws_` compris.** Whop demande de ne pas le
+  décoder, contrairement à la spécification dont il s'inspire. Amputé de son préfixe, il fait
+  échouer **toutes** les signatures et le webhook répond 401 sans rien expliquer.
+- **Choisir le mode fiscal** (_Settings → Taxes_). Le mode retenu est « Whop collecte et
+  reverse » (2 %). Il fait de Whop le _merchant of record_ sur l'Union : **c'est lui qui émet la
+  facture fiscale**, et les pages légales qui désignent APEX COMPANY comme émetteur doivent être
+  relues par le juriste avant d'ouvrir les ventes (`08-CE-QUI-MANQUE.md`).
+- **Faire le tour du bac à sable avant le premier vrai paiement** — les trois points de
+  `08-CE-QUI-MANQUE.md` : rembourser deux fois de suite, résilier un abonnement et vérifier que
+  l'adhésion s'éteint **en fin de période**, et lire la forme réelle des montants.
+- **Ne pas brancher l'intégration Discord de Whop.** Elle sait attribuer les rôles, et c'est
+  précisément ce qu'il ne faut pas : l'accès est piloté par `inscriptions.date_fin_acces` et la
+  file `discord_sync_queue`. Deux systèmes qui attribuent les mêmes rôles finissent par se les
+  retirer l'un à l'autre.
+- **Les seize liens de paiement déjà diffusés continuent de fonctionner.** Leurs encaissements
+  arrivent sans métadonnées et tombent dans la file de rattrapage du back-office. Les désactiver
+  côté Whop une fois le site en service ; d'ici là, surveiller cette file.
 
 ## 8. Cal.com
 

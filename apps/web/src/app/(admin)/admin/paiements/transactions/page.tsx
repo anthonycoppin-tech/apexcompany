@@ -13,14 +13,14 @@ const ETATS: Record<string, { libelle: string; ton: Ton }> = {
 };
 
 /**
- * `/admin/paiements/transactions` — Stripe et PayPal réunis.
+ * `/admin/paiements/transactions` — tous prestataires réunis.
  *
  * Un seul tableau pour les deux prestataires, parce que la question qu'on se
  * pose est « est-ce que cet argent est arrivé », pas « chez qui ». La colonne
  * prestataire sert au rapprochement, pas au tri.
  *
  * L'identifiant du prestataire est affiché en entier : c'est lui qu'on colle
- * dans le tableau de bord Stripe quand un paiement pose question, et le
+ * dans le tableau de bord du prestataire quand un paiement pose question, et le
  * tronquer pour gagner trois caractères fait perdre trois minutes à chaque
  * fois.
  */

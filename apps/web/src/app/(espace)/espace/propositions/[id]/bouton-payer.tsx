@@ -27,7 +27,7 @@ export function BoutonPayer({
       </BoutonAction>
       <MessageLigne message={messageDe(etat)} />
       <p className="text-xs text-encre-faible">
-        Paiement sécurisé par Stripe. Votre accès s’ouvre dès l’encaissement.
+        Paiement sécurisé par Whop. Votre accès s’ouvre dès l’encaissement.
       </p>
     </form>
   );

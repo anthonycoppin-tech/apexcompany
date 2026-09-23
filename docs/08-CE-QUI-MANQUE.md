@@ -84,32 +84,76 @@ ils existent.
 **Sans elle** : le formulaire de qualification ne crée ni compte ni prospect. Le tunnel ne
 démarre pas du tout.
 
-### Stripe
+### Whop
 
-| À fournir         | Variable                             |
-| ----------------- | ------------------------------------ |
-| Clé secrète       | `STRIPE_SECRET_KEY`                  |
-| Secret du webhook | `STRIPE_WEBHOOK_SECRET`              |
-| Clé publique      | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` |
+**Whop remplace Stripe depuis le 23 septembre 2026.** Le compte du client est actif ; ce qui
+manque, ce sont les clés et trois réglages.
 
-Le webhook doit pointer vers `https://<le-site>/api/stripe`, et écouter ces événements :
-`checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`,
-`customer.subscription.deleted`, `charge.dispute.created`, `charge.dispute.updated`,
-`charge.dispute.closed`, `charge.dispute.funds_withdrawn`, `charge.dispute.funds_reinstated`,
-`refund.created`, `refund.updated`, `refund.failed`. Un événement oublié dans cette liste est un
-événement que le site n'apprendra jamais — un litige, par exemple.
+| À fournir                | Variable              | Où le trouver                     |
+| ------------------------ | --------------------- | --------------------------------- |
+| Clé d'API                | `WHOP_API_KEY`        | Dashboard → Developer             |
+| Identifiant du compte    | `WHOP_ACCOUNT_ID`     | Dashboard → Settings, `biz_…`     |
+| Secret du webhook        | `WHOP_WEBHOOK_SECRET` | Developer → Webhooks, `ws_…`      |
 
-**Le portail client Stripe doit être enregistré une fois** (_Paramètres → Facturation → Portail
-client_, bouton « Enregistrer »), en y autorisant la mise à jour du moyen de paiement. C'est lui
-qui s'ouvre quand un abonné en échec de prélèvement clique « Mettre à jour ma carte » : sans
-cette configuration, le bouton affiche une erreur.
+Le secret se recopie **tel quel, préfixe compris** : contrairement à la spécification d'origine
+des « Standard Webhooks », Whop demande de ne pas le décoder. Un secret amputé de son préfixe
+fait échouer toutes les signatures, et le webhook répond 401 sans que rien n'explique pourquoi.
 
-**Stripe Tax doit être activé** (_Paramètres → Taxes_), avec l'adresse de la société à Dubaï et
-son immatriculation aux Émirats, sans immatriculation dans l'Union. **Sans lui, aucun paiement
-ne s'ouvre** : le site demande le calcul automatique de la taxe à chaque paiement.
+Le webhook doit pointer vers `https://<le-site>/api/whop`, et écouter ces événements :
+`payment.succeeded`, `payment.failed`, `membership.deactivated`,
+`membership.cancel_at_period_end_changed`, `refund.created`, `refund.updated`,
+`dispute.created`, `dispute.updated`. Un événement oublié dans cette liste est un événement que
+le site n'apprendra jamais — un litige, par exemple.
 
 **Sans elles** : aucun paiement ne s'ouvre, aucun encaissement n'est reçu, aucun remboursement
 ne s'exécute.
+
+#### Trois choses à vérifier dans le bac à sable avant d'ouvrir les ventes
+
+Elles ne coûtent qu'une heure, et ce sont les seules zones du chemin de l'argent écrites d'après
+la documentation sans avoir jamais tourné.
+
+1. **La clé d'idempotence des remboursements.** Stripe garantissait par contrat qu'un appel
+   rejoué renvoie le même remboursement. La documentation de Whop mentionne cette clé dans un
+   exemple de SDK mais pas dans son schéma : on l'envoie sans pouvoir s'y fier. **C'est le seul
+   risque de la bascule qui coûte de l'argent réel** — deux clics simultanés sur « Exécuter »
+   pourraient rembourser deux fois. Se vérifie en appelant deux fois de suite.
+2. **Le paramètre de résiliation.** `POST /memberships/{id}/cancel` gère la résiliation
+   différée et la résiliation immédiate par un paramètre que la documentation ne nomme pas. À
+   noter tout de suite : **même si Whop se trompait et éteignait l'adhésion sur-le-champ, le
+   client ne perdrait rien** — l'accès du site et le rôle Discord suivent
+   `inscriptions.date_fin_acces`, pas l'état chez le prestataire.
+3. **La forme des montants.** Whop parle en décimales (`"290.00"`) là où tout le modèle est en
+   centimes entiers, et les montants d'un paiement sont des objets dont la documentation ne
+   donne pas la clé exacte. `lib/paiement/montants-whop.ts` accepte les formes connues et rend
+   `null` pour le reste — jamais un zéro inventé. Un encaissement qui atterrit dans la file de
+   rattrapage avec « Montant illisible » veut dire que la forme réelle est encore une autre.
+
+#### Le mode fiscal, qui est une question pour le juriste
+
+Whop propose trois modes. **Le choix retenu le 23 septembre est « Whop collecte et reverse »
+(2 %)** : c'est le seul qui n'oblige pas APEX COMPANY, société de Dubaï vendant du service
+numérique à des consommateurs de l'Union, à s'immatriculer elle-même au guichet unique non-Union
+et à déposer les déclarations. Le mode à 0 % n'est moins cher que si quelqu'un fait ce travail.
+
+**Il a une conséquence qui n'est pas réglée** : dans ce mode, Whop devient _merchant of record_
+et c'est lui qui émet la facture fiscale, alors que les mentions légales, les CGV et la page
+remboursement — écrites le 21 septembre, jamais relues par un juriste — désignent APEX COMPANY
+comme vendeur et émetteur. `/facture/[id]` continue de produire un document juste sur le fond
+(qui a acheté quoi, à quel prix) mais son en-tête n'est pas celui d'une facture fiscale.
+
+**À faire relire avec cette réponse en main.** C'est le même juriste que celui déjà attendu, et
+la question s'ajoute à sa liste plutôt que d'en ouvrir une nouvelle.
+
+Le code, lui, ne parie sur aucun mode : il écrit la TVA que Whop rapporte, et `null` quand il
+n'en rapporte pas. Une TVA non calculée n'est jamais écrite comme une TVA nulle.
+
+#### Les identifiants de rôle Discord des nouveaux produits
+
+Le catalogue du 23 septembre (PALACE, APEX BLACK, MATRIX, APEX PRIME, APEX PARTNER) ne peut pas
+être **publié** sans eux : la base refuse un produit actif sans `discord_role_id`, et c'est
+voulu — il encaisserait un paiement sans ouvrir d'accès. Un par produit, à créer sur le serveur
+puis à saisir dans `/admin/formations`.
 
 ### Cal.com
 

@@ -26,8 +26,8 @@ const SERVICES: Array<{ nom: string; variables: string[]; consequence: string }>
     consequence: 'Sans elle, le formulaire ne crée ni compte ni prospect.',
   },
   {
-    nom: 'Stripe',
-    variables: ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'],
+    nom: 'Whop',
+    variables: ['WHOP_API_KEY', 'WHOP_ACCOUNT_ID', 'WHOP_WEBHOOK_SECRET'],
     consequence: 'Sans elles, aucun paiement ne s’ouvre et aucun encaissement n’est reçu.',
   },
   {

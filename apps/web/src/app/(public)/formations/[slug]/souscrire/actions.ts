@@ -151,7 +151,6 @@ export async function souscrire(_precedent: EtatAction, donnees: FormData): Prom
     formation,
     montantCents: formation.prix_cents,
     urlSucces: `${site}/espace?m=paiement-recu`,
-    urlAnnulation: `${site}/formations/${slug}/souscrire?m=paiement-annule`,
   });
 
   if ('erreur' in resultat) return echoue(resultat.erreur);

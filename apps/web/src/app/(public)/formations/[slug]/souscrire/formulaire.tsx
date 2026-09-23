@@ -99,7 +99,7 @@ export function FormulaireSouscription({
       </button>
 
       <p className="text-center text-xs text-encre-doux">
-        Paiement sécurisé par Stripe. Résiliable à tout moment depuis votre espace.
+        Paiement sécurisé par Whop. Résiliable à tout moment depuis votre espace.
       </p>
     </form>
   );

@@ -149,9 +149,14 @@ export const SOUS_TRAITANTS: Array<{ nom: string; role: string; aVerifier: strin
     aVerifier: 'La région du projet hébergé, et l’accord de sous-traitance à signer.',
   },
   {
-    nom: 'Stripe',
+    nom: 'Whop',
     role: 'Encaissement, abonnements, remboursements. Détient les moyens de paiement.',
-    aVerifier: 'Le compte n’est pas encore ouvert : à faire au nom d’APEX COMPANY L.L.C-FZ.',
+    aVerifier:
+      'Le mode fiscal du compte, et c’est la question la plus lourde de la liste. Sous « Whop ' +
+      'collecte et reverse », Whop devient merchant of record sur l’Union : c’est lui qui émet la ' +
+      'facture fiscale, pas APEX COMPANY — alors que les mentions légales, les CGV et la page ' +
+      'remboursement désignent APEX COMPANY comme vendeur et émetteur. Ces pages n’ont jamais été ' +
+      'relues par un juriste ; elles doivent l’être avec cette réponse en main.',
   },
   {
     nom: 'Discord',

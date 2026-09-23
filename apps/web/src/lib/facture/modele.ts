@@ -27,8 +27,8 @@ export type DonneesFacture = {
   montantCents: number;
   devise: string;
   /**
-   * La TVA calculée par Stripe Tax pour cet encaissement, incluse dans
-   * `montantCents`. `null` : non calculée — un encaissement d'avant Stripe Tax,
+   * La TVA calculée par le prestataire pour cet encaissement, incluse dans
+   * `montantCents`. `null` : non calculée — un encaissement d'avant le calcul,
    * ou une facture qu'on ne sait pas rattacher à son encaissement.
    */
   tva: { tvaCents: number; pays: string | null } | null;
@@ -49,7 +49,7 @@ const dateLongue = (iso: string) =>
   });
 
 /**
- * Le taux affiché, déduit des montants : Stripe Tax donne la taxe, pas le
+ * Le taux affiché, déduit des montants : le prestataire donne la taxe, pas le
  * taux, et un taux change. Arrondi au dixième — 5 % aux Émirats.
  */
 export function tauxAffiche(ttcCents: number, tvaCents: number): string {
@@ -127,7 +127,7 @@ export function factureHtml(d: DonneesFacture): string {
     <tr><td>Total TTC payé</td><td class="n">${m(d.montantCents)}</td></tr>
   </tfoot>
 </table>
-<p class="petit">Payé par carte bancaire via Stripe. Aucun montant ne reste dû.</p>
+<p class="petit">Payé par carte bancaire via Whop. Aucun montant ne reste dû.</p>
 ${mentionTva}
 <p class="petit">Prestation exclusivement éducative, sans conseil en investissement. Conditions générales de vente : article 8 pour la rétractation.</p>
 </main>

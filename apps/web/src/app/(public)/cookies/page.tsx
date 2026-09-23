@@ -49,7 +49,7 @@ export default function Page() {
             rendez-vous ;
           </li>
           <li>
-            <strong>Stripe</strong>, sur la page de paiement ;
+            <strong>Whop</strong>, sur la page de paiement ;
           </li>
           <li>
             <strong>Discord</strong>, quand vous reliez votre compte.

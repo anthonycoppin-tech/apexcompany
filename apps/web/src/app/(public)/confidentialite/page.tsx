@@ -44,7 +44,7 @@ const COLLECTE: Array<{ quand: string; quoi: string }> = [
   },
   {
     quand: 'Quand vous payez',
-    quoi: 'Le programme acheté, le montant, les dates, les références de la transaction, la facture, et le cas échéant les remboursements et contestations. Le pays — et parfois le code postal — que vous indiquez sur la page de paiement, qui détermine la taxe applicable. Votre numéro de carte ne nous parvient jamais : il est saisi chez Stripe.',
+    quoi: 'Le programme acheté, le montant, les dates, les références de la transaction, la facture, et le cas échéant les remboursements et contestations. Le pays — et parfois le code postal — que vous indiquez sur la page de paiement, qui détermine la taxe applicable. Votre numéro de carte ne nous parvient jamais : il est saisi chez Whop.',
   },
   {
     quand: 'Quand vous acceptez nos textes',
@@ -82,7 +82,7 @@ const FINALITES: Array<{ finalite: string; base: string }> = [
 const PRESTATAIRES: Array<{ nom: string; role: string }> = [
   { nom: 'Supabase', role: 'base de données, comptes et connexion' },
   { nom: 'Vercel', role: 'hébergement du site' },
-  { nom: 'Stripe', role: 'paiements, abonnements et remboursements' },
+  { nom: 'Whop', role: 'paiements, abonnements et remboursements' },
   { nom: 'Discord', role: 'communauté, séances de groupe et accès aux salons' },
   { nom: 'Cal.com', role: 'prise de rendez-vous' },
   { nom: 'Resend', role: 'envoi des emails automatiques' },

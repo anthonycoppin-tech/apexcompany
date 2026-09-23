@@ -11,7 +11,7 @@ import type { Database } from '@apex/db';
  * depuis un composant client : c'est la seule protection à la compilation
  * contre une clé qui, envoyée au navigateur, ouvre tout le schéma.
  *
- * Réservé aux handlers de webhook (stripe, paypal, cal, discord) et au worker
+ * Réservé aux handlers de webhook (whop, cal, discord, resend) et au worker
  * du bot Discord — c'est-à-dire les endroits où il n'existe pas de session
  * utilisateur pour porter la RLS. Toute route qui répond à une requête d'un
  * utilisateur connecté doit utiliser lib/supabase/server.ts, pas ceci.

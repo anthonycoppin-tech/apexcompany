@@ -21,7 +21,7 @@ import { echoue, type EtatAction } from '@/lib/messages/types';
  *
  * La commande est créée en `en_attente` avant la redirection, pour que
  * l'ouverture d'un paiement laisse une trace même si le client abandonne sur la
- * page Stripe. C'est le webhook qui la passera en `payee` — jamais cet écran,
+ * page du prestataire. C'est le webhook qui la passera en `payee` — jamais cet écran,
  * qui ne sait pas si l'argent est arrivé.
  */
 export async function ouvrirPaiement(
@@ -103,7 +103,6 @@ export async function ouvrirPaiement(
     montantCents: proposition.montant_cents,
     propositionId: proposition.id,
     urlSucces: `${site}/espace?m=paiement-recu`,
-    urlAnnulation: `${site}/espace/propositions/${proposition.id}?m=paiement-annule`,
   });
 
   if ('erreur' in resultat) return echoue(resultat.erreur);

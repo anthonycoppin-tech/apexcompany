@@ -469,6 +469,7 @@ export type Database = {
           type_produit: Database["public"]["Enums"]["type_produit"]
           updated_at: string
           volume_horaire: number | null
+          whop_plan_id: string | null
         }
         Insert: {
           actif?: boolean
@@ -489,6 +490,7 @@ export type Database = {
           type_produit: Database["public"]["Enums"]["type_produit"]
           updated_at?: string
           volume_horaire?: number | null
+          whop_plan_id?: string | null
         }
         Update: {
           actif?: boolean
@@ -509,6 +511,7 @@ export type Database = {
           type_produit?: Database["public"]["Enums"]["type_produit"]
           updated_at?: string
           volume_horaire?: number | null
+          whop_plan_id?: string | null
         }
         Relationships: []
       }
@@ -1469,7 +1472,7 @@ export type Database = {
         | "partielle"
         | "annulee"
         | "remboursee"
-      payment_provider: "stripe" | "paypal"
+      payment_provider: "stripe" | "paypal" | "whop"
       payment_statut: "en_attente" | "reussi" | "echoue" | "rembourse"
       prop_firm_statut: "non" | "en_challenge" | "oui"
       proposition_statut:
@@ -1670,7 +1673,7 @@ export const Constants = {
         "annulee",
         "remboursee",
       ],
-      payment_provider: ["stripe", "paypal"],
+      payment_provider: ["stripe", "paypal", "whop"],
       payment_statut: ["en_attente", "reussi", "echoue", "rembourse"],
       prop_firm_statut: ["non", "en_challenge", "oui"],
       proposition_statut: [
