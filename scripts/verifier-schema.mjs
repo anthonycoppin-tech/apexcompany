@@ -806,6 +806,76 @@ async function main() {
     true,
   );
 
+  // ── La périodicité d'un abonnement ───────────────────────────────────────
+  //
+  // APEX PRIME se vend au mois et à l'année. Avant le 23 septembre, `+ 30`
+  // était écrit en dur dans les deux fonctions : un abonnement annuel aurait
+  // donné trente jours d'accès pour 490 €. Ces vérifications existent pour
+  // qu'un remaniement ne le réintroduise pas en silence.
+  console.log('\nPériodicité des abonnements\n');
+
+  const refuseSchema = (sql) =>
+    db
+      .query(sql)
+      .then(() => 'accepté')
+      .catch(() => 'refusé');
+
+  verifier(
+    'un abonnement sans période est refusé — un null y vaut accès illimité',
+    await refuseSchema(`insert into public.formations
+      (slug, titre, prix_cents, type_produit, modalite, duree_acces_jours, actif, ordre)
+      values ('sans-periode', 'Sans période', 1000, 'abonnement', 'groupe', null, false, 90)`),
+    'refusé',
+  );
+
+  verifier(
+    'une formation avec une période est refusée — son accès est illimité',
+    await refuseSchema(`insert into public.formations
+      (slug, titre, prix_cents, type_produit, modalite, duree_acces_jours, actif, ordre)
+      values ('formation-datee', 'Formation datée', 1000, 'formation', 'groupe', 30, false, 91)`),
+    'refusé',
+  );
+
+  await db.exec(`
+    insert into public.formations (id, slug, titre, prix_cents, type_produit, modalite,
+                                   duree_acces_jours, discord_role_id, actif, ordre)
+    values ('a0000000-0000-0000-0000-000000000009', 'annuel-test', 'Abonnement annuel',
+            49000, 'abonnement', 'groupe', 365, '900000000000000009', true, 92);
+  `);
+
+  const annuel = (
+    await db.query(`select public.traiter_paiement(
+      'whop', 'evt_annuel_1', 'payment.succeeded', '{}'::jsonb,
+      '66666666-6666-6666-6666-666666666666', 'a0000000-0000-0000-0000-000000000009',
+      49000, 'EUR', 'ord_annuel_1', 'pay_annuel_1', null, 'mem_annuel_1') as r`)
+  ).rows[0].r;
+
+  const dansUnAn = (
+    await db.query(`select (current_date + 365)::text as d`)
+  ).rows[0].d;
+
+  verifier(
+    'un abonnement annuel ouvre 365 jours daccès, pas 30',
+    annuel.date_fin_acces?.slice(0, 10),
+    dansUnAn,
+  );
+
+  const renouvelle = (
+    await db.query(`select public.renouveler_abonnement(
+      'whop', 'evt_annuel_2', 'payment.succeeded', '{}'::jsonb, 'mem_annuel_1',
+      49000, 'pay_annuel_2') as r`)
+  ).rows[0].r;
+
+  const dansDeuxAns = (
+    await db.query(`select (current_date + 730)::text as d`)
+  ).rows[0].d;
+
+  verifier(
+    'son renouvellement repousse dune année, pas dun mois',
+    renouvelle.date_fin_acces?.slice(0, 10),
+    dansDeuxAns,
+  );
+
   // ── Suivi commercial du formateur ────────────────────────────────────────
   console.log('\nFormateur A — suivi commercial\n');
   await devenir('33333333-3333-3333-3333-333333333333');

@@ -125,7 +125,10 @@ insert into public.formations (
     'Communauté',
     'Abonnement mensuel : salon privé, planning hebdomadaire, contenu exclusif.',
     4900, 'abonnement', 'groupe',
-    null, '900000000000000001', null, null, true, 1
+    -- La période de facturation, exigée depuis le 23 septembre 2026 : un
+    -- abonnement sans durée donnerait `null` dans `date_fin_acces`, c'est-à-dire
+    -- un accès illimité pour 49 € par mois.
+    30, '900000000000000001', null, null, true, 1
   ),
   (
     'a0000000-0000-0000-0000-000000000002',

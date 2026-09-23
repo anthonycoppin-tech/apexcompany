@@ -58,3 +58,26 @@ export function dureeAcces(jours: number): string {
   const mois = jours / 30;
   return mois === 1 ? '1 mois' : `${mois} mois`;
 }
+
+/**
+ * Le suffixe de prix d'un abonnement : « / mois », « / an ».
+ *
+ * **C'est le libellé dont l'erreur coûte le plus cher** : afficher « 490 € /
+ * mois » sur un abonnement annuel, ou l'inverse, c'est une promesse de prix
+ * fausse d'un facteur douze. Il se dérive donc de la période du produit, qui
+ * est aussi celle que le prestataire prélève et celle dont l'accès est ouvert —
+ * une seule valeur, trois usages.
+ */
+export function periodiciteAbonnement(jours: number | null): string {
+  if (jours === null) return '';
+  if (jours === 30) return '/ mois';
+  if (jours === 365) return '/ an';
+  return `/ ${dureeAcces(jours)}`;
+}
+
+/** Le nom du type d'abonnement, pour les endroits qui le nomment en toutes lettres. */
+export function libelleAbonnement(jours: number | null): string {
+  if (jours === 30) return 'Abonnement mensuel';
+  if (jours === 365) return 'Abonnement annuel';
+  return 'Abonnement';
+}

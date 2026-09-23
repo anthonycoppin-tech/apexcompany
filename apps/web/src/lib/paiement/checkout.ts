@@ -13,10 +13,16 @@ export type FormationAPayer = {
   titre: string;
   type_produit: string;
   devise: string | null;
+  /**
+   * Pour un abonnement, la période de facturation en jours (30 ou 365).
+   *
+   * **Elle doit être la même des deux côtés.** `traiter_paiement()` ouvre
+   * l'accès pour cette durée ; si Whop prélevait sur un rythme différent, le
+   * client paierait douze fois un accès qui n'en couvre qu'un — ou l'inverse.
+   * D'où une seule source : le produit.
+   */
+  duree_acces_jours: number | null;
 };
-
-/** Un abonnement se renouvelle tous les trente jours — la période de `traiter_paiement()`. */
-const PERIODE_ABONNEMENT_JOURS = 30;
 
 type ConfigurationWhop = { id?: string; purchase_url?: string | null };
 
@@ -124,7 +130,11 @@ export async function ouvrirCheckout({
           ...(abonnement
             ? {
                 renewal_price: centsVersDecimal(montantCents),
-                billing_period: PERIODE_ABONNEMENT_JOURS,
+                // La période du produit, pas une constante : APEX PRIME se vend
+                // au mois et à l'année depuis le 23 septembre. La base garantit
+                // qu'un abonnement en déclare une ; le `?? 30` n'est là que
+                // pour le type, et ne devrait jamais servir.
+                billing_period: formation.duree_acces_jours ?? 30,
               }
             : {}),
           // Un plan par paiement : deux clients au même prix ne doivent pas

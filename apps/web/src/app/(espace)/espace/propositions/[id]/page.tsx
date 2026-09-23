@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/server';
 import { BoutonPayer } from './bouton-payer';
 
 const TYPES: Record<string, string> = {
-  abonnement: 'Abonnement mensuel, résiliable à tout moment',
+  abonnement: 'Abonnement récurrent, résiliable à tout moment',
   accompagnement: 'Accompagnement, payé en une fois',
   formation: 'Formation, payée en une fois, accès illimité',
 };

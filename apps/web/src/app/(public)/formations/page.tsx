@@ -1,4 +1,4 @@
-import { dureeAcces } from '@/lib/paiement/libelles';
+import { dureeAcces, periodiciteAbonnement } from '@/lib/paiement/libelles';
 import Link from 'next/link';
 
 import { formaterMontant } from '@apex/db';
@@ -14,7 +14,7 @@ export const metadata = {
 };
 
 const TYPES: Record<string, { nom: string; acces: string }> = {
-  abonnement: { nom: 'Abonnement mensuel', acces: 'Accès tant que l’abonnement est actif' },
+  abonnement: { nom: 'Abonnement', acces: 'Accès tant que l’abonnement est actif' },
   accompagnement: { nom: 'Accompagnement', acces: 'Accès sur une durée définie' },
   formation: { nom: 'Formation', acces: 'Accès illimité, sans date de fin' },
 };
@@ -101,7 +101,10 @@ export default async function Page() {
                       <dd className="font-titre text-xl font-extrabold tabular-nums">
                         {formaterMontant(f.prix_cents, f.devise)}
                         {f.type_produit === 'abonnement' && (
-                          <span className="text-sm font-medium text-encre-doux"> / mois</span>
+                          <span className="text-sm font-medium text-encre-doux">
+                            {' '}
+                            {periodiciteAbonnement(f.duree_acces_jours)}
+                          </span>
                         )}
                       </dd>
                     </div>

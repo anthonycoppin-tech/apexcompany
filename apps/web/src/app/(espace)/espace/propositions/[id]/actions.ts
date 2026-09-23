@@ -42,7 +42,7 @@ export async function ouvrirPaiement(
   const { data: proposition } = await supabase
     .from('propositions')
     .select(
-      'id, statut, montant_cents, devise, expire_le, formation_id, formations(titre, type_produit)',
+      'id, statut, montant_cents, devise, expire_le, formation_id, formations(titre, type_produit, duree_acces_jours)',
     )
     .eq('id', propositionId)
     .maybeSingle();
@@ -99,6 +99,7 @@ export async function ouvrirPaiement(
       titre: proposition.formations.titre,
       type_produit: proposition.formations.type_produit,
       devise: proposition.devise,
+      duree_acces_jours: proposition.formations.duree_acces_jours,
     },
     montantCents: proposition.montant_cents,
     propositionId: proposition.id,

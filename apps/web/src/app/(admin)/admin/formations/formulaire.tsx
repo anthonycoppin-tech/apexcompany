@@ -26,7 +26,7 @@ export type FormationEditable = {
 };
 
 const TYPES = [
-  { valeur: 'abonnement', libelle: 'Abonnement mensuel', acces: 'Repoussé à chaque prélèvement' },
+  { valeur: 'abonnement', libelle: 'Abonnement', acces: 'Repoussé à chaque prélèvement' },
   { valeur: 'accompagnement', libelle: 'Accompagnement', acces: 'Durée fixe, à déclarer' },
   { valeur: 'formation', libelle: 'Formation', acces: 'Illimité' },
 ] as const;
@@ -71,11 +71,12 @@ const Champ = ({
 /**
  * Le formulaire du catalogue.
  *
- * **La durée d'accès n'apparaît que pour un accompagnement**, parce qu'elle n'a
- * de sens que là : un abonnement voit sa date repoussée à chaque prélèvement,
- * une formation n'en a pas. Le champ est masqué plutôt que grisé — un champ
- * grisé invite à chercher comment l'activer, un champ absent dit qu'il n'y a
- * rien à remplir.
+ * **La durée d'accès n'apparaît pas pour une formation**, parce qu'elle n'y a
+ * aucun sens : son accès est illimité. Elle apparaît pour un accompagnement
+ * (la durée totale) et, depuis le 23 septembre 2026, pour un abonnement (la
+ * période de facturation) — une même valeur, deux lectures. Le champ est masqué
+ * plutôt que grisé : un champ grisé invite à chercher comment l'activer, un
+ * champ absent dit qu'il n'y a rien à remplir.
  *
  * C'est aussi la seule façon d'éviter qu'un champ resté rempli après un
  * changement de type ne parte en base et ne se fasse refuser par la contrainte.
@@ -100,9 +101,9 @@ export function FormulaireFormation({ formation }: { formation?: FormationEditab
       // **La validation native ne dit rien d'utilisable ici.** Sa bulle est
       // dans la langue du navigateur, elle disparaît au premier clic, et elle
       // ne s'affiche pas du tout si le champ fautif est masqué — ce qui arrive
-      // dans ce formulaire, où la durée d'accès n'existe que pour un
-      // accompagnement. On garde la contrainte HTML, qui est la source de
-      // vérité, et on la rend visible avec nos propres moyens.
+      // dans ce formulaire, où la durée d'accès disparaît pour une formation.
+      // On garde la contrainte HTML, qui est la source de vérité, et on la rend
+      // visible avec nos propres moyens.
       noValidate
       onSubmit={(e) => {
         const invalides = Array.from(
@@ -204,7 +205,7 @@ export function FormulaireFormation({ formation }: { formation?: FormationEditab
 
           <Champ
             nom="prix_euros"
-            libelle={type === 'abonnement' ? 'Tarif mensuel (€)' : 'Tarif (€)'}
+            libelle={type === 'abonnement' ? 'Tarif par période (€)' : 'Tarif (€)'}
             type="text"
             inputMode="decimal"
             defaultValue={formation ? (formation.prix_cents / 100).toString() : ''}
@@ -215,15 +216,21 @@ export function FormulaireFormation({ formation }: { formation?: FormationEditab
         {/* Le champ n'existe que là où il a un sens : un champ absent dit qu'il
             n'y a rien à remplir, là où un champ grisé invite à chercher comment
             l'activer. */}
-        {type === 'accompagnement' && (
+        {(type === 'accompagnement' || type === 'abonnement') && (
           <Champ
             nom="duree_acces_jours"
-            libelle="Durée d’accès (jours)"
+            libelle={
+              type === 'abonnement' ? 'Période de facturation (jours)' : 'Durée d’accès (jours)'
+            }
             type="number"
             min={1}
             defaultValue={formation?.duree_acces_jours ?? ''}
             required
-            aide="30, 90 ou 180 selon la formule. C’est elle qui fixe la date de fin d’accès."
+            aide={
+              type === 'abonnement'
+                ? '30 pour du mensuel, 365 pour de l’annuel. C’est à la fois le rythme des prélèvements et la durée que chacun repousse — sans elle, l’accès serait illimité.'
+                : '30, 60, 90 ou 180 selon la formule. C’est elle qui fixe la date de fin d’accès.'
+            }
           />
         )}
       </section>

@@ -1,4 +1,4 @@
-import { dureeAcces } from '@/lib/paiement/libelles';
+import { dureeAcces, periodiciteAbonnement } from '@/lib/paiement/libelles';
 import { notFound } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
@@ -11,8 +11,8 @@ import { createClient } from '@/lib/supabase/server';
 
 const TYPES: Record<string, { nom: string; paiement: string }> = {
   abonnement: {
-    nom: 'Abonnement mensuel',
-    paiement: 'Prélèvement mensuel, résiliable à tout moment',
+    nom: 'Abonnement',
+    paiement: 'Prélèvement récurrent, résiliable à tout moment',
   },
   accompagnement: { nom: 'Accompagnement', paiement: 'Payé en une fois' },
   formation: { nom: 'Formation', paiement: 'Payée en une fois' },
@@ -180,7 +180,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
               <p className="font-titre text-3xl font-extrabold tabular-nums">
                 {formaterMontant(formation.prix_cents, formation.devise)}
                 {formation.type_produit === 'abonnement' && (
-                  <span className="text-base font-medium text-encre-doux"> / mois</span>
+                  <span className="text-base font-medium text-encre-doux">
+                    {' '}
+                    {periodiciteAbonnement(formation.duree_acces_jours)}
+                  </span>
                 )}
               </p>
             </div>

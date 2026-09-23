@@ -1,4 +1,4 @@
-import { dureeAcces } from '@/lib/paiement/libelles';
+import { dureeAcces, periodiciteAbonnement } from '@/lib/paiement/libelles';
 import Link from 'next/link';
 
 import { formaterMontant } from '@apex/db';
@@ -7,7 +7,7 @@ import { EnTete, Pastille, Tableau, Vide } from '@/components/admin';
 import { createClient } from '@/lib/supabase/server';
 
 const TYPES: Record<string, string> = {
-  abonnement: 'Abonnement mensuel',
+  abonnement: 'Abonnement',
   accompagnement: 'Accompagnement',
   formation: 'Formation',
 };
@@ -86,7 +86,10 @@ export default async function Page() {
                 <td className="py-2.5 pr-4 tabular-nums">
                   {formaterMontant(f.prix_cents, f.devise)}
                   {f.type_produit === 'abonnement' && (
-                    <span className="text-xs text-encre-doux"> / mois</span>
+                    <span className="text-xs text-encre-doux">
+                      {' '}
+                      {periodiciteAbonnement(f.duree_acces_jours)}
+                    </span>
                   )}
                 </td>
                 <td className="py-2.5 pr-4 text-encre-doux">

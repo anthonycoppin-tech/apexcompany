@@ -7,6 +7,7 @@ import { Temoignages } from '@/components/temoignages';
 import { BoutonQualification } from '@/components/bouton-qualification';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
 import { SOCIETE } from '@/lib/legal/societe';
+import { periodiciteAbonnement } from '@/lib/paiement/libelles';
 import { SAME_AS } from '@/lib/reseaux';
 import { urlSite } from '@/lib/site';
 import { createClient } from '@/lib/supabase/server';
@@ -135,7 +136,7 @@ const CHIFFRES: Chiffre[] = [
 const chiffresPublies = CHIFFRES.filter((c) => c.source && c.verifieLe);
 
 const TYPES: Record<string, string> = {
-  abonnement: 'Abonnement mensuel',
+  abonnement: 'Abonnement',
   accompagnement: 'Accompagnement',
   formation: 'Formation',
 };
@@ -156,7 +157,9 @@ export default async function Page() {
   const [{ data: formations }, { data: temoignages }] = await Promise.all([
     supabase
       .from('formations')
-      .select('id, slug, titre, description, prix_cents, devise, type_produit, modalite')
+      .select(
+        'id, slug, titre, description, prix_cents, devise, type_produit, modalite, duree_acces_jours',
+      )
       .eq('actif', true)
       .order('ordre')
       .limit(3),
@@ -280,7 +283,10 @@ export default async function Page() {
                 <p className="font-titre text-2xl font-extrabold tabular-nums">
                   {formaterMontant(f.prix_cents, f.devise)}
                   {f.type_produit === 'abonnement' && (
-                    <span className="text-sm font-medium text-encre-doux"> / mois</span>
+                    <span className="text-sm font-medium text-encre-doux">
+                      {' '}
+                      {periodiciteAbonnement(f.duree_acces_jours)}
+                    </span>
                   )}
                 </p>
                 <Link

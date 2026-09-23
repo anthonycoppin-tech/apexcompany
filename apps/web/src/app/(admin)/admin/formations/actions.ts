@@ -91,11 +91,19 @@ export async function enregistrerFormation(
     );
   }
 
-  if (typeProduit !== 'accompagnement' && dureeAcces !== null) {
+  // Depuis le 23 septembre 2026, un abonnement déclare sa période de
+  // facturation : APEX PRIME se vend au mois et à l'année. L'oubli n'est pas
+  // bénin — sans période, la date de fin d'accès vaut `null`, c'est-à-dire un
+  // accès illimité.
+  if (typeProduit === 'abonnement' && (dureeAcces === null || dureeAcces === 0)) {
     return echoue(
-      typeProduit === 'formation'
-        ? 'Une formation donne un accès illimité : elle ne peut pas porter de durée d’accès.'
-        : 'Un abonnement voit sa date d’accès repoussée à chaque prélèvement : il ne porte pas de durée fixe.',
+      'Un abonnement doit déclarer sa période de facturation en jours — 30 pour du mensuel, 365 pour de l’annuel. Sans elle, l’accès serait illimité.',
+    );
+  }
+
+  if (typeProduit === 'formation' && dureeAcces !== null) {
+    return echoue(
+      'Une formation donne un accès illimité : elle ne peut pas porter de durée d’accès.',
     );
   }
 

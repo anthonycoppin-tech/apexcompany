@@ -49,7 +49,7 @@ export async function souscrire(_precedent: EtatAction, donnees: FormData): Prom
   // puisque rien n'oblige un brouillon à en déclarer un.
   const { data: formation } = await supabase
     .from('formations')
-    .select('id, titre, prix_cents, devise, type_produit')
+    .select('id, titre, prix_cents, devise, type_produit, duree_acces_jours')
     .eq('slug', slug)
     .eq('actif', true)
     .maybeSingle();

@@ -113,13 +113,16 @@ mensuel entrent dans le modèle sans rien changer. **Ils arrivent en brouillon**
 un produit publié sans `discord_role_id`, et c'est voulu — il encaisserait un paiement sans
 ouvrir d'accès. Les rôles sont réclamés au client.
 
-**Quatre choses ne rentrent pas, et chacune demande une migration** — détaillées en tête de
-`20260923120000_a_catalogue_septembre.sql` : le **paiement en 2 fois** (supprimé le
-8 septembre, et `traiter_paiement()` ouvre l'accès complet dès le premier encaissement),
-l'**acompte de 150 €** (aucun avoir, aucun lien entre deux commandes), **APEX MASTERY** — un
-séminaire physique daté avec jauge, sans table d'événements — et **APEX PRIME annuel** (`+ 30`
-est en dur dans les deux fonctions SQL). Elles continuent de se vendre par leur lien Whop et
-passent par le filet ci-dessus.
+**Quatre choses ne rentraient pas**, détaillées en tête de
+`20260923120000_a_catalogue_septembre.sql`. **APEX PRIME annuel est fait depuis**
+(`20260923130000_a_periodicite_abonnement.sql`) : la période de facturation est devenue une
+propriété du produit, et les deux branches du calcul d'accès ont fusionné au passage.
+
+Il reste donc trois reports : le **paiement en 2 fois** (supprimé le 8 septembre, et
+`traiter_paiement()` ouvre l'accès complet dès le premier encaissement — il n'a aucune notion
+de solde), l'**acompte de 150 €** (aucun avoir, aucun lien entre deux commandes) et
+**APEX MASTERY**. Ils continuent de se vendre par leur lien Whop et passent par le filet
+ci-dessus.
 
 **APEX MASTERY est hors périmètre**, tranché par le client le 23 septembre : **pas d'événements
 sur le site.** La plateforme ne gère aucune réservation de place — ce que `02-SITEMAP.md` actait
@@ -1110,6 +1113,11 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   confiance qui convertit. Discord reste libre de tutoyer, c'est l'usage d'une communauté.
   Le back-office, qui ne s'adresse qu'à l'équipe, n'est pas concerné. **Fait le 16 septembre** :
   tout nouveau texte visible par un client se vouvoie.
+- **Périodicité d'un abonnement** — **tranché le 23 septembre 2026, décision déléguée aux
+  développeurs : portée par le produit**, dans `formations.duree_acces_jours`, plutôt que par
+  une colonne dédiée. C'est déjà ce que la colonne veut dire — la durée d'accès qu'un paiement
+  ouvre —, et une seconde colonne aurait créé le cas « les deux se contredisent », qui n'a pas
+  de bonne réponse. **Fait** : APEX PRIME se vend au mois et à l'année.
 - **Prestataire de paiement** — **tranché le 23 septembre 2026 : Whop**, en remplacement de
   Stripe, par l'API et le webhook plutôt que par les liens tout faits du client. Un seul
   prestataire : l'énumération `payment_provider` garde `stripe` et `paypal` parce que des

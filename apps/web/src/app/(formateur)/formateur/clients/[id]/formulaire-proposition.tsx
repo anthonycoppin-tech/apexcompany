@@ -20,7 +20,7 @@ type Formation = {
 };
 
 const TYPES: Record<string, string> = {
-  abonnement: 'Abonnement mensuel',
+  abonnement: 'Abonnement',
   accompagnement: 'Accompagnement',
   formation: 'Formation',
 };
