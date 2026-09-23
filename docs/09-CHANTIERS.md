@@ -12,14 +12,20 @@ dev partagée. Ça n'a pas changé.
 
 ## À faire avant de coder — état de la base partagée
 
-> **⚠ Une migration attend un `db:push`** : `20260923130000_a_periodicite_abonnement.sql`. Elle
-> fait porter au produit la période de facturation d'un abonnement, pour qu'APEX PRIME puisse se
-> vendre à l'année — `+ 30` était écrit en dur dans `traiter_paiement()` et dans
-> `renouveler_abonnement()`. Elle passe `npm run db:check` (134 vérifications, 0 échec).
+> **Plus aucune migration en attente — vérifié le 23 septembre au soir.**
+> `20260923130000_a_periodicite_abonnement.sql` est appliquée, et `db:types:linked` redonne un
+> `database.types.ts` identique (diff vide — attendu : la migration ne change aucune forme de
+> table, elle change une contrainte, deux fonctions et une donnée).
 >
-> **Elle touche le chemin de l'argent et elle modifie le seed** : l'abonnement « Communauté » y
-> déclare désormais sa période. Un `db:push` la porte sur la base partagée ; le seed, lui, ne se
-> rejoue pas — les abonnements déjà en base sont mis à jour par la migration elle-même.
+> **Vérifiée par le contenu** : la contrainte lue dans `pg_constraint` est bien la nouvelle,
+> « Communauté » porte sa période de 30 jours, APEX PRIME annuel existe à 365 jours et 490 €, la
+> garde contre une période absente est dans le corps de `renouveler_abonnement()`, et `+ 30` a
+> disparu de `traiter_paiement()`.
+>
+> **`db push` a répondu « up to date » sans rien appliquer** : elle l'était déjà. C'est la
+> **quatrième fois de la journée** que Christopher pousse dans l'heure qui suit la publication
+> sur `main`. Ce n'est plus une remarque, c'est le fonctionnement de l'équipe — écrire « à
+> faire » dans ce fichier n'a plus de sens, il faut vérifier d'abord.
 
 > **Dépôt et base alignés — vérifié le 23 septembre au soir, par le contenu.** Les trois
 > premières migrations du jour (`20260923100000` la valeur `whop`, `20260923110000` la colonne

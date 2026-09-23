@@ -156,7 +156,7 @@ un client mail ne connaît pas les variables CSS, et une facture s'imprime.
 
 ### Ce qui attend, et de qui ça dépend
 
-- ~~Trois migrations attendent un `db:push`.~~ **Appliquées le 23 septembre au soir**, et
+- ~~Quatre migrations attendent un `db:push`.~~ **Toutes appliquées le 23 septembre au soir**, et
   **vérifiées par le contenu** : énumération à `{stripe, paypal, whop}`, `formations.whop_plan_id`
   et son index uniques présents, huit produits rattachés à leur plan Whop.
   `npm run db:types:linked` redonne à l'identique le `database.types.ts` écrit à la main.
