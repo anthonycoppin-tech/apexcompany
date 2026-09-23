@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { EtatSession } from '@/components/etat-session';
 import { BoutonQualification } from '@/components/bouton-qualification';
+import { Reseaux } from '@/components/reseaux';
 import { AvertissementRisque, Conteneur } from '@/components/ui';
 
 const NAVIGATION = [
@@ -84,6 +85,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 Un accompagnement structuré : psychologie de l’exécution, rigueur méthodique,
                 progression par niveau.
               </p>
+              <Reseaux className="pt-1" />
             </div>
 
             <nav className="space-y-3 text-sm">

@@ -47,7 +47,7 @@ C'est bloquant dès l'entrée du tunnel, puisque c'est là que le rôle `invité
 | Jeton du bot                                             | `DISCORD_BOT_TOKEN`                       |
 | Identifiant et secret de l'application (connexion OAuth) | À saisir dans le tableau de bord Supabase |
 | Identifiant du rôle `invité`                             | `DISCORD_ROLE_INVITE_ID`                  |
-| Lien d'invitation permanent au serveur                   | `NEXT_PUBLIC_DISCORD_INVITE_URL`          |
+| ~~Lien d'invitation permanent au serveur~~               | **Fourni le 23 septembre**, dans `lib/reseaux.ts` |
 
 Deux réglages à faire sur le serveur, et le second est un piège classique :
 
@@ -68,12 +68,18 @@ quel que soit l'état du reste. L'exigence vient de `@supabase/auth-js`, pas de 
 **Sans ça** : aucun accès n'est jamais attribué ni retiré. Un client peut payer et ne rien
 recevoir.
 
-Le **lien d'invitation** est le seul des quatre à n'avoir aucune conséquence technique
-immédiate : rien ne casse sans lui. Il devient nécessaire le jour où l'on relance quelqu'un qui
-a payé sans rejoindre le serveur — décidé le 13 septembre 2026 — puisqu'une relance qui ne dit
-pas où aller ne sert à rien. À créer en **invitation permanente, sans expiration** : une
-invitation qui périme transforme la relance en impasse, et personne ne s'en aperçoit avant la
-première plainte.
+Le **lien d'invitation est fourni depuis le 23 septembre 2026** et vit dans
+`apps/web/src/lib/reseaux.ts`, avec les trois comptes publics de la marque. Il n'est plus une
+variable d'environnement : il était déclaré dans `.env.example` et dans cette liste depuis le
+13 septembre, mais **aucun code ne le lisait** — une valeur réclamée au client pour rien.
+
+Il débloque deux choses : les icônes de communauté du pied de page, et la relance de quelqu'un
+qui a lié son compte sans jamais rejoindre le serveur — une relance qui ne dit pas où aller ne
+sert à rien.
+
+**Une seule chose à vérifier côté Discord** : que cette invitation soit **permanente, sans
+expiration ni limite d'usage**. Une invitation qui périme transforme la relance en impasse, et
+personne ne s'en aperçoit avant la première plainte.
 
 ### Supabase — la clé serveur — **fournie**
 

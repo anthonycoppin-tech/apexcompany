@@ -7,6 +7,7 @@ import { Temoignages } from '@/components/temoignages';
 import { BoutonQualification } from '@/components/bouton-qualification';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
 import { SOCIETE } from '@/lib/legal/societe';
+import { SAME_AS } from '@/lib/reseaux';
 import { urlSite } from '@/lib/site';
 import { createClient } from '@/lib/supabase/server';
 
@@ -29,6 +30,11 @@ const DONNEES_ORGANISME = {
   legalName: SOCIETE.raisonSociale,
   email: SOCIETE.email,
   telephone: SOCIETE.telephone,
+  // Ce qui dit à un moteur que ces comptes et ce site sont la **même entité**.
+  // Sans lui, la marque existe en quatre endroits qui ne se reconnaissent pas
+  // entre eux — et la notoriété des réseaux, qui est le canal d'acquisition
+  // réel, ne profite pas au site.
+  sameAs: SAME_AS,
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Meydan Grandstand, 6th Floor, Meydan Road, Nad Al Sheba',
