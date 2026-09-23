@@ -121,7 +121,10 @@ séminaire physique daté avec jauge, sans table d'événements — et **APEX PR
 est en dur dans les deux fonctions SQL). Elles continuent de se vendre par leur lien Whop et
 passent par le filet ci-dessus.
 
-**APEX MASTERY est le plus urgent des quatre : le séminaire a lieu les 23 et 24 octobre 2026.**
+**APEX MASTERY est hors périmètre**, tranché par le client le 23 septembre : **pas d'événements
+sur le site.** La plateforme ne gère aucune réservation de place — ce que `02-SITEMAP.md` actait
+déjà et ce que `/evenements` affiche. Ce n'est donc pas un chantier en attente, et il ne se
+rouvre que sur une nouvelle décision.
 
 ### La charte : le pari de `globals.css` a tenu
 
@@ -150,9 +153,13 @@ un client mail ne connaît pas les variables CSS, et une facture s'imprime.
 
 ### Ce qui attend, et de qui ça dépend
 
-- **Trois migrations attendent un `db:push`** — à faire après avoir prévenu Christopher, la
-  base est partagée. `packages/db/src/database.types.ts` a été complété à la main en attendant,
-  comme le 18 septembre.
+- ~~Trois migrations attendent un `db:push`.~~ **Appliquées le 23 septembre au soir**, et
+  **vérifiées par le contenu** : énumération à `{stripe, paypal, whop}`, `formations.whop_plan_id`
+  et son index uniques présents, huit produits rattachés à leur plan Whop.
+  `npm run db:types:linked` redonne à l'identique le `database.types.ts` écrit à la main.
+  Poussées par Christopher, comme les 21 et 22 — **la troisième fois, ce n'est plus une
+  coïncidence** : quelqu'un d'autre pousse, et le verrou de `09-CHANTIERS.md` ne protège pas la
+  base partagée.
 - **Les rôles Discord des huit produits**, sans lesquels aucun ne peut être publié.
 - **La relecture juridique**, avec le mode fiscal en main.
 - **Le parcours de paiement dans le bac à sable Whop.**
@@ -1108,6 +1115,12 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   prestataire : l'énumération `payment_provider` garde `stripe` et `paypal` parce que des
   encaissements passés les portent, mais plus rien n'écrit sous ces valeurs. **Whop n'attribue
   pas les rôles Discord** — l'accès reste à nous. **Fait**, non vérifié contre le vrai service.
+- **Événements et séminaires** — **tranché le 23 septembre 2026 : non, pas sur le site.** Posé
+  au moment où le catalogue Whop a fait apparaître APEX MASTERY, un séminaire daté en trois
+  formules. La plateforme ne gère aucune réservation de place : pas de table d'événements, pas
+  de jauge, pas de date. Ça confirme ce que `02-SITEMAP.md` actait (billetterie externe) et ce
+  que `/evenements` affiche déjà. Les billets se vendent par un lien Whop, et leurs
+  encaissements passent par la file de rattrapage comme tout paiement ouvert hors du site.
 - **Salons Discord** — **tranché le 16 septembre 2026 par défaut, sauf objection du client** :
   un `invité` voit l'accueil, le règlement, les annonces et un salon d'échange général ; le
   salon planning est en lecture seule (l'équipe publie, les membres lisent) ; un rôle

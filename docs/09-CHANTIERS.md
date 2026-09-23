@@ -12,17 +12,26 @@ dev partagée. Ça n'a pas changé.
 
 ## À faire avant de coder — état de la base partagée
 
-> **⚠ Trois migrations attendent un `db:push`, au 23 septembre.**
-> `20260923100000_a_prestataire_whop.sql` (la valeur `whop` dans l'énumération des prestataires),
-> `20260923110000_a_rattrapage_whop.sql` (`formations.whop_plan_id`) et
-> `20260923120000_a_catalogue_septembre.sql` (les huit produits réels, en brouillon). Les trois
-> passent `npm run db:check` — 130 vérifications, 0 échec — et **n'ont volontairement pas été
-> poussées** : la base est partagée, et l'encadré plus bas demande de prévenir avant. C'est à
-> faire, pas à oublier.
+> **Dépôt et base alignés — vérifié le 23 septembre au soir, par le contenu.** Les trois
+> migrations du jour (`20260923100000` la valeur `whop`, `20260923110000` la colonne
+> `formations.whop_plan_id`, `20260923120000` les huit produits réels) sont appliquées, et
+> `npm run db:types:linked` redonne **exactement** le `database.types.ts` écrit à la main —
+> diff vide.
 >
-> **Après le push, le catalogue de la base partagée portera enfin les vrais produits** — il
-> affichait ceux de la révision 2 depuis le 8 septembre. Les huit arrivent en brouillon : la
-> base refuse un produit publié sans `discord_role_id`, et les rôles sont réclamés au client.
+> **Elles ont encore été poussées par Christopher**, dans l'heure qui a suivi leur publication
+> sur `main`, comme les 21 et 22. Troisième fois : ce n'est plus une coïncidence, c'est le
+> fonctionnement réel de l'équipe. Autant en tenir compte plutôt que de continuer à écrire
+> « à faire ».
+>
+> **Et c'est exactement le cas où `migration list --linked` ment** : il affichait les trois
+> comme distantes, ce qui ne prouve qu'une chose — une ligne existe avec ce numéro. La
+> vérification qui compte a porté sur le contenu : énumération des prestataires à
+> `{stripe, paypal, whop}`, colonne et index uniques présents, huit produits portant un
+> `whop_plan_id` dans le bon ordre.
+>
+> **Le catalogue de la base partagée porte enfin les vrais produits** — il affichait ceux de la
+> révision 2 depuis le 8 septembre. Les huit sont en brouillon : la base refuse un produit
+> publié sans `discord_role_id`, et les rôles sont réclamés au client.
 >
 > **Le premier fichier ne contient qu'une ligne, et il faut que ça reste vrai.** PostgreSQL
 > accepte `alter type … add value` dans une transaction depuis la version 12 mais refuse
@@ -126,7 +135,11 @@ d'un bloc parce qu'ils touchent les mêmes écrans à la fin.
 **Quatre produits du document ne sont pas au catalogue** et se vendent toujours par leur lien
 Whop : les variantes « en 2 fois », l'acompte de 150 €, APEX MASTERY et APEX PRIME annuel.
 Chacun demande une migration, détaillée en tête de `20260923120000_a_catalogue_septembre.sql`.
-**APEX MASTERY est le plus urgent : le séminaire a lieu les 23 et 24 octobre 2026.**
+
+**APEX MASTERY est hors périmètre, tranché par le client le 23 septembre : pas d'événements sur
+le site.** Ce n'est donc pas un sujet en retard, c'est un sujet qui n'existe pas — et ça rejoint
+ce que `02-SITEMAP.md` actait déjà et ce que `/evenements` affiche. Les trois autres restent
+ouverts, sans urgence datée.
 
 **Ce qui concerne directement Christopher, et pourquoi ça ne le déloge pas** : Whop sait
 attribuer les rôles Discord lui-même — c'est son produit d'origine. **On ne s'en sert pas.**
