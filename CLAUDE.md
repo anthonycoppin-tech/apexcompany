@@ -20,6 +20,143 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
+## Point d'étape — 23 septembre 2026
+
+**Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
+contredit pas.
+
+Le client a livré trois choses le même jour : une bannière qui arrête la charte graphique, un
+document de seize liens de paiement **Whop**, et la décision de quitter Stripe.
+
+### Whop encaisse, mais n'ouvre aucun accès
+
+**C'est l'arbitrage central de la journée, et il vaut d'être compris avant de toucher au
+paiement.** Whop sait attribuer les rôles Discord — c'est son produit d'origine, et c'est même
+ce pour quoi la plupart des gens l'utilisent. **On ne s'en sert pas.** L'accès reste piloté par
+`inscriptions.date_fin_acces` et la file `discord_sync_queue` ; Whop n'est qu'un encaisseur.
+
+Déléguer l'accès au prestataire, c'est perdre la révocation en fin d'accès, la prolongation au
+rachat et la réconciliation — trois mécaniques déjà écrites et prouvées. Le bénéfice s'est
+présenté tout de suite : le paramètre de résiliation de `/memberships/{id}/cancel` n'est pas
+documenté, et **même si Whop éteignait l'adhésion sur-le-champ au lieu de la fin de période, le
+client ne perdrait rien**, parce que son accès ne dépend pas de cet état.
+
+**Rien n'a changé dans la couche métier**, et c'est ce qui a rendu la bascule raisonnable :
+l'énumération `payment_provider` existait, les cinq fonctions du chemin de l'argent prennent
+`p_provider` en paramètre et `p_references text[]`. **Aucune signature SQL n'a bougé.** Une
+migration d'une ligne pour l'énumération, une pour le filet de rattrapage, une pour le catalogue.
+
+### Trois pièges qui valaient chacun un fichier testé
+
+- **Whop parle en décimales, tout notre modèle est en centimes entiers.**
+  `parseFloat('19.99') * 100` vaut 1998.9999999999998 ; `Math.round` le rattrape à cette
+  échelle, et c'est exactement ce qui rend le défaut invisible — il ne se manifeste pas sur les
+  montants qu'on essaie à la main. `lib/paiement/montants-whop.ts` ne passe jamais par le
+  flottant : il lit la chaîne décimale et assemble des entiers. Un montant illisible rend
+  `null`, jamais zéro — même règle que la TVA depuis le 22 septembre.
+- **La signature suit « Standard Webhooks »**, pas le format Stripe : elle porte sur
+  `{webhook-id}.{webhook-timestamp}.{corps brut}`, la clé est le secret **tel quel, préfixe
+  `ws_` compris** (Whop demande explicitement de ne pas le décoder), et l'horodatage se vérifie
+  chez nous — **c'est notre seule protection contre le rejeu**, le SDK de Stripe l'assurait.
+- **Premier paiement et renouvellement arrivent sous le même événement**, `payment.succeeded`.
+  On les distingue par l'état de la base, pas par une chaîne dont la documentation ne donne pas
+  les valeurs. Se tromper offrirait un mois de plus à chaque souscription.
+
+### Ce qui n'a pas tourné, et c'est la réserve principale
+
+**Rien du chemin de l'argent n'a été exécuté contre le vrai service.** La différence avec la
+réserve que Stripe portait depuis le 8 septembre, c'est que **les clés existent** : le bac à
+sable lève tout ça en une heure. Trois points à y vérifier, listés dans
+`docs/08-CE-QUI-MANQUE.md` :
+
+1. **la clé d'idempotence des remboursements** — Stripe la garantissait par contrat, la
+   documentation de Whop la mentionne dans un exemple de SDK sans la décrire. On l'envoie sans
+   pouvoir s'y fier. **C'est le seul risque de la bascule qui coûte de l'argent réel** ;
+2. **le paramètre de résiliation** (voir plus haut — sans conséquence pour le client) ;
+3. **la forme exacte des montants**, que la documentation décrit comme des objets sans en
+   donner la clé.
+
+### Le mode fiscal est tranché, et il a un prix qu'il faut dire
+
+**« Whop collecte et reverse » (2 %)**, décidé faute de recul côté client. C'est le seul des
+trois modes qui n'oblige pas APEX COMPANY — société de Dubaï vendant du service numérique à des
+consommateurs de l'Union — à s'immatriculer elle-même au guichet unique non-Union et à déposer
+les déclarations. Le mode à 0 % n'est moins cher que si quelqu'un fait ce travail, et personne
+ne le fait.
+
+**La conséquence n'est pas réglée** : dans ce mode, Whop devient _merchant of record_ et c'est
+lui qui émet la facture fiscale, alors que les six pages légales du 21 septembre désignent
+APEX COMPANY comme vendeur et émetteur. Elles n'ont jamais été relues par un juriste ; la
+question s'ajoute à sa liste. **Le code ne parie sur aucun mode** : il écrit la TVA que Whop
+rapporte, et `null` quand il n'en rapporte pas.
+
+### Les seize liens sont déjà partis, d'où un filet
+
+Un lien de paiement envoyé en message privé ne se rappelle pas. Les encaissements qui arrivent
+par là n'ont **aucune métadonnée** : ni compte, ni produit. Le webhook ne pouvait
+qu'acquitter et journaliser, et le symptôme côté client aurait été « j'ai payé et je n'ai pas
+accès », en silence.
+
+`formations.whop_plan_id` reconnaît le produit, l'adresse de l'acheteur est relevée, et
+**`/admin/paiements/rattrapage`** nomme chaque paiement avec ce qu'il faut pour trancher en
+quelques secondes. **On n'ouvre jamais l'accès sur une ressemblance** — d'abord parce que ce
+serait affirmer ce qu'on ne sait pas, ensuite parce qu'un paiement passé hors du site **n'a
+aucune acceptation des CGV enregistrée**, et que la règle du 21 septembre est « pas de preuve,
+pas de vente ». Le rattachement passe par `traiter_paiement()` avec l'identifiant de
+l'événement d'origine : idempotent par construction. La file se vide d'elle-même — on écarte
+les paiements qui ont déjà un encaissement, plutôt que de poser un drapeau qu'on oubliera.
+
+### Le catalogue : huit produits sur seize
+
+PALACE 1/2/3, MATRIX 3.0, APEX BLACK, APEX PARTNER (et sa formule lancement) et APEX PRIME
+mensuel entrent dans le modèle sans rien changer. **Ils arrivent en brouillon** : la base refuse
+un produit publié sans `discord_role_id`, et c'est voulu — il encaisserait un paiement sans
+ouvrir d'accès. Les rôles sont réclamés au client.
+
+**Quatre choses ne rentrent pas, et chacune demande une migration** — détaillées en tête de
+`20260923120000_a_catalogue_septembre.sql` : le **paiement en 2 fois** (supprimé le
+8 septembre, et `traiter_paiement()` ouvre l'accès complet dès le premier encaissement),
+l'**acompte de 150 €** (aucun avoir, aucun lien entre deux commandes), **APEX MASTERY** — un
+séminaire physique daté avec jauge, sans table d'événements — et **APEX PRIME annuel** (`+ 30`
+est en dur dans les deux fonctions SQL). Elles continuent de se vendre par leur lien Whop et
+passent par le filet ci-dessus.
+
+**APEX MASTERY est le plus urgent des quatre : le séminaire a lieu les 23 et 24 octobre 2026.**
+
+### La charte : le pari de `globals.css` a tenu
+
+Couleurs **échantillonnées dans le PNG de la bannière**, pas relevées à l'œil : `#030944` →
+`#111bcc` → `#3416e8` → `#9201cf`. Les noms de tokens n'ont pas changé, donc **les 109 écrans
+se sont repeints sans être touchés**, et il ne reste aucune trace de l'ancienne palette dans le
+CSS produit.
+
+Le vrai travail était ailleurs, et c'est la leçon à retenir pour la prochaine charte :
+
+- **`accent-contraste` s'inverse.** En thème clair, `bg-accent` était foncé et portait du
+  blanc ; l'accent est clair maintenant et porte du sombre. Les neuf emplacements ont été
+  vérifiés un par un — un seul usage posé sur fond sombre l'aurait rendu invisible.
+- **Dix-sept `text-white` posés sur des aplats de token** deviennent `text-fond`, dont le motif
+  `bg-encre text-white` des onglets de filtre répété dans six écrans. L'inversion est vraie dans
+  les deux thèmes par construction ; la valeur littérale ne l'était que dans un.
+- **Archivo remplace Manrope parce qu'elle a une vraie italique.** Manrope n'était chargée qu'en
+  romain : le navigateur aurait penché les lettres sans les redessiner, ce qui se voit
+  immédiatement sur des capitales grasses.
+- **Le dégradé n'apparaît qu'à deux endroits** — le titre de l'accueil et la section communauté.
+  Tout le texte posé dessus est en `encre` pleine : `encre-doux` tombe à 3,4:1 sur le bout
+  violet, illisible là où le fond l'est le plus.
+
+`lib/email/modeles.ts` et `lib/facture/modele.ts` gardent leurs couleurs en dur, et c'est juste :
+un client mail ne connaît pas les variables CSS, et une facture s'imprime.
+
+### Ce qui attend, et de qui ça dépend
+
+- **Trois migrations attendent un `db:push`** — à faire après avoir prévenu Christopher, la
+  base est partagée. `packages/db/src/database.types.ts` a été complété à la main en attendant,
+  comme le 18 septembre.
+- **Les rôles Discord des huit produits**, sans lesquels aucun ne peut être publié.
+- **La relecture juridique**, avec le mode fiscal en main.
+- **Le parcours de paiement dans le bac à sable Whop.**
+
 ## Point d'étape — 21 septembre 2026
 
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
@@ -642,7 +779,7 @@ apps/web/src/app/
   (espace)/      Espace client — garde de layout : rôle client
   (formateur)/   Espace formateur — garde de layout : formateur
   (admin)/       Back-office — garde de layout : admin, owner
-  api/           Webhooks (stripe, paypal, cal, discord)
+  api/           Webhooks (whop, cal, discord, resend)
 apps/web/src/lib/
   supabase/      client.ts (navigateur), server.ts (serveur, RLS),
                  service-role.ts (contourne la RLS, server-only), proxy.ts
@@ -966,8 +1103,11 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   confiance qui convertit. Discord reste libre de tutoyer, c'est l'usage d'une communauté.
   Le back-office, qui ne s'adresse qu'à l'équipe, n'est pas concerné. **Fait le 16 septembre** :
   tout nouveau texte visible par un client se vouvoie.
-- **Second prestataire de paiement (PayPal)** — **tranché le 16 septembre 2026 : pas en v1.**
-  Stripe seul. Le schéma garde la place de PayPal ; les variables `PAYPAL_*` restent vides.
+- **Prestataire de paiement** — **tranché le 23 septembre 2026 : Whop**, en remplacement de
+  Stripe, par l'API et le webhook plutôt que par les liens tout faits du client. Un seul
+  prestataire : l'énumération `payment_provider` garde `stripe` et `paypal` parce que des
+  encaissements passés les portent, mais plus rien n'écrit sous ces valeurs. **Whop n'attribue
+  pas les rôles Discord** — l'accès reste à nous. **Fait**, non vérifié contre le vrai service.
 - **Salons Discord** — **tranché le 16 septembre 2026 par défaut, sauf objection du client** :
   un `invité` voit l'accueil, le règlement, les annonces et un salon d'échange général ; le
   salon planning est en lecture seule (l'équipe publie, les membres lisent) ; un rôle
@@ -975,8 +1115,12 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   bot** — la réconciliation ne touche que les rôles du site.
 - **Qui vend** — **tranché le 21 septembre 2026** : APEX COMPANY L.L.C-FZ, désignée par les
   textes légaux de l'ancien site (`lib/legal/societe.ts`).
-- **TVA** — **tranché le 22 septembre 2026 : pas de TVA européenne à facturer, calcul par
-  Stripe Tax.** **Fait**, migration appliquée.
+- **TVA** — **repris le 23 septembre 2026 avec le changement de prestataire** : le calcul revient
+  à Whop, en mode « Whop collecte et reverse » (2 %), retenu faute de recul côté client parce
+  que c'est le seul qui n'oblige pas APEX COMPANY à s'immatriculer elle-même au guichet unique
+  non-Union. **Il fait de Whop le vendeur apparent sur la facture fiscale**, ce que les pages
+  légales du 21 septembre ne disent pas : à relire avec le juriste. Le code ne parie sur aucun
+  mode — une TVA non rapportée reste `null`, jamais un zéro.
 - **Abonnement** — **tranché le 22 septembre 2026** : il se résilie, il ne se rembourse pas ; la
   rétractation s'éteint à l'accès, comme pour une formation. Seul l'accompagnement se rétracte
   au prorata.

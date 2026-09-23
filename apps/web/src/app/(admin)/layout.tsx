@@ -59,6 +59,7 @@ const SECTIONS: Array<{ titre: string; liens: Array<{ href: string; libelle: str
       { href: '/admin/documents', libelle: 'Factures' },
       { href: '/admin/paiements/remboursements', libelle: 'Remboursements' },
       { href: '/admin/paiements/litiges', libelle: 'Litiges' },
+      { href: '/admin/paiements/rattrapage', libelle: 'À rattacher' },
       { href: '/admin/exports', libelle: 'Exports' },
     ],
   },

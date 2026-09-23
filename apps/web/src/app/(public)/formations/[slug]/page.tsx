@@ -1,3 +1,4 @@
+import { dureeAcces } from '@/lib/paiement/libelles';
 import { notFound } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
@@ -144,7 +145,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     [
       'Durée d’accès',
       formation.type_produit === 'accompagnement' && formation.duree_acces_jours
-        ? `${formation.duree_acces_jours} jours`
+        ? dureeAcces(formation.duree_acces_jours)
         : formation.type_produit === 'abonnement'
           ? 'Tant que l’abonnement est actif'
           : 'Illimité',

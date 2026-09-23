@@ -34,3 +34,27 @@ export const STATUTS_REMBOURSEMENT: Record<string, string> = {
   refuse: 'Refusé',
   traite: 'Exécuté',
 };
+
+/**
+ * Une durée d'accès, dite comme le client la vend.
+ *
+ * La base compte en jours (`formations.duree_acces_jours`), et c'est juste :
+ * `traiter_paiement()` fait `current_date + duree_acces_jours`, une arithmétique
+ * de dates sans ambiguïté. Mais le catalogue se vend en mois — « PALACE 2,
+ * deux mois » —, et afficher « 60 jours » sur la fiche oblige le visiteur à
+ * faire la conversion lui-même au moment précis où il compare deux offres.
+ *
+ * La conversion ne s'applique qu'aux multiples exacts de trente : le reste
+ * s'affiche en jours plutôt que d'arrondir un mois et demi à deux mois.
+ *
+ * **Ce n'est qu'un libellé.** L'accès réel reste de 180 jours, pas de six mois
+ * calendaires — c'est un écart d'un à quatre jours selon la date d'achat, assumé
+ * depuis l'origine du modèle et sans conséquence pour le client, qui y gagne
+ * plus souvent qu'il n'y perd.
+ */
+export function dureeAcces(jours: number): string {
+  if (jours % 30 !== 0) return jours === 1 ? '1 jour' : `${jours} jours`;
+
+  const mois = jours / 30;
+  return mois === 1 ? '1 mois' : `${mois} mois`;
+}

@@ -1,3 +1,4 @@
+import { dureeAcces } from '@/lib/paiement/libelles';
 import Link from 'next/link';
 
 import { formaterMontant } from '@apex/db';
@@ -85,7 +86,7 @@ export default async function Page() {
                       <dd className="text-right">
                         {/* Une durée nulle veut dire illimité, jamais « non renseigné ». */}
                         {f.type_produit === 'accompagnement' && f.duree_acces_jours
-                          ? `${f.duree_acces_jours} jours`
+                          ? dureeAcces(f.duree_acces_jours)
                           : (type?.acces ?? '—')}
                       </dd>
                     </div>

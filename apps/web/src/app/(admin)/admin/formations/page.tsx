@@ -1,3 +1,4 @@
+import { dureeAcces } from '@/lib/paiement/libelles';
 import Link from 'next/link';
 
 import { formaterMontant } from '@apex/db';
@@ -92,7 +93,7 @@ export default async function Page() {
                   {f.type_produit === 'abonnement'
                     ? 'tant que l’abonnement court'
                     : f.duree_acces_jours
-                      ? `${f.duree_acces_jours} jours`
+                      ? dureeAcces(f.duree_acces_jours)
                       : 'illimité'}
                 </td>
                 <td className="py-2.5 pr-4">
