@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 
 import type { Json } from '@apex/db';
 
+import { decisionEncaissement, type PaiementWhop } from '@/lib/paiement/aiguillage-whop';
 import { decimalVersCents } from '@/lib/paiement/montants-whop';
 import { referencesDuPaiement, statutLitige } from '@/lib/paiement/references-whop';
 import { verifierSignature } from '@/lib/paiement/signature-whop';
-import { taxeDePaiement } from '@/lib/paiement/taxe-whop';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 /**
@@ -34,7 +34,10 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role';
  *   (`lib/paiement/montants-whop.ts`) ;
  * - premier paiement et renouvellement arrivent sous le **même** événement,
  *   `payment.succeeded`. On les distingue par l'état de la base, pas par une
- *   chaîne de caractères — voir `estUnRenouvellement()` ;
+ *   chaîne de caractères. Ce tri est la partie risquée de ce fichier — se
+ *   tromper offre un mois à chaque souscription, ou crée une seconde
+ *   inscription à quelqu'un qui en a déjà une — alors il vit ailleurs, en
+ *   fonction pure : `lib/paiement/aiguillage-whop.ts`, et il est testé ;
  * - un paiement peut arriver **sans métadonnées**, par l'un des seize liens
  *   diffusés avant que le site ne sache ouvrir un paiement. Il part alors dans
  *   la file de rattrapage plutôt que dans un journal que personne ne relit.
@@ -98,44 +101,38 @@ export async function POST(request: Request) {
       // ── Un encaissement : premier paiement ou renouvellement ─────────────
       case 'payment.succeeded': {
         const paiement = donnees as PaiementWhop;
-        const metadonnees = (paiement.metadata ?? {}) as Record<string, string | undefined>;
         const adhesion = typeof paiement.membership_id === 'string' ? paiement.membership_id : null;
-        const montantCents = decimalVersCents(paiement.total);
-        const taxe = taxeDePaiement(paiement);
 
-        // Un montant illisible ne se devine pas, et rejouer ne le rendra pas
-        // lisible. On acquitte pour que Whop cesse, et on nomme le paiement
-        // dans la file : un encaissement qu'on n'a pas su lire est un client
-        // qui a payé et n'a pas d'accès.
-        if (montantCents === null) {
-          await rattraper(supabase, idEvenement, paiement, 'Montant illisible');
+        // Le tri lui-même est une fonction pure, éprouvée dans
+        // `aiguillage-whop.test.ts`. Elle a besoin d'une seule chose que le
+        // code ne peut pas déduire de l'événement : cette adhésion est-elle
+        // déjà connue ? On la lui donne, elle rend une décision.
+        const decision = decisionEncaissement(paiement, {
+          adhesionConnue: adhesion !== null && (await estUnRenouvellement(supabase, adhesion)),
+        });
+
+        if (decision.type === 'rattrapage') {
+          await rattraper(supabase, idEvenement, paiement, decision.raison);
           return NextResponse.json({ recu: true, rattrapage: true });
         }
 
-        // ── Renouvellement ───────────────────────────────────────────────
-        if (adhesion && (await estUnRenouvellement(supabase, adhesion))) {
+        if (decision.type === 'renouvellement') {
           const { data, error } = await supabase.rpc('renouveler_abonnement', {
             p_provider: 'whop',
             p_event_id: idEvenement,
             p_event_type: evenement.type,
             p_payload: payload,
-            p_subscription_id: adhesion,
-            p_montant_cents: montantCents,
-            p_provider_payment_id: paiement.id ?? undefined,
-            p_tva_cents: taxe.tvaCents ?? undefined,
-            p_pays_client: taxe.pays ?? undefined,
+            p_subscription_id: decision.adhesion,
+            p_montant_cents: decision.montantCents,
+            p_provider_payment_id: decision.referencePaiement || undefined,
+            // `undefined` et non `null` : ces paramètres ont une valeur par
+            // défaut côté SQL, et les types générés les déclarent optionnels.
+            p_tva_cents: decision.tvaCents ?? undefined,
+            p_pays_client: decision.paysClient ?? undefined,
           });
 
           if (error) throw error;
           return NextResponse.json({ recu: true, resultat: data });
-        }
-
-        // ── Premier paiement ─────────────────────────────────────────────
-        // Les métadonnées sont le seul lien entre Whop et notre base : sans
-        // elles, impossible de savoir qui a payé quoi.
-        if (!metadonnees.user_id || !metadonnees.formation_id || !metadonnees.commande) {
-          await rattraper(supabase, idEvenement, paiement, 'Métadonnées absentes');
-          return NextResponse.json({ recu: true, rattrapage: true });
         }
 
         const { data, error } = await supabase.rpc('traiter_paiement', {
@@ -143,21 +140,19 @@ export async function POST(request: Request) {
           p_event_id: idEvenement,
           p_event_type: evenement.type,
           p_payload: payload,
-          p_user_id: metadonnees.user_id,
-          p_formation_id: metadonnees.formation_id,
-          p_montant_cents: montantCents,
-          p_devise: (paiement.currency ?? 'EUR').toUpperCase(),
+          p_user_id: decision.userId,
+          p_formation_id: decision.formationId,
+          p_montant_cents: decision.montantCents,
+          p_devise: decision.devise,
           // Notre propre référence, posée avant l'appel à Whop et rendue par
           // les métadonnées : c'est elle qui retrouve la commande déposée en
           // `en_attente`. Voir `ouvrirCheckout()` pour le raisonnement.
-          p_provider_order_id: metadonnees.commande,
-          p_provider_payment_id: paiement.id ?? metadonnees.commande,
-          // `undefined` et non `null` : ces paramètres ont une valeur par
-          // défaut côté SQL, et les types générés les déclarent optionnels.
-          p_proposition_id: metadonnees.proposition_id ?? undefined,
-          p_subscription_id: adhesion ?? undefined,
-          p_tva_cents: taxe.tvaCents ?? undefined,
-          p_pays_client: taxe.pays ?? undefined,
+          p_provider_order_id: decision.commande,
+          p_provider_payment_id: decision.referencePaiement,
+          p_proposition_id: decision.propositionId ?? undefined,
+          p_subscription_id: decision.adhesion ?? undefined,
+          p_tva_cents: decision.tvaCents ?? undefined,
+          p_pays_client: decision.paysClient ?? undefined,
         });
 
         if (error) throw error;
@@ -318,18 +313,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ erreur: 'Traitement impossible' }, { status: 500 });
   }
 }
-
-type PaiementWhop = {
-  id?: string;
-  membership_id?: unknown;
-  plan_id?: unknown;
-  currency?: string;
-  total?: unknown;
-  tax_amount?: unknown;
-  customer_email?: unknown;
-  metadata?: unknown;
-  billing_address?: { country?: unknown } | null;
-};
 
 type Client = ReturnType<typeof createServiceRoleClient>;
 
