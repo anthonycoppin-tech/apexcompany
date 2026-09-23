@@ -79,6 +79,26 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | ------------------------------------- | ---- | ----------- | -------- |
 | Intégration Discord — mise en service | pris | Christopher | 12 sept. |
 | Réconciliation des rôles Discord      | pris | Christopher | 13 sept. |
+| Charte graphique — la bannière        | pris | Anthony     | 23 sept. |
+| Whop remplace Stripe                  | pris | Anthony     | 23 sept. |
+| Nouveau catalogue + rattrapage Whop   | pris | Anthony     | 23 sept. |
+
+### Les trois sujets du 23 septembre — pris ensemble, faits dans cet ordre
+
+Le client a livré le même jour la charte (une bannière), le catalogue (16 liens de paiement
+Whop) et la décision de passer de Stripe à Whop. Les trois sont indépendants ; ils sont pris
+d'un bloc parce qu'ils touchent les mêmes écrans à la fin.
+
+**Ce qui concerne directement Christopher, et pourquoi ça ne le déloge pas** : Whop sait
+attribuer les rôles Discord lui-même — c'est son produit d'origine. **On ne s'en sert pas.**
+Le worker maison reste la seule chose qui ouvre un accès, et Whop n'est qu'un encaisseur. La
+base reste la source de vérité : la révocation en fin d'accès, la prolongation au rachat et la
+réconciliation continuent de fonctionner sans rien savoir du prestataire. Rien du travail des
+12 et 13 septembre n'est perdu, et `discord_sync_queue` ne change pas d'une ligne.
+
+**Une migration va partir sur la base partagée** (`alter type payment_provider add value
+'whop'`, puis `formations.whop_plan_id`) : **à annoncer avant le `db:push`**, comme le dit
+l'encadré en tête de ce fichier.
 
 **Où ça en est** : **prouvé de bout en bout sur un serveur de test, le 12 septembre.**
 Liaison d'un compte, attribution du rôle `invité`, attribution d'un rôle de produit, puis
