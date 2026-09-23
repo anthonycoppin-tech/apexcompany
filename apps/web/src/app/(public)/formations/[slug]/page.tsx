@@ -225,35 +225,63 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         </Conteneur>
       </section>
 
-      {(formation.objectifs_pedagogiques || formation.prerequis) && (
-        <Section>
-          <div className="grid gap-12 lg:grid-cols-2">
-            {formation.objectifs_pedagogiques && (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Objectifs pédagogiques</h2>
-                <p className="leading-relaxed whitespace-pre-line text-encre-doux">
-                  {formation.objectifs_pedagogiques}
-                </p>
-              </div>
-            )}
-            {formation.prerequis && (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Prérequis</h2>
-                <p className="leading-relaxed whitespace-pre-line text-encre-doux">
-                  {formation.prerequis}
-                </p>
-              </div>
-            )}
-          </div>
-        </Section>
-      )}
+      {/* **Ce bloc ne disparaît plus quand le catalogue est muet.**
+          Les objectifs et les prérequis sont facultatifs en base, et aucun des
+          neuf produits livrés le 23 septembre n'en porte : la fiche se réduisait
+          alors au titre, au tarif et à un bouton. Sur un produit à plusieurs
+          milliers d'euros, c'est la page qui doit convaincre qui ne dit rien.
+
+          Ce qui s'affiche à la place **n'invente aucun contenu pédagogique** —
+          ce serait promettre au nom du client. C'est une description du
+          parcours, vraie par construction : le détail se donne à l'échange
+          d'orientation, c'est le tunnel décrit dans `01-CAHIER-DES-CHARGES.md`
+          et affiché sur l'accueil. Le bloc s'effacera de lui-même le jour où le
+          client fournit la matière (`docs/08-CE-QUI-MANQUE.md`). */}
+      <Section>
+        <div className="grid gap-12 lg:grid-cols-2">
+          {formation.objectifs_pedagogiques ? (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Objectifs pédagogiques</h2>
+              <p className="leading-relaxed whitespace-pre-line text-encre-doux">
+                {formation.objectifs_pedagogiques}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Ce que ce programme couvre</h2>
+              <p className="leading-relaxed text-encre-doux">
+                Le contenu détaillé — ce qui est travaillé, dans quel ordre et à quel rythme — est
+                présenté pendant l’échange d’orientation, une fois votre situation connue. C’est
+                aussi là que l’on vérifie que ce programme est le bon pour vous plutôt qu’un autre.
+              </p>
+            </div>
+          )}
+
+          {formation.prerequis ? (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Prérequis</h2>
+              <p className="leading-relaxed whitespace-pre-line text-encre-doux">
+                {formation.prerequis}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Pour qui</h2>
+              <p className="leading-relaxed text-encre-doux">
+                Il n’y a pas de niveau minimum exigé pour candidater. L’échange d’orientation sert
+                précisément à situer votre point de départ, et rien ne vous engage avant la
+                proposition que vous recevez ensuite.
+              </p>
+            </div>
+          )}
+        </div>
+      </Section>
 
       {/* Les témoignages de CE programme, pas ceux du site : sur une fiche
           produit, l'avis d'un client d'un autre parcours ne prouve rien. */}
       {/* `surface` parce que la section des objectifs, juste au-dessus, est sur
-          le fond de page. Quand les objectifs sont absents, celle-ci suit directement
-          l'en-tête, lui aussi en surface — le filet qui les sépare fait la
-          distinction, et c'était déjà le cas avant. */}
+          le fond de page — et elle s'affiche désormais toujours, ce qui rend
+          l'alternance stable d'une fiche à l'autre. */}
       <Temoignages
         temoignages={temoignages ?? []}
         titre="Ce qu’en disent celles et ceux qui l’ont suivi"
