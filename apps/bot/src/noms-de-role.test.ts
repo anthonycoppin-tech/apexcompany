@@ -21,6 +21,14 @@ describe('le rôle attendu pour un produit', () => {
 });
 
 describe('correspondance des noms de rôle', () => {
+  it('reconnaît un nom écrit avec des underscores', () => {
+    // L'écriture courante sur Discord, où l'espace se tape mal.
+    assert.equal(memeNom('APEX_PRIME', 'APEX PRIME'), true);
+    assert.equal(memeNom('PALACE_1', 'PALACE 1'), true);
+    assert.equal(memeNom('APEX_PARTNER_6_MOIS_LANCEMENT', 'APEX PARTNER — 6 mois lancement'), true);
+    assert.equal(memeNom('MATRIX_3.0', 'MATRIX 3.0'), true);
+  });
+
   it('reconnaît le même nom à la forme du tiret près', () => {
     assert.equal(
       memeNom('APEX PARTNER — 6 mois lancement', 'APEX PARTNER - 6 mois lancement'),

@@ -46,23 +46,23 @@ export function roleDuProduit(slug: string, titre: string): string {
 /**
  * Deux noms de rôle désignent-ils la même chose ?
  *
- * **Le cas qui arrive** : quelqu'un crée les rôles à la main sur Discord, à
- * partir de la liste du catalogue, et tape « APEX PARTNER - 6 mois lancement »
- * là où le produit s'appelle « APEX PARTNER — 6 mois lancement ». Un tiret
- * court au lieu d'un cadratin, invisible à la lecture. Une comparaison stricte
- * y verrait un rôle inconnu et en créerait un second : deux rôles pour un même
- * produit, dont un seul ouvre l'accès, et une liste de rôles que plus personne
- * ne sait lire.
+ * **Le cas qui arrive** : les rôles sont créés à la main sur Discord, à partir
+ * de la liste du catalogue, et personne ne recopie une ponctuation à
+ * l'identique. « APEX_PARTNER_6_MOIS_LANCEMENT » — l'usage courant sur Discord,
+ * où l'espace se tape mal —, « APEX PARTNER - 6 mois lancement » avec un tiret
+ * court au lieu d'un cadratin : trois écritures d'un même rôle. Une comparaison
+ * stricte y verrait trois rôles inconnus et en créerait trois de plus, dont un
+ * seul ouvrirait l'accès.
  *
- * On compare donc à la casse, aux espaces et à la forme du tiret près — et pas
- * au-delà : « PALACE 1 » et « PALACE 2 » doivent rester deux rôles.
+ * On ramène donc **les tirets, les underscores et les espaces à un seul
+ * séparateur**, et on ignore la casse. Pas au-delà : « PALACE 1 » et
+ * « PALACE 2 » doivent rester deux rôles, et c'est ce que vérifient les tests.
  */
 export function memeNom(a: string, b: string): boolean {
   const normaliser = (texte: string) =>
     texte
       .normalize('NFKC')
-      .replace(/[–—]/g, '-')
-      .replace(/\s+/g, ' ')
+      .replace(/[_\-–—\s]+/g, ' ')
       .trim()
       .toLocaleLowerCase('fr');
 

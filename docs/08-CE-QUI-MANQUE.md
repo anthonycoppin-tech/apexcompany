@@ -438,6 +438,11 @@ faire ensuite est humain — ouvrir les salons à ces rôles, et cocher « publi
 | APEX PARTNER                    | 5 500 €     | accès illimité          | —              |
 | APEX PARTNER — 6 mois lancement | 4 500 €     | 180 jours               | —              |
 
+**Le nom du rôle n'a pas à être recopié au caractère près** : `APEX_PRIME`, `APEX PRIME` et
+`apex-prime` sont reconnus comme le même rôle — tirets, underscores et espaces sont ramenés à
+un seul séparateur. Ce qui distingue deux rôles, ce sont les mots : `PALACE 1` et `PALACE 2`
+restent deux rôles.
+
 **Huit rôles pour neuf produits** : APEX PRIME se vend au mois et à l'année, mais c'est le même
 accès — deux rôles donneraient deux salons pour la même chose. Le partage est sans danger, et
 pas par chance : la révocation en fin d'accès vérifie, avant chaque retrait, qu'aucune **autre
