@@ -5,15 +5,21 @@ suppression des cohortes, des sessions, des présences et des replays ; renommag
 en `formations` et du rôle `coach` en `formateur` ; trois types de produit aux mécaniques
 d'accès distinctes ; arrivée des propositions et des abonnements.
 
-**État au 8 septembre 2026.** Le schéma décrit ici est **appliqué** : sept migrations
-`20260908*_a_*` ont porté la base à la révision 3, et `npm run db:check` comme la suite pgTAP
-le vérifient. Ce qui reste à construire est signalé par ⚠️ **à écrire** ; ce qui est en base
-porte ✅ **écrit**.
+**État au 24 septembre 2026.** Le schéma décrit ici est **appliqué**, sur la base hébergée
+comme en local : 35 migrations, **24 tables**, **16 fonctions**, vérifiées par
+`npm run db:check` (134 vérifications) et par la suite pgTAP. La réserve qui figurait ici — « pas encore appliqué sur
+le projet hébergé » — est levée depuis le 8 septembre, et `packages/db/src/database.types.ts`
+est régénéré depuis cette base.
 
-Une réserve à connaître : ces migrations **ne sont pas encore appliquées sur le projet
-Supabase hébergé**, qui sert de base de dev partagée entre les deux développeurs et porte
-toujours la révision 2. `packages/db/src/database.types.ts` en découle et reste donc périmé
-jusqu'à ce que la base hébergée soit à jour.
+**Ce document se relit contre `database.types.ts`, pas de mémoire.** Il avait dérivé : il
+décrivait encore `orders.echelonne`, supprimée le 8 septembre par une migration qu'il
+mentionne lui-même vingt lignes plus bas, et il ignorait trois tables existantes. Une
+description de schéma fausse est pire qu'absente — on la croit.
+
+**La révision 3 n'est plus le dernier mot.** Ce qui est arrivé après, et qui est décrit
+ici : les propositions et les abonnements (8 septembre), la TVA par encaissement (22), le
+registre des emails et leurs rebonds (17 et 21), le contenu éditorial — témoignages et fiches
+formateurs (13) —, et le passage de Stripe à Whop (23).
 
 ## Identité et rôles
 
@@ -36,7 +42,7 @@ personne est un `client` sans inscription active. Voir `01-CAHIER-DES-CHARGES.md
 
 **`leads`** — `id`, `email`, `prenom`, `nom`, `telephone`, `source` (`instagram`, `youtube`,
 `tiktok`, `snapchat`, `direct`, `parrainage`), `utm` (jsonb), `statut`, `assigned_to`,
-`created_at`, `updated_at`
+`converti_user_id`, `created_at`, `updated_at`
 
 Le champ `source` répond directement au besoin du pôle branding : savoir quel réseau convertit.
 Il est renseigné au premier contact et ne doit jamais être écrasé ensuite.
@@ -83,7 +89,8 @@ Reçoit notamment la soumission **complète** du formulaire, en jsonb, sous le t
 `formulaire_soumis`. Les colonnes de `leads` ci-dessus en sont une projection destinée au tri
 et au filtrage ; l'original vit ici, et reste lisible même si les questions changent.
 
-**`appointments`** — `id`, `lead_id`, `cal_booking_id`, `debut`, `fin`, `statut`, `conseiller_id`
+**`appointments`** — `id`, `lead_id`, `cal_booking_id`, `debut`, `fin`, `statut`,
+`conseiller_id`, `notes`
 
 ✅ **écrit** : `issue` (`honore`, `absent`, `annule`) et `compte_rendu`. Sans `issue`, pas
 de statistique de no-show — le premier poste de perte d'un tunnel de vente par appel.
@@ -102,14 +109,15 @@ est-ce que ça a été payé.
 
 ✅ **écrit** — **`formations`** (ex-`offres`) — `id`, `slug`, `titre`, `description`,
 `objectifs_pedagogiques`, `prerequis`, `duree_semaines`, `volume_horaire`, `prix_cents`,
-`actif`, `ordre`, plus :
+`devise`, `actif`, `ordre`, plus :
 
-| Colonne             | Rôle                                                        |
-| ------------------- | ----------------------------------------------------------- |
-| `type_produit`      | `abonnement`, `accompagnement`, `formation`                 |
-| `duree_acces_jours` | 30 / 90 / 180 pour un accompagnement, **`null` = illimité** |
-| `discord_role_id`   | Le rôle Discord à attribuer — déplacé depuis `cohortes`     |
-| `modalite`          | `individuel` ou `groupe` — comment le cours se donne        |
+| Colonne             | Rôle                                                                                                                                                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `type_produit`      | `abonnement`, `accompagnement`, `formation`                                                                                                                                                                                          |
+| `duree_acces_jours` | La durée qu'**un** paiement ouvre. Exigée pour un accompagnement (30 / 60 / 90 / 180) **et pour un abonnement**, où elle est la période de facturation (30 ou 365). Interdite sur une formation, dont l'accès est illimité (`null`). |
+| `discord_role_id`   | Le rôle Discord à attribuer — déplacé depuis `cohortes`. **Obligatoire pour publier** : un produit actif sans rôle encaisserait sans ouvrir d'accès.                                                                                 |
+| `modalite`          | `individuel` ou `groupe` — comment le cours se donne                                                                                                                                                                                 |
+| `whop_plan_id`      | Le plan Whop correspondant (unique). Il sert à reconnaître le produit d'un paiement arrivé **hors du site**, par un lien envoyé à la main (23 septembre).                                                                            |
 
 **`modalite` est un axe distinct de `type_produit`**, et les fusionner serait une erreur : le
 premier dit comment le cours se donne, le second comment il se paie. Un accompagnement peut
@@ -123,11 +131,17 @@ fait hors plateforme (`01-CAHIER-DES-CHARGES.md` §3, étape 4 bis).
 **Trois types de produit, une seule mécanique d'accès.** C'est l'invariant central de la
 révision 3 :
 
-| Type             | Paiement          | `date_fin_acces`                         |
-| ---------------- | ----------------- | ---------------------------------------- |
-| `abonnement`     | Récurrent mensuel | Repoussée d'un mois à chaque prélèvement |
-| `accompagnement` | Une fois          | `date_debut + duree_acces_jours`         |
-| `formation`      | Une fois          | `null` — jamais révoquée                 |
+| Type             | Paiement  | `date_fin_acces`                                      |
+| ---------------- | --------- | ----------------------------------------------------- |
+| `abonnement`     | Récurrent | Repoussée de `duree_acces_jours` à chaque prélèvement |
+| `accompagnement` | Une fois  | `date_debut + duree_acces_jours`                      |
+| `formation`      | Une fois  | `null` — jamais révoquée                              |
+
+**La période d'un abonnement est portée par le produit** (23 septembre), pas par une colonne
+de `subscriptions` : c'est déjà ce que `duree_acces_jours` veut dire — la durée qu'un paiement
+ouvre. Une seconde colonne aurait créé le cas « les deux se contredisent », qui n'a pas de
+bonne réponse. Une exigence qui n'est pas cosmétique : `null` dans `date_fin_acces` vaut
+**accès illimité**, donc un abonnement sans période offrirait le produit à vie.
 
 Le worker Discord lit une date. Il n'a pas à savoir ce qui a été vendu, et il ne doit jamais
 apprendre à le savoir : c'est ce qui permet de n'avoir qu'un seul mécanisme de révocation
@@ -156,8 +170,8 @@ Les deux cas sont testés.
 
 Le champ `visible_client` sépare les notes internes des retours destinés au client. Une note
 interne mal cloisonnée qui remonte dans l'espace client est le genre d'incident qui coûte cher.
-En v1 les notes restent internes à `/formateur` : aucun écran client ne les lit encore, mais
-la colonne reste, parce que la RLS qui la protège doit exister avant l'écran qui l'utilisera.
+**Depuis le 17 septembre, `/espace` lit les notes marquées visibles** — la RLS existait avant
+l'écran, ce qui est l'ordre voulu : la politique protège la colonne, pas la requête.
 
 **Tables supprimées** : `sessions`, `presences`, `replays`, `coaching_sessions`. Les lives et
 les replays sont sur Discord ; l'émargement par promotion n'a plus d'objet.
@@ -173,45 +187,69 @@ statistique de présence côté formateur — c'est un choix, pas un oubli.
 ## Paiement
 
 **`orders`** — `id`, `user_id`, `lead_id`, `formation_id`, `montant_cents`, `devise`, `statut`,
-`provider` (`stripe` / `paypal`), `provider_order_id`, `echelonne`, `created_at`
+`provider`, `provider_order_id`, `created_at`, `updated_at`
 
-**`payments`** — `id`, `order_id`, `montant_cents`, `statut`, `provider`, `provider_payment_id`,
-`methode`, `paid_at`
+**`payments`** — `id`, `order_id`, `montant_cents`, `devise`, `statut`, `provider`,
+`provider_payment_id`, `methode`, `paid_at`, `tva_cents`, `pays_client`
 
-**Table supprimée** : `payment_schedules`, avec `orders.echelonne` et les deux colonnes
+**`provider` vaut `stripe`, `paypal` ou `whop`.** Depuis le 23 septembre 2026, **plus rien
+n'écrit sous les deux premières** : Whop est le seul prestataire. Elles restent dans
+l'énumération parce que des encaissements passés les portent, et qu'une valeur d'énumération
+ne se retire pas sans réécrire l'histoire.
+
+**`tva_cents` et `pays_client` sont portés par l'encaissement, pas par la commande** : un
+abonnement peut changer de pays entre deux prélèvements. Ils sont écrits **dans la transaction
+du paiement**, par `traiter_paiement()` et `renouveler_abonnement()`. **Une TVA non rapportée
+reste `null`, jamais un zéro** — un zéro est une affirmation, `null` dit qu'on ne sait pas.
+
+**Tables et colonnes supprimées** : `payment_schedules`, `orders.echelonne` et les deux colonnes
 d'échelonnement du catalogue. L'arbitrage attendu au §8.3 est tombé le 8 septembre 2026 :
 **tout se paie en une fois.** Une table morte n'est pas neutre — elle apparaît dans les types
 générés, dans les écrans de back-office, dans la revue de sécurité, et elle finit par se faire
 remplir « au cas où ». Si le 3× revient, il reviendra par une migration.
 
-✅ **écrit** — **`subscriptions`** : `id`, `user_id`, `formation_id`, `provider`,
-`provider_subscription_id`, `statut`, `periode_fin`, `resiliation_demandee_le`, `created_at`
+✅ **écrit** — **`subscriptions`** : `id`, `user_id`, `formation_id`, `inscription_id`,
+`provider`, `provider_subscription_id`, `statut` (`active`, `impayee`, `resiliee`,
+`terminee`), `periode_fin`, `resiliation_demandee_le`, `created_at`, `updated_at`
 
 Un abonnement n'est pas une commande avec une date de fin : il a un cycle de vie propre —
 renouvellements, échecs de prélèvement, résiliation à effet différé — que `orders` ne sait pas
-représenter. Chaque renouvellement réussi repousse `inscriptions.date_fin_acces` d'un mois.
+représenter. Chaque renouvellement réussi repousse `inscriptions.date_fin_acces` de la période
+du produit, et **est enregistré comme un encaissement** : sans cela il manquait au chiffre
+d'affaires, aux exports et aux factures (18 septembre).
 
 **`payment_events`** — **garantit l'idempotence**
-`id`, `provider`, `provider_event_id` (**UNIQUE**), `type`, `payload` (jsonb), `traite_at`, `erreur`
+`id`, `provider`, `provider_event_id` (**UNIQUE**), `type`, `payload` (jsonb), `recu_at`,
+`traite_at`, `erreur`
 
 La contrainte d'unicité sur `provider_event_id` est ce qui empêche un webhook rejoué de créer
 deux inscriptions. Le handler insère d'abord ici ; si l'insertion échoue sur la contrainte,
 l'événement a déjà été traité et on s'arrête. Vaut aussi pour les renouvellements
-d'abonnement : un événement rejoué ne doit pas offrir deux mois d'accès.
+d'abonnement : un événement rejoué ne doit pas offrir deux périodes d'accès.
 
-**`invoices`** — `id`, `order_id`, `numero` (séquence continue, obligation légale), `pdf_url`, `emise_at`
+**`invoices`** — `id`, `order_id`, `payment_id`, `numero` (séquence continue, obligation
+légale), `pdf_url`, `emise_at`
 
-**`refunds`** — `id`, `payment_id`, `montant_cents`, `motif`, `statut`, `demande_par`, `traite_par`, `traite_at`
+`payment_id` rattache la facture **à l'encaissement**, et pas seulement à la commande : sans
+lui, les factures des mois successifs d'un abonnement se confondaient. C'est aussi par là que
+la facture lit sa TVA. `pdf_url` n'est plus attendu — `/facture/[id]` rend le document depuis
+la base à chaque lecture, donc rien à stocker et rien à régénérer.
+
+**`refunds`** — `id`, `payment_id`, `montant_cents`, `motif`, `statut`, `demande_par`,
+`traite_par`, `traite_at`, `provider_refund_id`, `erreur`
+
+**Un remboursement ne se supprime pas** (16 septembre) : la ligne est immuable, parce qu'elle
+est la trace d'un mouvement d'argent réel.
 
 **`disputes`** — `id`, `payment_id`, `provider_dispute_id`, `montant_cents`, `statut`, `deadline_reponse`
 
 ## Discord
 
-**`discord_links`** — `id`, `user_id`, `discord_user_id` (UNIQUE), `roles_attribues` (jsonb),
-`linked_at`, `derniere_sync`
+**`discord_links`** — `id`, `user_id`, `discord_user_id` (UNIQUE), `discord_username`,
+`roles_attribues` (jsonb), `linked_at`, `derniere_sync`
 
 **`discord_sync_queue`** — `id`, `user_id`, `action` (`grant`, `revoke`), `role_id`, `statut`,
-`tentatives`, `erreur`, `created_at`
+`tentatives`, `prochain_essai`, `erreur`, `created_at`
 
 Une file, pas un appel direct. L'API Discord est limitée en débit et peut être indisponible ;
 sans file, un paiement pendant une coupure Discord donne un client sans accès et aucune trace.
@@ -232,17 +270,111 @@ sans dépendre du site — mais `npm run db:check` retire les `create extension`
 planification ne serait jamais rejouée hors ligne. La fonction reste appelable des deux
 façons : basculer plus tard ne demande qu'un `cron.schedule`.
 
+## Contenu éditorial
+
+Deux tables ajoutées le 13 septembre 2026, pour que le site puisse se remplir sans passer par
+une migration à chaque texte.
+
+**`temoignages`** — `id`, `auteur`, `contenu`, `contexte`, `note`, `formation_id`,
+`consentement`, `publie`, `ordre`, `created_at`, `updated_at`
+
+**Une contrainte porte toute la table** : `temoignages_publie_avec_consentement` interdit
+`publie` sans `consentement`. Un témoignage porte le nom d'une personne réelle et ses mots ;
+le publier sans preuve d'accord est le genre de chose qu'on ne découvre que le jour où elle
+conteste. L'écran de saisie le refuse aussi, mais c'est la base qui tranche.
+
+**`formateurs_fiches`** — `id`, `user_id` (unique, facultatif), `nom`, `fonction`,
+`biographie`, `photo_url`, `specialites` (tableau), `publie`, `ordre`, `created_at`,
+`updated_at`
+
+`user_id` est facultatif : une fiche peut présenter quelqu'un qui n'a pas de compte sur le
+site, et un formateur peut exister sans fiche publiée.
+
+**Leur suppression laisse une trace** depuis le 15 septembre — le déclencheur d'audit ne
+couvrait que les modifications, et supprimer un témoignage effaçait donc la seule preuve du
+consentement : celle qu'on veut produire le jour où la ligne n'existe plus.
+
+## Emails
+
+**`emails_envoyes`** — `id`, `user_id`, `cle` (unique par envoi attendu), `modele`,
+`destinataire`, `statut`, `tentatives`, `erreur`, `fournisseur_id`, `created_at`, `updated_at`
+
+Un registre, pas une file : la tâche horaire part de **l'état de la base** — un paiement reçu,
+une proposition émise, un accès qui se termine — et `cle` empêche le même envoi de partir deux
+fois. Rien à réconcilier si la tâche saute un tour.
+
+**Six états, et la distinction qui compte** : `en_cours`, `envoye`, `livre`, `rebond`,
+`plainte`, `echec`. « Envoyé » veut seulement dire que Resend a accepté la requête ; les trois
+suivants viennent de son webhook (21 septembre). **`rebond` et `plainte` ne sont pas des
+`echec`** : `echec` signifie « on réessaie », et relancer trois fois une adresse qui n'existe
+pas abîme la réputation du domaine expéditeur — donc la délivrabilité des liens de connexion,
+donc l'accès de tout le monde.
+
+**L'ordre d'arrivée n'est pas garanti**, et une plainte arrive forcément après la livraison qui
+l'a provoquée : un rang (`lib/email/rebonds.ts`) empêche un `livre` tardif d'effacer une
+plainte.
+
 ## Traçabilité
 
-**`automation_logs`** — `id`, `declencheur`, `entite_type`, `entite_id`, `statut`, `details` (jsonb), `created_at`
+**`automation_logs`** — `id`, `declencheur`, `entite_type`, `entite_id`, `statut`, `details`
+(jsonb), `duree_ms`, `created_at`
 
-**`audit_logs`** — `id`, `user_id`, `action`, `table_cible`, `enregistrement_id`, `avant` (jsonb),
-`apres` (jsonb), `ip`, `created_at`
+**`audit_logs`** — `id`, `user_id`, `action`, `table_cible`, `enregistrement_id`, `avant`
+(jsonb), `apres` (jsonb), `ip`, `user_agent`, `created_at`
 
-**`consents`** — `id`, `user_id` ou `email`, `type`, `accorde`, `version_texte`, `ip`, `created_at`
+**`consents`** — `id`, `user_id` ou `email`, `type` (`cgv`, `confidentialite`, `cookies`,
+`marketing`), `accorde`, `version_texte`, `ip`, `created_at`
 
-Rempli à la soumission du formulaire de qualification. `version_texte` n'est pas décoratif :
-sans lui, on ne peut pas prouver à quoi la personne a consenti le jour où elle le demande.
+Rempli à la soumission du formulaire de qualification, **et avant chaque paiement depuis le
+21 septembre** : les CGV faisaient accepter les conditions et renoncer à la rétractation « en
+cochant la case dédiée », et aucun des deux parcours d'achat n'avait de case. Le type `cgv`
+existait depuis le 7 septembre sans jamais servir. Deux acceptations sont maintenant
+enregistrées **avant** l'ouverture du paiement — **pas de preuve, pas de vente**.
+
+`version_texte` n'est pas décoratif : sans lui, on ne peut pas prouver à quoi la personne a
+consenti le jour où elle le demande. Toute modification des textes change
+`VERSION_TEXTES_LEGAUX`.
+
+**Conséquence pour la reprise des clients existants** : ceux qui ont acheté par un lien Whop,
+hors du site, n'ont aucune ligne ici. C'est ce qui interdit d'ouvrir leur accès sur une
+ressemblance (`08-CE-QUI-MANQUE.md` §3 bis).
+
+## Les fonctions
+
+Seize fonctions, et la raison qui les fait exister est toujours la même : **une transaction**.
+Depuis le client JavaScript, chaque appel est sa propre transaction ; un traitement en plusieurs
+écritures laisse donc des états à moitié faits — un événement marqué traité et un client sans
+accès, et rien pour le rattraper.
+
+**Le chemin de l'argent.** Le handler de webhook vérifie la signature, extrait les métadonnées,
+et fait **un seul** appel. Ajouter une écriture métier côté TypeScript après l'appel rouvrirait
+exactement la faille.
+
+| Fonction                                  | Ce qu'elle fait en une transaction                                                                        |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `traiter_paiement()`                      | Idempotence, commande, encaissement, inscription, facture, rôle Discord, proposition, prospect            |
+| `renouveler_abonnement()`                 | Repousse `date_fin_acces` de la période du produit, et enregistre l'encaissement                          |
+| `enregistrer_remboursement()`             | Referme commande, inscription et rôle Discord après un remboursement lancé du back-office                 |
+| `enregistrer_remboursement_prestataire()` | Le même, pour un remboursement fait **hors du site**, reçu par webhook                                    |
+| `enregistrer_litige()`                    | Ouvre ou met à jour un litige reçu par webhook                                                            |
+| `revoquer_acces_expires()`                | Passe en `terminee` les inscriptions échues et empile les `revoke` — par inscription, jamais par personne |
+
+Les cinq premières prennent `p_provider` et `p_references text[]` : **aucune ne connaît le nom
+du prestataire**. C'est ce qui a permis de passer de Stripe à Whop le 23 septembre 2026 sans
+changer une seule signature SQL.
+
+**L'entretien et le RGPD.**
+
+| Fonction                      | Ce qu'elle fait                                                                                                                           |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `purger_prospects_inactifs()` | Supprime les prospects sans signe de vie depuis trois ans. **`p_simulation` par défaut** : on compte avant de supprimer                   |
+| `effacer_personne()`          | Effacement RGPD depuis la fiche prospect, en deux temps. **Refuse toute personne ayant une trace d'achat** — une pièce comptable se garde |
+| `stats_conversion()`          | L'entonnoir par réseau d'origine, pour `/statistiques`                                                                                    |
+
+**Les gardes de la RLS** — `has_role()`, `is_staff()`, `is_owner()`, `est_mon_inscription()`,
+`est_mon_lead()`, `formateur_de_inscription()`, `formateur_de_lead()`. Elles sont `security
+definer` : sans cela, une politique qui lit `user_roles` déclencherait la politique de
+`user_roles`, qui lit `user_roles`.
 
 ## RLS — les trois politiques qui comptent
 
@@ -250,10 +382,17 @@ RLS activée sur toutes les tables sans exception. Une table sans politique est 
 c'est le bon défaut.
 
 ```sql
-create or replace function public.has_role(r text)
-returns boolean language sql stable security definer as $$
-  select exists (select 1 from public.user_roles
-                 where user_id = auth.uid() and role = r);
+create or replace function public.has_role(r public.app_role)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1 from public.user_roles
+    where user_id = auth.uid() and role = r
+  );
 $$;
 ```
 
@@ -263,9 +402,16 @@ sur l'affectation explicite :
 ```sql
 -- Un formateur n'accède qu'aux clients qui lui sont affectés
 create or replace function public.formateur_de_inscription(i uuid)
-returns boolean language sql stable security definer as $$
-  select exists (select 1 from public.inscriptions
-                 where id = i and formateur_id = auth.uid());
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1 from public.inscriptions
+    where id = i and formateur_id = auth.uid()
+  );
 $$;
 ```
 
