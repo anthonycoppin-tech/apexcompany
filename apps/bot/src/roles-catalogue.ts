@@ -47,9 +47,17 @@
  *   npm run discord:roles              # dit ce qu'il ferait, ne touche à rien
  *   npm run discord:roles -- --appliquer
  *   npm run discord:roles -- --appliquer --publier
+ *   npm run discord:roles -- --appliquer --reparer
  *
  * `--publier` met en vente les produits qui ont désormais leur rôle. C'est le
  * seul geste éditorial du lot, donc il se demande explicitement.
+ *
+ * `--reparer` s'occupe des produits dont l'identifiant de rôle **ne désigne
+ * aucun rôle du serveur** : un identifiant saisi à la main pour dépanner, ou un
+ * rôle supprimé depuis. Sans ce drapeau, ils sont seulement signalés — les
+ * réécrire est une décision, pas un effet de bord. C'est aussi l'état le plus
+ * trompeur du système : la base dit « accès ouvert », Discord ne connaît pas ce
+ * rôle, et rien ne le montre avant le premier paiement.
  */
 
 import './env-loader.js';
@@ -88,6 +96,7 @@ const ROLE_PAR_SLUG: Record<string, string> = {
 
 const appliquer = process.argv.includes('--appliquer');
 const publier = process.argv.includes('--publier');
+const reparer = process.argv.includes('--reparer');
 
 function requis(nom: string): string {
   const valeur = process.env[nom];
@@ -113,10 +122,15 @@ async function main() {
       : '\nSimulation — rien ne sera créé ni écrit. Ajouter --appliquer pour agir.\n',
   );
 
-  const { data: produits, error } = await supabase
+  // **Tout le catalogue, pas seulement les produits sans rôle.** Un
+  // identifiant peut être renseigné et ne désigner aucun rôle du serveur :
+  // saisi à la main pour dépanner, ou pointant sur un rôle supprimé depuis.
+  // C'est le pire des états — la base dit « accès ouvert », Discord ne connaît
+  // pas ce rôle, et le symptôme n'apparaît qu'au premier paiement, dans la
+  // file. Ne lire que les `null` l'aurait laissé filer pour toujours.
+  const { data: catalogue, error } = await supabase
     .from('formations')
     .select('id, titre, slug, actif, discord_role_id')
-    .is('discord_role_id', null)
     .order('ordre');
 
   if (error) {
@@ -124,8 +138,8 @@ async function main() {
     process.exit(1);
   }
 
-  if (!produits?.length) {
-    console.log('  Tous les produits ont déjà leur rôle. Rien à faire.');
+  if (!catalogue?.length) {
+    console.log('  Le catalogue est vide.');
     return;
   }
 
@@ -143,10 +157,36 @@ async function main() {
 
   const existants = (await reponse.json()) as RoleDiscord[];
   const parNom = new Map(existants.map((r) => [r.name, r.id]));
+  const parId = new Set(existants.map((r) => r.id));
 
   let crees = 0;
   let reutilises = 0;
   let publies = 0;
+  let intacts = 0;
+  let fantomes = 0;
+
+  const produits = catalogue.filter((p) => {
+    if (!p.discord_role_id) return true;
+
+    if (parId.has(p.discord_role_id)) {
+      intacts += 1;
+      return false;
+    }
+
+    fantomes += 1;
+    if (reparer) return true;
+
+    console.log(
+      `  ! ${p.titre} — son rôle (${p.discord_role_id}) n’existe pas sur ce serveur.` +
+        ' Relancer avec --reparer pour le refaire pointer au bon endroit.',
+    );
+    return false;
+  });
+
+  if (!produits.length) {
+    console.log(`  Les ${intacts} produits du catalogue ont un rôle valide. Rien à faire.`);
+    return;
+  }
 
   for (const produit of produits) {
     const nom = ROLE_PAR_SLUG[produit.slug] ?? produit.titre;
@@ -204,9 +244,19 @@ async function main() {
   }
 
   console.log(
-    `\n${produits.length} produit(s) sans rôle — ${crees} rôle(s) créé(s), ` +
-      `${reutilises} réutilisé(s)${publier ? `, ${publies} produit(s) publié(s)` : ''}.`,
+    `\n${intacts} produit(s) déjà en ordre, ${produits.length} traité(s) — ` +
+      `${crees} rôle(s) créé(s), ${reutilises} réutilisé(s)` +
+      `${publier ? `, ${publies} produit(s) publié(s)` : ''}.`,
   );
+
+  if (fantomes && !reparer) {
+    console.log(
+      `\n${fantomes} produit(s) portent un identifiant de rôle inconnu de ce serveur. ` +
+        'C’est l’état le plus trompeur du système : la base dit « accès ouvert », Discord ne ' +
+        'connaît pas ce rôle, et personne ne le voit avant le premier paiement. Relancer ' +
+        'avec --reparer pour les refaire pointer au bon endroit.',
+    );
+  }
 
   if (!appliquer) {
     console.log('\nRien n’a été modifié. Relancer avec --appliquer.');

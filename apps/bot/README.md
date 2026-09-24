@@ -327,6 +327,7 @@ Deux réserves de moindre importance, mais qui surprennent :
 npm run discord:roles                    # simulation, ne touche à rien
 npm run discord:roles -- --appliquer     # crée les rôles manquants, écrit leur identifiant
 npm run discord:roles -- --appliquer --publier
+npm run discord:roles -- --appliquer --reparer
 ```
 
 **Un produit ne peut pas être publié sans `discord_role_id`** : la base le refuse,
@@ -357,6 +358,13 @@ vendu à deux périodicités. Le partage est sans danger et pas par chance :
 inscription active du même client ne porte ce rôle (son compteur
 `roles_conserves`). La table `ROLE_PAR_SLUG`, en tête du script, est l'endroit
 où se déclare un partage.
+
+`--reparer` s'occupe des produits dont l'identifiant de rôle **ne désigne aucun
+rôle du serveur** : un identifiant saisi à la main pour dépanner un jour de
+démo, ou un rôle supprimé depuis. Sans ce drapeau ils sont seulement signalés,
+parce que les réécrire est une décision et pas un effet de bord. C'est l'état le
+plus trompeur du système — la base dit « accès ouvert », Discord ne connaît pas
+ce rôle, et rien ne le montre avant le premier paiement.
 
 `--publier` met les produits en vente. C'est le seul geste éditorial du lot, et
 il se demande donc explicitement : la création des rôles peut se faire des
