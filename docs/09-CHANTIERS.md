@@ -129,6 +129,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Whop remplace Stripe                  | fait | Anthony     | 23 sept. |
 | Nouveau catalogue + rattrapage Whop   | fait | Anthony     | 23 sept. |
 | Ce que le client doit fournir         | fait | Anthony     | 24 sept. |
+| Modèle de données remis d'aplomb      | pris | Anthony     | 24 sept. |
 
 ### Les trois sujets du 23 septembre — faits, sauf ce qui attend le client
 
