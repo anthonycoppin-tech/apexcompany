@@ -128,6 +128,7 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Charte graphique — la bannière        | fait | Anthony     | 23 sept. |
 | Whop remplace Stripe                  | fait | Anthony     | 23 sept. |
 | Nouveau catalogue + rattrapage Whop   | fait | Anthony     | 23 sept. |
+| Ce que le client doit fournir         | pris | Anthony     | 24 sept. |
 
 ### Les trois sujets du 23 septembre — faits, sauf ce qui attend le client
 
