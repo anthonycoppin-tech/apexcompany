@@ -27,7 +27,7 @@
  * ── Trois choix qui méritent leur ligne ────────────────────────────────────
  *
  * **Le rôle porte le titre du produit, à l'identique** — sauf les deux que
- * `ROLE_PAR_SLUG` réunit plus bas. Pas de préfixe, pas d'abréviation : c'est le
+ * `noms-de-role.ts` réunit, APEX PRIME mensuel et annuel. Pas de préfixe, pas d'abréviation : c'est le
  * nom que le client lit dans son back-office, celui qui figure sur sa facture,
  * et celui qu'il verra dans la liste des rôles du serveur. Le code, lui, ne
  * compare jamais que des identifiants — le nom n'est là que pour les humains,
@@ -66,33 +66,11 @@ import { createClient } from '@supabase/supabase-js';
 
 import type { Database } from '@apex/db';
 
+import { memeNom, roleDuProduit } from './noms-de-role.js';
+
 const API = 'https://discord.com/api/v10';
 
 type RoleDiscord = { id: string; name: string };
-
-/**
- * Le rôle qui ouvre l'accès à un produit, quand ce n'est pas simplement son
- * titre.
- *
- * **Un rôle peut servir deux produits**, et c'est ici le cas voulu : APEX PRIME
- * se vend au mois et à l'année, mais c'est le même accès — deux rôles
- * donneraient deux salons pour la même chose, et un client qui passe du mensuel
- * à l'annuel en porterait deux.
- *
- * Ce partage est sûr par construction : `revoquer_acces_expires()` vérifie,
- * avant chaque retrait, qu'aucune **autre inscription active du même client**
- * ne porte ce rôle — c'est son compteur `roles_conserves`. L'abonné annuel ne
- * perd donc rien quand son mensuel expire.
- *
- * **Reste une question pour le client** : APEX PARTNER et sa formule lancement
- * donnent-ils accès aux mêmes salons ? Ici, on suppose que non — deux produits
- * distincts, deux rôles. Les fusionner plus tard est une ligne dans cette
- * table ; les séparer après coup demande de reprendre les membres à la main.
- */
-const ROLE_PAR_SLUG: Record<string, string> = {
-  'apex-prime': 'APEX PRIME',
-  'apex-prime-annuel': 'APEX PRIME',
-};
 
 const appliquer = process.argv.includes('--appliquer');
 const publier = process.argv.includes('--publier');
@@ -156,8 +134,10 @@ async function main() {
   }
 
   const existants = (await reponse.json()) as RoleDiscord[];
-  const parNom = new Map(existants.map((r) => [r.name, r.id]));
   const parId = new Set(existants.map((r) => r.id));
+
+  /** Le rôle du serveur qui porte ce nom, à la casse et au tiret près. */
+  const roleNomme = (nom: string) => existants.find((r) => memeNom(r.name, nom));
 
   let crees = 0;
   let reutilises = 0;
@@ -189,13 +169,18 @@ async function main() {
   }
 
   for (const produit of produits) {
-    const nom = ROLE_PAR_SLUG[produit.slug] ?? produit.titre;
+    const nom = roleDuProduit(produit.slug, produit.titre);
     const partage = nom !== produit.titre ? ` (rôle partagé « ${nom} »)` : '';
-    let roleId = parNom.get(nom);
+    const dejaLa = roleNomme(nom);
+    let roleId = dejaLa?.id;
 
     if (roleId) {
       reutilises += 1;
-      console.log(`  = ${produit.titre}${partage} — rôle déjà présent (${roleId})`);
+      // Le nom réel du serveur, pas celui qu'on cherchait : s'ils diffèrent —
+      // un tiret, une majuscule — autant que ça se voie dans la sortie plutôt
+      // que de laisser croire à une correspondance exacte.
+      const tel = dejaLa && dejaLa.name !== nom ? ` sous le nom « ${dejaLa.name} »` : '';
+      console.log(`  = ${produit.titre}${partage} — rôle déjà présent${tel} (${roleId})`);
     } else if (!appliquer) {
       console.log(`  + ${produit.titre}${partage} — rôle à créer`);
     } else {
@@ -219,7 +204,10 @@ async function main() {
       }
 
       roleId = ((await creation.json()) as RoleDiscord).id;
-      parNom.set(nom, roleId);
+      // Le rôle rejoint la liste locale : le produit suivant qui vise le même
+      // nom — APEX PRIME annuel après le mensuel — doit le réutiliser, et non
+      // en créer un second.
+      existants.push({ id: roleId, name: nom });
       crees += 1;
       console.log(`  + ${produit.titre}${partage} — rôle créé (${roleId})`);
     }

@@ -10,7 +10,8 @@
     "roles": "tsx src/roles-catalogue.ts",
     "start": "node dist/worker.js",
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@apex/db": "*",
