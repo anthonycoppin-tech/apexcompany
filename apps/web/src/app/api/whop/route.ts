@@ -258,14 +258,19 @@ export async function POST(request: Request) {
         let montantRepli = false;
 
         if (montantCents === null && references.length > 0) {
+          // `limit(1)` et non `maybeSingle()` : les références sont des
+          // candidats pour le même paiement, mais rien ne garantit qu'un seul
+          // y réponde — et `maybeSingle()` lèverait alors une erreur, donc un
+          // 500, donc un rejeu en boucle chez Whop. C'est exactement ce que
+          // fait `enregistrer_litige()` de son côté.
           const { data: conteste } = await supabase
             .from('payments')
             .select('montant_cents')
             .eq('provider', 'whop')
             .in('provider_payment_id', references)
-            .maybeSingle();
+            .limit(1);
 
-          montantCents = conteste?.montant_cents ?? null;
+          montantCents = conteste?.[0]?.montant_cents ?? null;
           montantRepli = montantCents !== null;
         }
 
