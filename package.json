@@ -16,6 +16,7 @@
     "discord:check": "npm run check --workspace=@apex/bot",
     "discord:reconcile": "npm run reconcile --workspace=@apex/bot",
     "build": "npm run build --workspaces --if-present",
+    "start": "npm run start --workspace=@apex/web",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

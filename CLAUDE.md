@@ -803,7 +803,8 @@ docs/            Spécification
 ## Commandes
 
 ```bash
-npm run dev              # Next.js sur :3000
+npm run dev              # Next.js sur :3000 — 404 sur les routes dynamiques imbriquées, voir plus bas
+npm run build && npm start   # Le seul moyen fiable de recetter ou de faire une démo
 npm run db:check         # Applique migrations + seed sur PGlite et rejoue les invariants RLS
 npm run db:test:pglite   # Rejoue la suite pgTAP sur PGlite, sans Docker
 npm run db:push          # Applique les migrations en attente sur le projet hébergé
