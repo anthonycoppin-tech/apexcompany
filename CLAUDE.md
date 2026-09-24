@@ -821,6 +821,30 @@ sur le poste de développement, c'est `db:types:linked` qu'il faut lancer, et se
 **après** `db:push`, puisqu'elle lit le schéma réellement appliqué sur la base hébergée.
 `db:push` écrit sur la **base partagée** : prévenir l'autre développeur avant de la lancer.
 
+## Le proxy d'entreprise casse TLS pour Node — `--use-system-ca`
+
+**Tout appel HTTPS sortant depuis Node échoue sur ce poste** avec
+`SELF_SIGNED_CERT_IN_CHAIN` : le proxy d'entreprise intercepte TLS avec sa propre autorité,
+que Node ne connaît pas. Le symptôme est trompeur — `fetch` rend « fetch failed » sans rien
+dire —, et on en conclut que la base ou Discord sont bloqués. **Ils ne le sont pas** : la
+connexion TCP passe, c'est le certificat qui est refusé.
+
+Depuis Node 22.15, `--use-system-ca` fait confiance au magasin de certificats de Windows, où
+l'autorité du proxy est installée :
+
+```bash
+node --use-system-ca script.mjs
+NODE_OPTIONS=--use-system-ca npm run discord:roles   # vaut pour tout script lancé par npm
+```
+
+**Vérifié le 24 septembre 2026** : la base hébergée et l'API Discord répondent toutes les
+deux ainsi. `git` et `gh` n'ont jamais eu le problème — ils lisent le magasin de Windows.
+
+**La CLI Supabase, elle, reste bloquée** (`db push`, `db:types:linked`) : c'est un binaire Go
+qui tente en plus une connexion directe à `db.<ref>.supabase.co`, un hôte qui ne résout plus.
+Ce qui demande la CLI passe donc par quelqu'un d'autre, ou par l'éditeur SQL du tableau de
+bord.
+
 ## Docker n'est pas disponible en local
 
 Le poste de développement est derrière un proxy d'entreprise qui bloque Docker
