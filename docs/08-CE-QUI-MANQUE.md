@@ -417,24 +417,36 @@ durée d'accès et leur plan Whop. Ce n'est donc plus le manque qu'il était —
 en vente**, et un seul élément les en empêche.
 
 **La base refuse de publier un produit sans identifiant de rôle Discord**, et c'est voulu : il
-encaisserait un paiement sans ouvrir d'accès. Pour chacun, il faut donc **créer le rôle sur le
-serveur Discord, coller son identifiant dans `/admin/formations`**, puis cocher « publié ».
+encaisserait un paiement sans ouvrir d'accès.
 
-| Produit                         | Prix        | Ce qu'un paiement ouvre | Rôle Discord |
-| ------------------------------- | ----------- | ----------------------- | ------------ |
-| APEX PRIME                      | 59 € / mois | 30 jours, renouvelés    | —            |
-| APEX PRIME — annuel             | 490 € / an  | 365 jours, renouvelés   | —            |
-| PALACE 1                        | 290 €       | 30 jours                | —            |
-| PALACE 2                        | 890 €       | 60 jours                | —            |
-| PALACE 3                        | 1 600 €     | 90 jours                | —            |
-| MATRIX 3.0                      | 4 500 €     | 180 jours               | —            |
-| APEX BLACK                      | 4 800 €     | accès illimité          | —            |
-| APEX PARTNER                    | 5 500 €     | accès illimité          | —            |
-| APEX PARTNER — 6 mois lancement | 4 500 €     | 180 jours               | —            |
+**Il n'y a rien à nous envoyer produit par produit.** Un identifiant de rôle est un nombre que
+Discord attribue au moment où le rôle est créé — il ne s'invente pas, et le recopier neuf fois
+à la main se paie d'une faute de frappe qui ne se verrait qu'au premier paiement. **Il suffit
+de l'accès administrateur au serveur** : `npm run discord:roles` crée les rôles manquants,
+sans aucune permission, et écrit leur identifiant dans chaque fiche produit. Ce qu'il reste à
+faire ensuite est humain — ouvrir les salons à ces rôles, et cocher « publié ».
 
-**Un rôle par produit, jamais un rôle partagé par deux.** La révocation en fin d'accès retire
-le rôle du produit expiré : deux produits derrière le même rôle, et c'est le client encore actif
-sur l'autre qui perd son salon.
+| Produit                         | Prix        | Ce qu'un paiement ouvre | Rôle Discord   |
+| ------------------------------- | ----------- | ----------------------- | -------------- |
+| APEX PRIME                      | 59 € / mois | 30 jours, renouvelés    | « APEX PRIME » |
+| APEX PRIME — annuel             | 490 € / an  | 365 jours, renouvelés   | le même        |
+| PALACE 1                        | 290 €       | 30 jours                | —              |
+| PALACE 2                        | 890 €       | 60 jours                | —              |
+| PALACE 3                        | 1 600 €     | 90 jours                | —              |
+| MATRIX 3.0                      | 4 500 €     | 180 jours               | —              |
+| APEX BLACK                      | 4 800 €     | accès illimité          | —              |
+| APEX PARTNER                    | 5 500 €     | accès illimité          | —              |
+| APEX PARTNER — 6 mois lancement | 4 500 €     | 180 jours               | —              |
+
+**Huit rôles pour neuf produits** : APEX PRIME se vend au mois et à l'année, mais c'est le même
+accès — deux rôles donneraient deux salons pour la même chose. Le partage est sans danger, et
+pas par chance : la révocation en fin d'accès vérifie, avant chaque retrait, qu'aucune **autre
+inscription active du même client** ne porte ce rôle. L'abonné annuel ne perd donc rien quand
+son mensuel expire.
+
+**Une question à poser au client** : APEX PARTNER et sa formule lancement donnent-ils accès aux
+mêmes salons ? On suppose que non — deux produits, deux rôles. Les réunir plus tard est une
+ligne à changer ; les séparer après coup demande de reprendre les membres un par un.
 
 Ce qui reste à fournir ensuite, produit par produit — ça ne bloque pas la vente, ça vide les
 fiches : description longue, objectifs pédagogiques, prérequis. Tout se saisit dans

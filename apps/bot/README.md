@@ -321,6 +321,47 @@ Deux réserves de moindre importance, mais qui surprennent :
   au premier test et restera lié ; pour en refaire un autre, délier d'abord
   (`discord_links`) ou prendre un autre compte Discord.
 
+## Les rôles du catalogue
+
+```bash
+npm run discord:roles                    # simulation, ne touche à rien
+npm run discord:roles -- --appliquer     # crée les rôles manquants, écrit leur identifiant
+npm run discord:roles -- --appliquer --publier
+```
+
+**Un produit ne peut pas être publié sans `discord_role_id`** : la base le refuse,
+parce qu'il encaisserait un paiement sans ouvrir d'accès. Les neuf produits
+réels du client sont donc en brouillon depuis le 23 septembre 2026, et le site
+continue d'afficher ceux du jeu d'essai.
+
+Ce script crée le rôle manquant de chaque produit et écrit son identifiant dans
+la fiche. **Il est fait pour être relancé** : un rôle qui porte déjà le nom
+attendu est réutilisé, jamais dupliqué. C'est ce qui permet de le passer
+d'abord sur le serveur de test, puis sur la production, sans réfléchir à ce qui
+existe déjà.
+
+Trois choses à savoir avant de le lancer :
+
+- **les rôles sont créés sans aucune permission.** Ce qu'un rôle ouvre se règle
+  sur les salons, un par un — un rôle créé avec les permissions par défaut
+  donnerait à chaque client payant des droits que personne n'a décidés ;
+- **ils ne sont ni affichés à part, ni mentionnables.** Neuf rôles produits
+  hissés dans la liste des membres en feraient un catalogue tarifaire public :
+  qui a payé quoi ;
+- **un rôle neuf se place tout en bas de la hiérarchie**, donc sous le bot :
+  c'est le bon côté, et `npm run discord:check` le confirme.
+
+**APEX PRIME mensuel et annuel partagent un seul rôle** — c'est le même accès,
+vendu à deux périodicités. Le partage est sans danger et pas par chance :
+`revoquer_acces_expires()` vérifie, avant chaque retrait, qu'aucune autre
+inscription active du même client ne porte ce rôle (son compteur
+`roles_conserves`). La table `ROLE_PAR_SLUG`, en tête du script, est l'endroit
+où se déclare un partage.
+
+`--publier` met les produits en vente. C'est le seul geste éditorial du lot, et
+il se demande donc explicitement : la création des rôles peut se faire des
+semaines avant l'ouverture des ventes.
+
 ## La réconciliation
 
 **Vérifiée contre un vrai serveur le 13 septembre 2026, sur les deux chemins qui

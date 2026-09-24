@@ -7,6 +7,7 @@
     "dev": "tsx watch src/worker.ts",
     "check": "tsx src/preflight.ts",
     "reconcile": "tsx src/reconciliation.ts",
+    "roles": "tsx src/roles-catalogue.ts",
     "start": "node dist/worker.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit"
