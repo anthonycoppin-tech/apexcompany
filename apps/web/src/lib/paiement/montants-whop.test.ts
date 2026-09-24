@@ -61,7 +61,11 @@ describe('les montants rendus par Whop', () => {
     // écrit comme 0 devient un encaissement à 0 €, une facture fausse et un
     // chiffre d'affaires faux, sans rien pour signaler d'où ça vient.
     for (const illisible of [null, undefined, '', 'gratuit', '-10.00', '1e3', '1,99', {}, []]) {
-      assert.equal(decimalVersCents(illisible), null, `devrait refuser ${JSON.stringify(illisible)}`);
+      assert.equal(
+        decimalVersCents(illisible),
+        null,
+        `devrait refuser ${JSON.stringify(illisible)}`,
+      );
     }
   });
 });

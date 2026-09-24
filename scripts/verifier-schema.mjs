@@ -850,9 +850,7 @@ async function main() {
       49000, 'EUR', 'ord_annuel_1', 'pay_annuel_1', null, 'mem_annuel_1') as r`)
   ).rows[0].r;
 
-  const dansUnAn = (
-    await db.query(`select (current_date + 365)::text as d`)
-  ).rows[0].d;
+  const dansUnAn = (await db.query(`select (current_date + 365)::text as d`)).rows[0].d;
 
   verifier(
     'un abonnement annuel ouvre 365 jours daccès, pas 30',
@@ -866,9 +864,7 @@ async function main() {
       49000, 'pay_annuel_2') as r`)
   ).rows[0].r;
 
-  const dansDeuxAns = (
-    await db.query(`select (current_date + 730)::text as d`)
-  ).rows[0].d;
+  const dansDeuxAns = (await db.query(`select (current_date + 730)::text as d`)).rows[0].d;
 
   verifier(
     'son renouvellement repousse dune année, pas dun mois',

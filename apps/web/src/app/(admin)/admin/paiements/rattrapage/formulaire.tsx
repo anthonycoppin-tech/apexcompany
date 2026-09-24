@@ -57,7 +57,12 @@ export function FormulaireRattachement({
 
         <label className="space-y-1 text-sm">
           <span className="font-medium">Produit acheté</span>
-          <select name="formation_id" required defaultValue={produitPropose ?? ''} className={CHAMP}>
+          <select
+            name="formation_id"
+            required
+            defaultValue={produitPropose ?? ''}
+            className={CHAMP}
+          >
             <option value="">Choisir…</option>
             {produits.map((p) => (
               <option key={p.id} value={p.id}>

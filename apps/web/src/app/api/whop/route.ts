@@ -377,11 +377,7 @@ async function rattraper(
   // Le produit, s'il porte ce plan. C'est la moitié de la question à laquelle
   // `formations.whop_plan_id` sait répondre sans métadonnées.
   const { data: formation } = plan
-    ? await supabase
-        .from('formations')
-        .select('id, titre')
-        .eq('whop_plan_id', plan)
-        .maybeSingle()
+    ? await supabase.from('formations').select('id, titre').eq('whop_plan_id', plan).maybeSingle()
     : { data: null };
 
   await supabase.from('automation_logs').insert({

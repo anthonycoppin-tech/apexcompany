@@ -152,17 +152,15 @@ export async function ouvrirCheckout({
     // Écrit avec la clé de service : la RLS ferme `orders` en écriture à tout
     // le monde sauf au staff, et c'est très bien ainsi — un client qui pourrait
     // insérer ses propres commandes pourrait s'en écrire une payée.
-    await createServiceRoleClient()
-      .from('orders')
-      .insert({
-        user_id: userId,
-        formation_id: formation.id,
-        montant_cents: montantCents,
-        devise,
-        statut: 'en_attente',
-        provider: 'whop',
-        provider_order_id: reference,
-      });
+    await createServiceRoleClient().from('orders').insert({
+      user_id: userId,
+      formation_id: formation.id,
+      montant_cents: montantCents,
+      devise,
+      statut: 'en_attente',
+      provider: 'whop',
+      provider_order_id: reference,
+    });
 
     return { url: configuration.purchase_url };
   } catch {

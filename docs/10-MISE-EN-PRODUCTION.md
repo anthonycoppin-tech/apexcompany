@@ -97,20 +97,20 @@ Créer une **invitation permanente** au serveur → `NEXT_PUBLIC_DISCORD_INVITE_
   moteurs de recherche** (`lib/site.ts`) : ne pas la renseigner sur une préproduction.
 - Les variables d'environnement de production :
 
-| Variable                                                    | D'où elle vient                                              |
-| ----------------------------------------------------------- | ------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Projet de production → _Settings → API_                      |
-| `SUPABASE_SERVICE_ROLE_KEY`                                 | Idem. **Jamais préfixée `NEXT_PUBLIC_`**                     |
-| `NEXT_PUBLIC_SITE_URL`                                      | Le domaine, en `https://`, sans barre finale                 |
-| `WHOP_API_KEY`, `WHOP_ACCOUNT_ID`                           | Whop → _Developer_ et _Settings_ (`biz_…`)                   |
+| Variable                                                    | D'où elle vient                                               |
+| ----------------------------------------------------------- | ------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Projet de production → _Settings → API_                       |
+| `SUPABASE_SERVICE_ROLE_KEY`                                 | Idem. **Jamais préfixée `NEXT_PUBLIC_`**                      |
+| `NEXT_PUBLIC_SITE_URL`                                      | Le domaine, en `https://`, sans barre finale                  |
+| `WHOP_API_KEY`, `WHOP_ACCOUNT_ID`                           | Whop → _Developer_ et _Settings_ (`biz_…`)                    |
 | `WHOP_WEBHOOK_SECRET`                                       | Le point de terminaison créé à l'étape 7, `ws_…` **tel quel** |
-| `NEXT_PUBLIC_CAL_LIEN`, `CAL_WEBHOOK_SECRET`                | Cal.com (étape 8)                                            |
-| `AUDIT_CONSEILLER_USER_ID`                                  | L'identifiant du compte de Franck (étape 3)                  |
-| `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`                     | Application Discord, serveur de production                   |
-| `DISCORD_ROLE_INVITE_ID`, `NEXT_PUBLIC_DISCORD_INVITE_URL`  | Serveur de production (étape 4)                              |
-| `RESEND_API_KEY`, `EMAIL_FROM`                              | Resend, sur le domaine vérifié                               |
-| `RESEND_WEBHOOK_SECRET`                                     | Le webhook Resend créé à l'étape 9                           |
-| `CRON_SECRET`                                               | Une chaîne aléatoire longue ; Vercel l'envoie à chaque tâche |
+| `NEXT_PUBLIC_CAL_LIEN`, `CAL_WEBHOOK_SECRET`                | Cal.com (étape 8)                                             |
+| `AUDIT_CONSEILLER_USER_ID`                                  | L'identifiant du compte de Franck (étape 3)                   |
+| `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`                     | Application Discord, serveur de production                    |
+| `DISCORD_ROLE_INVITE_ID`, `NEXT_PUBLIC_DISCORD_INVITE_URL`  | Serveur de production (étape 4)                               |
+| `RESEND_API_KEY`, `EMAIL_FROM`                              | Resend, sur le domaine vérifié                                |
+| `RESEND_WEBHOOK_SECRET`                                     | Le webhook Resend créé à l'étape 9                            |
+| `CRON_SECRET`                                               | Une chaîne aléatoire longue ; Vercel l'envoie à chaque tâche  |
 
 Les variables `PAYPAL_*`, `CLOUDFLARE_*` et `VIDEO_PROVIDER` restent vides : PayPal n'est pas
 en v1, et les vidéos sont hors projet.

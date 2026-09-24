@@ -70,53 +70,55 @@ export default async function Image() {
   const fonte = await archivo();
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        padding: '0 96px',
+        backgroundImage: `linear-gradient(100deg, ${DEGRADE_DEBUT} 0%, ${DEGRADE_MILIEU} 42%, ${DEGRADE_FIN} 100%)`,
+        color: ENCRE,
+        fontFamily: fonte ? 'Archivo' : 'sans-serif',
+      }}
+    >
       <div
         style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '0 96px',
-          backgroundImage: `linear-gradient(100deg, ${DEGRADE_DEBUT} 0%, ${DEGRADE_MILIEU} 42%, ${DEGRADE_FIN} 100%)`,
-          color: ENCRE,
-          fontFamily: fonte ? 'Archivo' : 'sans-serif',
+          fontSize: 108,
+          fontWeight: 800,
+          // Positif, comme `.titre-banniere` : le resserrement des titres
+          // courants est juste pour des bas-de-casse et colle des capitales.
+          letterSpacing: '0.01em',
+          textTransform: 'uppercase',
+          lineHeight: 1,
         }}
       >
-        <div
-          style={{
-            fontSize: 108,
-            fontWeight: 800,
-            // Positif, comme `.titre-banniere` : le resserrement des titres
-            // courants est juste pour des bas-de-casse et colle des capitales.
-            letterSpacing: '0.01em',
-            textTransform: 'uppercase',
-            lineHeight: 1,
-          }}
-        >
-          ApexCompany
-        </div>
-
-        <div style={{ marginTop: 28, fontSize: 40, fontWeight: 800, color: ENCRE_DOUX }}>
-          Rigueur cognitive et technique
-        </div>
-
-        <div
-          style={{
-            marginTop: 56,
-            width: 132,
-            height: 6,
-            backgroundColor: ENCRE,
-            borderRadius: 3,
-          }}
-        />
+        ApexCompany
       </div>
-    ),
+
+      <div style={{ marginTop: 28, fontSize: 40, fontWeight: 800, color: ENCRE_DOUX }}>
+        Rigueur cognitive et technique
+      </div>
+
+      <div
+        style={{
+          marginTop: 56,
+          width: 132,
+          height: 6,
+          backgroundColor: ENCRE,
+          borderRadius: 3,
+        }}
+      />
+    </div>,
     {
       ...size,
       ...(fonte
-        ? { fonts: [{ name: 'Archivo', data: fonte, weight: 800 as const, style: 'italic' as const }] }
+        ? {
+            fonts: [
+              { name: 'Archivo', data: fonte, weight: 800 as const, style: 'italic' as const },
+            ],
+          }
         : {}),
     },
   );

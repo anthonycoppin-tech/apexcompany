@@ -78,18 +78,24 @@ describe('la signature d’un webhook Whop', () => {
 
   it('refuse un en-tête manquant sans tenter de deviner', () => {
     for (const manquant of ['id', 'horodatage', 'signature'] as const) {
-      assert.deepEqual(verifierSignature(SECRET, entetes({ [manquant]: null }), CORPS, MAINTENANT), {
-        valide: false,
-        raison: 'en-tetes',
-      });
+      assert.deepEqual(
+        verifierSignature(SECRET, entetes({ [manquant]: null }), CORPS, MAINTENANT),
+        {
+          valide: false,
+          raison: 'en-tetes',
+        },
+      );
     }
   });
 
   it('refuse un horodatage qui n’est pas un nombre', () => {
-    assert.deepEqual(verifierSignature(SECRET, entetes({ horodatage: 'hier' }), CORPS, MAINTENANT), {
-      valide: false,
-      raison: 'horodatage',
-    });
+    assert.deepEqual(
+      verifierSignature(SECRET, entetes({ horodatage: 'hier' }), CORPS, MAINTENANT),
+      {
+        valide: false,
+        raison: 'horodatage',
+      },
+    );
   });
 
   it('refuse une signature sans son préfixe de version', () => {

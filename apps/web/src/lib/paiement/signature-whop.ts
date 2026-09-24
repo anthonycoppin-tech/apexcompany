@@ -37,8 +37,7 @@ export type EnTetesWhop = {
 };
 
 export type Verdict =
-  | { valide: true }
-  | { valide: false; raison: 'en-tetes' | 'horodatage' | 'signature' };
+  { valide: true } | { valide: false; raison: 'en-tetes' | 'horodatage' | 'signature' };
 
 /** Le contenu réellement signé. Exporté pour que les tests signent comme Whop. */
 export function contenuSigne(id: string, horodatage: string, corps: string): string {
