@@ -13,7 +13,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(21);
+select plan(22);
 
 -- Un remboursement, pour que le test « le formateur ne voit pas les
 -- remboursements » porte sur une table non vide. Un test qui passe parce que
@@ -22,6 +22,26 @@ insert into public.refunds (payment_id, montant_cents, motif, statut, demande_pa
 select id, 50000, 'Test de cloisonnement', 'demande', '22222222-2222-2222-2222-222222222222'
 from public.payments
 where provider_payment_id = 'pi_test_seed_a';
+
+-- ── Les totaux du catalogue, relevés avant de changer de rôle ─────────────
+-- Le catalogue grossit par migration de données — neuf produits réels le
+-- 23 septembre 2026 —, et ce test comptait « 4 » en dur : il a cassé ce
+-- jour-là, pour une raison qui n'a rien à voir avec le cloisonnement, et la CI
+-- est restée rouge sans que personne le remarque. On relève donc le total ici,
+-- où aucune politique ne s'applique encore.
+--
+-- Un réglage de session traverse le changement de rôle, là où une table
+-- temporaire aurait demandé un `grant` de plus. Le bloc `do` est là pour que
+-- rien ne s'imprime : la sortie de ce fichier est un flux TAP, et une valeur
+-- posée au milieu n'y a pas sa place.
+do $$
+begin
+  perform set_config(
+    'tests.formations_total',
+    (select count(*)::text from public.formations),
+    true
+  );
+end $$;
 
 -- On se fait passer pour le formateur A.
 set local role authenticated;
@@ -122,8 +142,16 @@ select is(
 -- rien de ce que le client a payé.
 
 select is(
-  (select count(*) from public.formations)::int, 4,
-  'formateur A voit tout le catalogue, y compris le produit en brouillon'
+  (select count(*) from public.formations)::int,
+  current_setting('tests.formations_total')::int,
+  'formateur A voit tout le catalogue, sans quune seule ligne lui soit cachée'
+);
+
+-- Sans brouillon dans le jeu de test, la vérification ci-dessus passerait même
+-- si la politique filtrait sur `actif` : il n'y aurait rien à cacher.
+select ok(
+  (select count(*) from public.formations where not actif) > 0,
+  'et le catalogue contient au moins un brouillon, sans quoi la précédente ne prouverait rien'
 );
 
 -- ── Le suivi commercial : écrire sur les siens, jamais sur ceux des autres ──

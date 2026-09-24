@@ -19,101 +19,10 @@
  */
 
 import { PGlite } from '@electric-sql/pglite';
-import { readFile, readdir } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
-const racine = join(dirname(fileURLToPath(import.meta.url)), '..');
-const migrationsDir = join(racine, 'supabase', 'migrations');
-
-/**
- * Reconstitue le strict minimum de lenvironnement Supabase dont dépendent les
- * migrations : le schéma auth, les rôles anon/authenticated, et auth.uid().
- */
-const PREAMBULE = `
-create schema if not exists auth;
-create schema if not exists extensions;
-
-do $$ begin
-  if not exists (select 1 from pg_roles where rolname = 'anon') then
-    create role anon nologin noinherit;
-  end if;
-  if not exists (select 1 from pg_roles where rolname = 'authenticated') then
-    create role authenticated nologin noinherit;
-  end if;
-  if not exists (select 1 from pg_roles where rolname = 'service_role') then
-    create role service_role nologin noinherit bypassrls;
-  end if;
-end $$;
-
-create table if not exists auth.users (
-  instance_id uuid,
-  id uuid primary key,
-  aud text,
-  role text,
-  email text,
-  encrypted_password text,
-  email_confirmed_at timestamptz,
-  raw_app_meta_data jsonb,
-  raw_user_meta_data jsonb,
-  created_at timestamptz,
-  updated_at timestamptz,
-  last_sign_in_at timestamptz,
-  -- Présentes ici pour que le seed s'exécute à l'identique de la vraie base ;
-  -- PGlite ne fait pas tourner GoTrue et ne peut donc pas détecter par
-  -- lui-même que ces colonnes doivent être '' plutôt que NULL (voir seed.sql).
-  confirmation_token text,
-  recovery_token text,
-  email_change text,
-  email_change_token_new text,
-  email_change_token_current text,
-  phone_change text,
-  phone_change_token text,
-  reauthentication_token text
-);
-
-create table if not exists auth.identities (
-  id uuid primary key,
-  user_id uuid references auth.users (id) on delete cascade,
-  provider_id text,
-  identity_data jsonb,
-  provider text,
-  last_sign_in_at timestamptz,
-  created_at timestamptz,
-  updated_at timestamptz
-);
-
--- Même signature et même sémantique que chez Supabase : lidentifiant du porteur
--- de la session, lu dans les claims du JWT injectés par PostgREST.
---
--- Le nullif porte sur le RÉGLAGE, avant le cast en jsonb — comme dans la vraie
--- définition Supabase. Lécrire dans lautre sens (caster puis neutraliser)
--- paraît équivalent et ne lest pas : une session sans claims porte la chaîne
--- vide, et caster une chaîne vide en jsonb lève « invalid input syntax for type
--- json ». Le piège ne se voit quà lexécution dune fonction appelant auth.uid()
--- hors session — un trigger daudit, typiquement.
-create or replace function auth.uid() returns uuid
-language sql stable as $$
-  select (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')::uuid;
-$$;
-
--- pgcrypto nest pas embarqué dans PGlite ; le seed ne sen sert que pour
--- fabriquer un mot de passe de test, un substitut inerte suffit.
-create or replace function extensions.crypt(text, text) returns text
-language sql immutable as $$ select md5($1 || $2) $$;
-create or replace function extensions.gen_salt(text) returns text
-language sql volatile as $$ select 'stub-salt' $$;
-
-grant usage on schema public, extensions to anon, authenticated, service_role;
-`;
-
-/** Droits que Supabase accorde par défaut sur le schéma public. */
-const GRANTS = `
-grant usage on schema public to anon, authenticated, service_role;
-grant all on all tables in schema public to anon, authenticated, service_role;
-grant all on all sequences in schema public to anon, authenticated, service_role;
-grant all on all functions in schema public to anon, authenticated, service_role;
-`;
+import { preparerBase, racine } from './environnement-pglite.mjs';
 
 const db = new PGlite();
 
@@ -150,45 +59,26 @@ async function enTantQuAdministrateur() {
 }
 
 async function main() {
-  console.log('\nApplication du schéma sur PostgreSQL (PGlite)\n');
+  console.log('\nApplication du schéma et du jeu de données sur PostgreSQL (PGlite)\n');
 
-  await db.exec(PREAMBULE);
-
-  const fichiers = (await readdir(migrationsDir)).filter((f) => f.endsWith('.sql')).sort();
-
-  for (const fichier of fichiers) {
-    // pgTAP nest pas embarqué dans PGlite. La suite pgTAP tourne en CI.
-    if (fichier.includes('pgtap')) {
-      console.log(`  – ${fichier} (ignorée hors Docker)`);
-      continue;
-    }
-
-    let sql = await readFile(join(migrationsDir, fichier), 'utf8');
-    // Les extensions Supabase ne sont pas disponibles ; le schéma nen dépend
-    // que pour gen_random_uuid(), présent nativement depuis PostgreSQL 13.
-    sql = sql.replace(/^\s*create extension[^;]*;/gim, '');
-
-    try {
-      await db.exec(sql);
-      console.log(`  ✓ ${fichier}`);
-    } catch (err) {
-      console.error(`  ✗ ${fichier}`);
-      console.error(`      ${err.message}`);
-      process.exit(1);
-    }
-  }
-
-  await db.exec(GRANTS);
-
-  console.log('\nChargement du jeu de données\n');
   try {
-    const seed = await readFile(join(racine, 'supabase', 'seed.sql'), 'utf8');
-    await db.exec(seed);
+    await preparerBase(db);
     console.log('  ✓ seed.sql');
   } catch (err) {
-    console.error(`  ✗ seed.sql\n      ${err.message}`);
+    console.error(`  ✗ ${err.message}`);
     process.exit(1);
   }
+
+  // Le catalogue grossit par migration de données — neuf produits réels le
+  // 23 septembre 2026 — et le client en publiera d'autres depuis le
+  // back-office. Les vérifications ci-dessous se mesurent donc au contenu réel
+  // de la table, relevé ici sans politique appliquée, plutôt qu'à un nombre
+  // écrit en dur. C'est exactement ce qui a cassé la suite pgTAP le 23 : le
+  // test comptait « 4 », la migration en a inséré neuf, et la CI est restée
+  // rouge sans que le cloisonnement ait bougé d'un pouce.
+  const catalogueTotal = await compter('public.formations');
+  const cataloguePublie = await compter('public.formations where actif');
+  const catalogueBrouillons = catalogueTotal - cataloguePublie;
 
   // ── Invariant 1 : un formateur ne voit que ses affectations ──────────────
   // Révision 3 : lancrage nest plus la cohorte mais laffectation explicite,
@@ -233,6 +123,20 @@ async function main() {
     'voit bien le profil de son propre client',
     await compter(`public.profiles where id = '66666666-6666-6666-6666-666666666666'`),
     1,
+  );
+
+  // Il propose un produit à la fin de laudit : il lui faut le catalogue
+  // entier, brouillons compris. Cette règle existait en pgTAP et manquait ici,
+  // alors que les deux suites sont censées se tenir (CLAUDE.md).
+  verifier(
+    'voit tout le catalogue, brouillons compris',
+    await compter('public.formations'),
+    catalogueTotal,
+  );
+  verifier(
+    'et le jeu de test contient au moins un brouillon, sans quoi la règle ne prouverait rien',
+    catalogueBrouillons > 0,
+    true,
   );
 
   // ── Invariant 2 : largent est fermé aux formateurs ───────────────────────
@@ -285,7 +189,7 @@ async function main() {
   await db.exec('reset role;');
   await db.exec(`set request.jwt.claims = '';`);
   await db.exec('set role anon;');
-  verifier('voit les trois formations actives', await compter('public.formations'), 3);
+  verifier('voit les produits publiés', await compter('public.formations'), cataloguePublie);
   verifier(
     'ne voit pas la formation en brouillon',
     await compter(`public.formations where not actif`),

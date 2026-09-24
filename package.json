@@ -27,6 +27,7 @@
     "db:types:linked": "supabase gen types typescript --linked > packages/db/src/database.types.ts",
     "db:push": "supabase db push --linked",
     "db:test": "supabase test db",
+    "db:test:pglite": "node scripts/rejouer-pgtap.mjs",
     "format": "prettier --write \"**/*.{ts,tsx,mjs,js,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,md,css}\"",
     "db:check": "node scripts/verifier-schema.mjs",

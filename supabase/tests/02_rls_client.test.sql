@@ -11,7 +11,21 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(22);
+select plan(24);
+
+-- Le nombre de produits publiés change à chaque migration de données et à
+-- chaque publication faite par le client : on le relève ici, pendant qu'aucune
+-- politique ne s'applique, plutôt que de l'écrire en dur. Un réglage de session
+-- traverse le changement de rôle. Le bloc `do` évite d'imprimer la valeur au
+-- milieu du flux TAP.
+do $$
+begin
+  perform set_config(
+    'tests.formations_actives',
+    (select count(*)::text from public.formations where actif),
+    true
+  );
+end $$;
 
 -- ── Client A — un accompagnement payé en une fois ──────────────────────────
 
@@ -74,8 +88,14 @@ select is(
 );
 
 select is(
-  (select count(*) from public.formations)::int, 3,
-  'client A voit les trois formations actives, jamais celle en brouillon'
+  (select count(*) from public.formations)::int,
+  current_setting('tests.formations_actives')::int,
+  'client A voit les produits publiés, et rien de plus'
+);
+
+select is(
+  (select count(*) from public.formations where not actif)::int, 0,
+  'client A ne voit aucun brouillon — un produit non publié ouvrirait un paiement'
 );
 
 -- La matrice daccès lui donne ses rendez-vous. La politique passe par une
@@ -137,8 +157,14 @@ set local role anon;
 set local request.jwt.claims = '{"role":"anon"}';
 
 select is(
-  (select count(*) from public.formations)::int, 3,
-  'un visiteur anonyme voit le catalogue actif'
+  (select count(*) from public.formations)::int,
+  current_setting('tests.formations_actives')::int,
+  'un visiteur anonyme voit le catalogue publié'
+);
+
+select is(
+  (select count(*) from public.formations where not actif)::int, 0,
+  'un visiteur anonyme ne voit aucun brouillon'
 );
 
 select is(

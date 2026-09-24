@@ -805,6 +805,7 @@ docs/            Spécification
 ```bash
 npm run dev              # Next.js sur :3000
 npm run db:check         # Applique migrations + seed sur PGlite et rejoue les invariants RLS
+npm run db:test:pglite   # Rejoue la suite pgTAP sur PGlite, sans Docker
 npm run db:push          # Applique les migrations en attente sur le projet hébergé
 npm run db:types:linked  # Régénère packages/db/src/database.types.ts depuis le projet hébergé
 npm run db:types         # Idem depuis une instance locale — exige Docker, donc CI seulement
@@ -834,6 +835,18 @@ Ce qu'il ne couvre pas : GoTrue, PostgREST, le Storage, les extensions Supabase.
 suite pgTAP de `supabase/tests/` reste la référence et tourne en CI, où Docker est
 disponible. Toute règle vérifiée dans `scripts/verifier-schema.mjs` doit donc **aussi**
 exister en pgTAP, et réciproquement : les deux se maintiennent ensemble.
+
+**Depuis le 24 septembre 2026, la suite pgTAP se rejoue aussi en local** :
+`npm run db:test:pglite` l'exécute sur PGlite en remplaçant les neuf fonctions de pgTAP
+par des doublures (`scripts/rejouer-pgtap.mjs`). Ça ne remplace pas la CI — les
+doublures n'ont ni les diagnostics ni le reste de pgTAP, et PGlite n'est pas l'image
+Supabase —, mais ça évite ce qui vient d'arriver : **la CI est restée rouge une journée
+entière** parce qu'un test comptait le catalogue en dur et qu'une migration de données y
+a inséré neuf produits. Personne ne l'a vu, puisque rien ne le disait en local.
+
+**Ne jamais passer `lives_ok` ni `throws_ok` en `security definer`** dans ces doublures :
+elles tourneraient en superutilisateur, donc hors RLS, et tous les tests d'écriture
+cloisonnée passeraient sans rien prouver.
 
 Conséquence pratique : le développement applicatif se fait contre un **projet
 Supabase hébergé** (un projet gratuit sert de base de dev partagée), pas contre une
