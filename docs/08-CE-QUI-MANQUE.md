@@ -19,13 +19,37 @@ qui est là plutôt qu'en attendant que tout soit là.
 > directement dans l'environnement du serveur. Ici on note seulement **qu'une clé a été
 > fournie**, jamais sa valeur.
 
-**Rien de la plateforme n'a jamais tourné contre les vrais services.** Le code est écrit,
-vérifié par les tests et compilé, mais aucun paiement réel, aucun rôle Discord réel et aucun
-rendez-vous réel n'a été traité. C'est la première chose que la liste ci-dessous permettra de
-changer.
+**Une seule partie de la plateforme a tourné contre un vrai service** : Discord, le
+12 septembre, sur un serveur de test — liaison d'un compte, attribution d'un rôle, révocation
+en fin d'accès. **Le reste est écrit, testé et compilé, jamais exécuté en vrai** : aucun
+paiement, aucun rendez-vous, aucun email. C'est la première chose que la liste ci-dessous
+permettra de changer.
 
 Une fois les clés en place, `/admin/parametres` (réservé au rôle `owner`) affiche en direct ce
 qui est configuré et ce qui manque encore. C'est le premier écran à ouvrir.
+
+## Où ça en est — 24 septembre 2026
+
+Relu de bout en bout après la journée du 23 septembre, qui a fait bouger trois choses de cette
+liste. **Ce qui a été livré par le client** : la charte graphique (une bannière), le document
+des seize liens de paiement Whop, le lien d'invitation Discord et les comptes de la marque.
+**Ce que ça a fermé** : le catalogue de la base, qui affichait des produits faux depuis le
+8 septembre, et l'image de partage, qui attendait la charte.
+
+**Les quatre manques qui bloquent réellement la vente**, dans l'ordre :
+
+1. **les neuf identifiants de rôle Discord** — un par produit. Sans eux, aucun produit ne peut
+   être publié, donc rien n'est en vente (section 3) ;
+2. **le nom de domaine**, qui commande l'envoi des emails, l'adresse du webhook, l'indexation
+   et les mentions légales (section 4 bis) ;
+3. **les trois clés Whop**, et une heure dans le bac à sable — rien du chemin de l'argent n'a
+   jamais tourné contre le vrai service (section 1) ;
+4. **la relecture juridique**, qui a le plus long délai et qui porte maintenant une question de
+   plus : dans le mode fiscal retenu, c'est Whop qui émet la facture fiscale, pas APEX COMPANY
+   (section 2).
+
+Le reste — biographies, témoignages, logo, textes des emails — ne bloque pas une vente, mais
+laisse des sections vides sur un site qui vend cher.
 
 ---
 
@@ -41,12 +65,12 @@ compile », jamais que « ça marche ».
 pour y rejouer l'installation (`apps/bot/README.md`) et remplacer les identifiants ci-dessous.
 C'est bloquant dès l'entrée du tunnel, puisque c'est là que le rôle `invité` est attribué.
 
-| À fournir                                                | Variable                                  |
-| -------------------------------------------------------- | ----------------------------------------- |
-| Identifiant du serveur Discord                           | `DISCORD_GUILD_ID`                        |
-| Jeton du bot                                             | `DISCORD_BOT_TOKEN`                       |
-| Identifiant et secret de l'application (connexion OAuth) | À saisir dans le tableau de bord Supabase |
-| Identifiant du rôle `invité`                             | `DISCORD_ROLE_INVITE_ID`                  |
+| À fournir                                                | Variable                                          |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| Identifiant du serveur Discord                           | `DISCORD_GUILD_ID`                                |
+| Jeton du bot                                             | `DISCORD_BOT_TOKEN`                               |
+| Identifiant et secret de l'application (connexion OAuth) | À saisir dans le tableau de bord Supabase         |
+| Identifiant du rôle `invité`                             | `DISCORD_ROLE_INVITE_ID`                          |
 | ~~Lien d'invitation permanent au serveur~~               | **Fourni le 23 septembre**, dans `lib/reseaux.ts` |
 
 Deux réglages à faire sur le serveur, et le second est un piège classique :
@@ -95,11 +119,11 @@ démarre pas du tout.
 **Whop remplace Stripe depuis le 23 septembre 2026.** Le compte du client est actif ; ce qui
 manque, ce sont les clés et trois réglages.
 
-| À fournir                | Variable              | Où le trouver                     |
-| ------------------------ | --------------------- | --------------------------------- |
-| Clé d'API                | `WHOP_API_KEY`        | Dashboard → Developer             |
-| Identifiant du compte    | `WHOP_ACCOUNT_ID`     | Dashboard → Settings, `biz_…`     |
-| Secret du webhook        | `WHOP_WEBHOOK_SECRET` | Developer → Webhooks, `ws_…`      |
+| À fournir             | Variable              | Où le trouver                 |
+| --------------------- | --------------------- | ----------------------------- |
+| Clé d'API             | `WHOP_API_KEY`        | Dashboard → Developer         |
+| Identifiant du compte | `WHOP_ACCOUNT_ID`     | Dashboard → Settings, `biz_…` |
+| Secret du webhook     | `WHOP_WEBHOOK_SECRET` | Developer → Webhooks, `ws_…`  |
 
 Le secret se recopie **tel quel, préfixe compris** : contrairement à la spécification d'origine
 des « Standard Webhooks », Whop demande de ne pas le décoder. Un secret amputé de son préfixe
@@ -154,12 +178,12 @@ la question s'ajoute à sa liste plutôt que d'en ouvrir une nouvelle.
 Le code, lui, ne parie sur aucun mode : il écrit la TVA que Whop rapporte, et `null` quand il
 n'en rapporte pas. Une TVA non calculée n'est jamais écrite comme une TVA nulle.
 
-#### Les identifiants de rôle Discord des nouveaux produits
+#### Les identifiants de rôle Discord des neuf produits
 
-Le catalogue du 23 septembre (PALACE, APEX BLACK, MATRIX, APEX PRIME, APEX PARTNER) ne peut pas
-être **publié** sans eux : la base refuse un produit actif sans `discord_role_id`, et c'est
-voulu — il encaisserait un paiement sans ouvrir d'accès. Un par produit, à créer sur le serveur
-puis à saisir dans `/admin/formations`.
+Ils ne dépendent pas de Whop, mais c'est ici qu'on s'en aperçoit : **encaisser sans pouvoir
+ouvrir l'accès est exactement ce que la base refuse.** Un produit actif sans `discord_role_id`
+est impossible, et c'est voulu. Un rôle par produit, à créer sur le serveur puis à saisir dans
+`/admin/formations` — **la liste des neuf est en section 3.**
 
 ### Cal.com
 
@@ -329,7 +353,7 @@ page par page ; les principaux :
 | Responsabilité plafonnée au montant payé                              | Plafond retiré                                                                                        | Présumé abusif face à un consommateur (droit français).                                                                                                                                           |
 | Six catégories (outils logiciels, agents automatisés, certification…) | Trois produits : abonnement, accompagnement, formation                                                | Seuls ceux-là sont vendus sur ce site.                                                                                                                                                            |
 | Résiliation par email                                                 | Depuis l'espace client, ou par email                                                                  | C'est ce que le site fait.                                                                                                                                                                        |
-| Whop, TAP Payments, Circle, Zoom, Brevo, Google Workspace, Netlify    | Supabase, Vercel, Stripe, Discord, Cal.com, Resend                                                    | Les sous-traitants réellement branchés.                                                                                                                                                           |
+| Whop, TAP Payments, Circle, Zoom, Brevo, Google Workspace, Netlify    | Supabase, Vercel, Whop, Discord, Cal.com, Resend                                                      | Les sous-traitants réellement branchés.                                                                                                                                                           |
 | Cookies de mesure d'audience et marketing « lorsque applicable »      | Aucun traceur, cookies de session seulement                                                           | Vérifiable dans le code.                                                                                                                                                                          |
 | Objet : « psychologie personnelle, stabilité intérieure »             | Formation au trading, exclusivement éducative                                                         | L'ancien texte décrivait une autre activité que celle vendue — et que ses propres CGV.                                                                                                            |
 | Pas de formulaire de rétractation                                     | Formulaire type sur `/remboursement`                                                                  | Le vendeur doit le mettre à disposition.                                                                                                                                                          |
@@ -359,15 +383,18 @@ Du travail de développeur, noté dans `09-CHANTIERS.md`, à faire avant d'ouvri
 
 - **Les factures** — faites le 22 septembre : `/facture/[id]`, générée à la demande depuis la
   base, imprimable et enregistrable en PDF, ouverte depuis l'espace client et le back-office.
-  **Leur TVA est celle que Stripe Tax calcule** pour chaque encaissement (22 septembre) : pas
-  de TVA européenne, la TVA émiratie pour un client établi aux Émirats, incluse dans le prix.
-  Stripe Tax est à activer dans le tableau de bord (`10-MISE-EN-PRODUCTION.md` §7).
+  **Leur TVA est celle que Whop rapporte** avec chaque encaissement (repris le 23 septembre du
+  calcul de Stripe Tax). Le mode fiscal retenu — « Whop collecte et reverse », 2 % — fait de
+  Whop le vendeur apparent sur la facture fiscale : notre facture reste juste sur le fond (qui
+  a acheté quoi, à quel prix), mais son en-tête n'est pas celui d'une facture fiscale. **C'est
+  la question à poser au juriste en même temps que la relecture.** Le mode se choisit dans le
+  tableau de bord Whop (`10-MISE-EN-PRODUCTION.md` §7).
 - **La conservation des clients** : « trois ans après le dernier achat ou contact », écrit dans
   la politique de confidentialité, n'est appliqué par rien. La purge ne touche que les
   prospects.
 - **La rétractation d'un accompagnement** fonctionne : la fiche client calcule le montant et
   pré-remplit la demande, et un remboursement lancé depuis le back-office referme l'accès,
-  même partiel. (Seul un remboursement partiel fait directement dans Stripe laisse l'accès
+  même partiel. (Seul un remboursement partiel fait directement dans Whop laisse l'accès
   ouvert — c'est voulu, pour un geste commercial.)
 
 ---
@@ -377,22 +404,52 @@ Du travail de développeur, noté dans `09-CHANTIERS.md`, à faire avant d'ouvri
 Rien de tout cela n'a été inventé, et rien ne le sera : une biographie ou un témoignage
 fabriqué sur un site de formation en investissement est un risque, pas un espace réservé.
 
-### Le catalogue réel — le manque le plus visible
+### Les neuf produits attendent leur rôle Discord
 
-Le site n'est que le reflet du catalogue, et **celui de la base partagée porte encore des
-données de la révision 2** : « Accélérateur » y est enregistré comme une formation en groupe
-alors que c'est un accompagnement individuel, et aucun abonnement n'existe.
+**Le catalogue réel est en base depuis le 23 septembre**, tiré du document de seize liens de
+paiement transmis par le client : les neuf produits ci-dessous existent, avec leur prix, leur
+durée d'accès et leur plan Whop. Ce n'est donc plus le manque qu'il était — mais **aucun n'est
+en vente**, et un seul élément les en empêche.
 
-Conséquence directe : le parcours d'achat d'abonnement, écrit et livré, **ne peut pas être
-essayé** faute de produit de ce type.
+**La base refuse de publier un produit sans identifiant de rôle Discord**, et c'est voulu : il
+encaisserait un paiement sans ouvrir d'accès. Pour chacun, il faut donc **créer le rôle sur le
+serveur Discord, coller son identifiant dans `/admin/formations`**, puis cocher « publié ».
 
-Pour chaque produit : nom, description, tarif, type (abonnement / accompagnement / formation),
-suivi (individuel ou groupe), durée d'accès pour un accompagnement, objectifs pédagogiques,
-prérequis, et l'identifiant de son rôle Discord.
+| Produit                         | Prix        | Ce qu'un paiement ouvre | Rôle Discord |
+| ------------------------------- | ----------- | ----------------------- | ------------ |
+| APEX PRIME                      | 59 € / mois | 30 jours, renouvelés    | —            |
+| APEX PRIME — annuel             | 490 € / an  | 365 jours, renouvelés   | —            |
+| PALACE 1                        | 290 €       | 30 jours                | —            |
+| PALACE 2                        | 890 €       | 60 jours                | —            |
+| PALACE 3                        | 1 600 €     | 90 jours                | —            |
+| MATRIX 3.0                      | 4 500 €     | 180 jours               | —            |
+| APEX BLACK                      | 4 800 €     | accès illimité          | —            |
+| APEX PARTNER                    | 5 500 €     | accès illimité          | —            |
+| APEX PARTNER — 6 mois lancement | 4 500 €     | 180 jours               | —            |
 
-Bonne nouvelle : **tout cela se saisit désormais depuis `/admin/formations`**, sans SQL. Un
-produit ne peut pas être publié sans rôle Discord — il encaisserait un paiement sans ouvrir
-d'accès.
+**Un rôle par produit, jamais un rôle partagé par deux.** La révocation en fin d'accès retire
+le rôle du produit expiré : deux produits derrière le même rôle, et c'est le client encore actif
+sur l'autre qui perd son salon.
+
+Ce qui reste à fournir ensuite, produit par produit — ça ne bloque pas la vente, ça vide les
+fiches : description longue, objectifs pédagogiques, prérequis. Tout se saisit dans
+`/admin/formations`, sans SQL.
+
+#### Deux choses à trancher avec le client
+
+- **Les trois produits de démonstration sont encore les seuls publiés** sur la base de
+  développement — « Communauté », « Accélérateur », « Fondations » —, au dernier état connu du
+  dépôt. Ils viennent du jeu de données de test, pas du client. Le jour de la mise en ligne, ce sont eux qu'il faut retirer et
+  les neuf vrais qu'il faut publier — sans quoi le site vend des produits qui n'existent pas.
+- **Sept des seize liens ne sont pas au catalogue** et continuent de se vendre par leur lien
+  Whop : les trois variantes « en 2 fois » (PALACE 2, PALACE 3, APEX BLACK), l'acompte de
+  réservation de 150 €, et les trois formules d'APEX MASTERY — le séminaire de Toulouse des 23
+  et 24 octobre. Chacune demande du développement, détaillé en tête de
+  `20260923120000_a_catalogue_septembre.sql` ; APEX MASTERY est hors périmètre depuis le
+  23 septembre — pas de réservation de place sur le site, la billetterie reste externe. **Leurs encaissements
+  arrivent sans aucune métadonnée** et tombent dans `/admin/paiements/rattrapage`, où quelqu'un
+  les rattache à la main, un par un. La question à poser : continue-t-on à vendre ainsi, ou
+  retire-t-on ces liens ?
 
 ### Le reste
 
@@ -406,9 +463,15 @@ d'accès.
 | Biographies et photos des formateurs                | `/formateurs`, aujourd'hui sans aucune fiche — saisie dans `/admin/formateurs` |
 | Témoignages réels, avec accord écrit de publication | Accueil et fiches produit — saisie dans `/admin/temoignages`                   |
 | Source et date des quatre chiffres de l'accueil     | 80+ apprenants, 9/10, 100 %, 24 h — **retirés de l'affichage en attendant**    |
-| Logo et visuels                                     | C'est le principal écart visuel avec la référence citée                        |
+| **Le logo**, en fichier vectoriel si possible       | La charte est arrivée le 23/09, le logo non : le site affiche le nom en texte  |
 | Une preuve sociale externe, si elle existe          | Type Trustpilot — c'est ce qui porte la crédibilité chez le concurrent cité    |
+| Photos ou visuels de la marque                      | Les fiches produit et l'accueil n'ont aucune image aujourd'hui                 |
 | Le contenu de tous les emails envoyés               | Clients et formateurs — voir ci-dessous                                        |
+
+**Ce qui est arrivé le 23 septembre et qu'il ne faut plus redemander** : la charte graphique
+(une bannière, dont les couleurs du site sont échantillonnées), le lien d'invitation Discord et
+les trois comptes de la marque. L'image qui s'affiche quand un lien du site est partagé en
+découle et est faite — elle attendait cette charte depuis le 9 septembre.
 
 ### Les emails : le texte est au client
 
@@ -451,8 +514,11 @@ c'est ce qui le rend croyable, et ce qui permettra de voir qu'il a vieilli.
 **Aucune ne reste ouverte côté produit** depuis le 16 septembre 2026 : vidéos exclusives sur
 une plateforme externe (hors projet), vouvoiement, pas de PayPal en v1, pas de Supabase Pro
 pour le développement, salons Discord par défaut, prospects conservés trois ans. Détail et
-raisons dans `CLAUDE.md`. Le vendeur est tranché le 21 septembre (APEX COMPANY L.L.C-FZ) et la
-TVA le 22 : pas de TVA européenne, Stripe Tax calcule le reste (section 2).
+raisons dans `CLAUDE.md`. Le vendeur est tranché le 21 septembre (APEX COMPANY L.L.C-FZ), et le
+23 septembre a tranché le prestataire de paiement (Whop, en remplacement de Stripe), la TVA
+(mode « Whop collecte et reverse », 2 %) et les événements (pas de réservation de place sur le
+site). **Une seule décision de ces trois engage au-delà du code** : le mode fiscal, parce qu'il
+fait de Whop le vendeur apparent sur la facture (section 2).
 
 ---
 
@@ -462,21 +528,29 @@ Ordres de grandeur relevés le 16 septembre 2026, **à vérifier au moment de so
 grilles changent. Les comptes sont ouverts **au nom du client**, qui les paie ; les
 développeurs y sont invités.
 
-| Service                         | Pour quoi                                              | Coût                                                       |
-| ------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
-| Nom de domaine                  | L'adresse du site                                      | ~10–20 € par an                                            |
-| Vercel (plan Pro)               | Héberger le site et la tâche quotidienne de révocation | ~20 $ par mois — le plan gratuit exclut l'usage commercial |
-| Railway ou équivalent           | Faire tourner le bot Discord en continu                | ~5 $ par mois                                              |
-| Supabase (plan Pro, production) | Base de données, comptes, **sauvegardes quotidiennes** | 25 $ par mois — recommandé dès l'ouverture des ventes      |
-| Stripe                          | Encaisser les paiements                                | Pas d'abonnement, une commission par paiement              |
-| Resend ou équivalent            | Emails de confirmation — **sans eux, aucun paiement**  | Gratuit au départ, ~20 $ par mois au-delà du quota         |
-| Cal.com                         | Prise de rendez-vous de l'audit                        | Gratuit, ou ~12 $ par mois si les webhooks sont payants    |
-| Discord                         | Communauté et accès des clients                        | Gratuit                                                    |
-| Boîtes email professionnelles   | Contact et demandes RGPD, si elles n'existent pas déjà | ~6–8 € par mois par boîte                                  |
-| Médiateur de la consommation    | Obligation légale de vente aux particuliers            | Adhésion, souvent annuelle                                 |
+| Service                         | Pour quoi                                              | Coût                                                                                                                             |
+| ------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| Nom de domaine                  | L'adresse du site                                      | ~10–20 € par an — **`apexcompany.com` existe déjà** (ancien site) : est-ce ce domaine, et qui le contrôle ?                      |
+| Vercel (plan Pro)               | Héberger le site et la tâche quotidienne de révocation | ~20 $ par mois — le plan gratuit exclut l'usage commercial                                                                       |
+| Railway ou équivalent           | Faire tourner le bot Discord en continu                | ~5 $ par mois                                                                                                                    |
+| Supabase (plan Pro, production) | Base de données, comptes, **sauvegardes quotidiennes** | 25 $ par mois — recommandé dès l'ouverture des ventes                                                                            |
+| Whop                            | Encaisser les paiements — **compte déjà ouvert**       | Pas d'abonnement ; commission par paiement, **+ 2 %** pour le mode fiscal retenu. Le taux exact est celui du compte : à relever. |
+| Resend ou équivalent            | Emails de confirmation — **sans eux, aucun paiement**  | Gratuit au départ, ~20 $ par mois au-delà du quota                                                                               |
+| Cal.com                         | Prise de rendez-vous de l'audit                        | Gratuit, ou ~12 $ par mois si les webhooks sont payants                                                                          |
+| Discord                         | Communauté et accès des clients                        | Gratuit                                                                                                                          |
+| Boîtes email professionnelles   | Contact et demandes RGPD, si elles n'existent pas déjà | ~6–8 € par mois par boîte                                                                                                        |
+| Médiateur de la consommation    | Obligation légale de vente aux particuliers            | Adhésion, souvent annuelle                                                                                                       |
 
 Hors de cette liste : la plateforme des vidéos exclusives, hors projet, et le conseil
 juridique, qui est une dépense ponctuelle.
+
+**Le nom de domaine est le premier de la liste par ordre d'urgence, et pas par son prix.** Il
+bloque quatre choses à la fois : l'envoi des emails (les enregistrements DNS se posent chez son
+fournisseur, et ils mettent quelques heures à se propager), l'adresse du webhook Whop,
+l'indexation du site — `robots.txt` interdit tout tant que le site n'est pas servi en HTTPS
+depuis son vrai domaine — et les mentions légales, qui nomment l'hébergeur. **S'il s'agit de
+reprendre `apexcompany.com`, l'ancien site disparaît le jour de la bascule** : c'est une
+décision, pas une formalité.
 
 ---
 
@@ -484,9 +558,12 @@ juridique, qui est une dépense ponctuelle.
 
 1. **La clé serveur Supabase.** Une minute, et sans elle rien ne démarre.
 2. **Discord.** Le plus long à mettre en place, et le plus bloquant.
-3. **Le catalogue réel.** Il conditionne tout ce qu'on peut essayer ensuite.
+3. **Les neuf rôles Discord du catalogue**, un par produit. Le catalogue lui-même est en base
+   depuis le 23 septembre ; sans les rôles, aucun produit ne peut être mis en vente.
 4. **Cal.com**, avec la vérification des webhooks.
-5. **Stripe**, puis un vrai parcours d'achat de bout en bout — c'est le test qui compte.
+5. **Whop** — les trois clés, la liste d'événements du webhook, le mode fiscal —, puis un vrai
+   parcours d'achat de bout en bout dans le bac à sable. **C'est le test qui compte, et c'est
+   une heure** : rien du chemin de l'argent n'a jamais tourné contre le vrai service.
 6. **L'envoi d'emails**, à vérifier avant d'ouvrir les ventes, sous peine de les bloquer toutes.
    Les quatre enregistrements DNS **dès que le domaine existe**, sans attendre le reste : ils se
    propagent en quelques heures, et DMARC gagne à rester en observation quelques jours avant
@@ -503,56 +580,83 @@ JJ/MM » pour une clé — **jamais par la clé elle-même**.
 
 ### Accès techniques
 
-| Élément                               | État             | Qui s'en occupe | Note |
-| ------------------------------------- | ---------------- | --------------- | ---- |
-| Clé serveur Supabase                  | fournie le 12/09 | —               | —    |
-| Serveur Discord créé                  | —                | —               | —    |
-| Application et bot Discord            | —                | —               | —    |
-| Rôle `invité` créé, bot au-dessus     | —                | —               | —    |
-| Fournisseur Discord activé (Supabase) | —                | —               | —    |
-| Compte Cal.com de Franck              | —                | —               | —    |
-| Webhooks Cal.com disponibles ?        | —                | —               | —    |
-| Clés Stripe et webhook                | —                | —               | —    |
-| Envoi d'emails configuré              | —                | —               | —    |
-| SPF, DKIM, Return-Path posés          | —                | —               | —    |
-| **DMARC posé** (`_dmarc.<domaine>`)   | —                | —               | —    |
-| Webhook Resend et son secret          | —                | —               | —    |
-| Planificateur de la révocation        | —                | —               | —    |
-| Nom de domaine et hébergement du site | —                | —               | —    |
+| Élément                                | État                                 | Qui s'en occupe | Note |
+| -------------------------------------- | ------------------------------------ | --------------- | ---- |
+| Clé serveur Supabase                   | fournie le 12/09                     | —               | —    |
+| Serveur Discord créé                   | —                                    | —               | —    |
+| Application et bot Discord             | —                                    | —               | —    |
+| Rôle `invité` créé, bot au-dessus      | —                                    | —               | —    |
+| Fournisseur Discord activé (Supabase)  | —                                    | —               | —    |
+| Compte Cal.com de Franck               | —                                    | —               | —    |
+| Webhooks Cal.com disponibles ?         | —                                    | —               | —    |
+| Clés Whop (API, compte, webhook)       | —                                    | —               | —    |
+| Webhook Whop créé, 8 événements cochés | —                                    | —               | —    |
+| Mode fiscal Whop choisi                | « collecte et reverse » (2 %), 23/09 | —               | —    |
+| **Les 9 rôles Discord des produits**   | —                                    | —               | —    |
+| Envoi d'emails configuré               | —                                    | —               | —    |
+| SPF, DKIM, Return-Path posés           | —                                    | —               | —    |
+| **DMARC posé** (`_dmarc.<domaine>`)    | —                                    | —               | —    |
+| Webhook Resend et son secret           | —                                    | —               | —    |
+| Planificateur de la révocation         | —                                    | —               | —    |
+| Nom de domaine et hébergement du site  | —                                    | —               | —    |
+
+### Abonnements à souscrire
+
+Les coûts et ce qu'ils achètent sont en section 4 bis. Ici, seulement où ça en est.
+
+| Service                             | Ouvert ? | Au nom de qui | Coût constaté |
+| ----------------------------------- | -------- | ------------- | ------------- |
+| Nom de domaine                      | —        | —             | —             |
+| Vercel (plan Pro)                   | —        | —             | —             |
+| Railway (ou équivalent) pour le bot | —        | —             | —             |
+| Supabase (plan Pro, production)     | —        | —             | —             |
+| Whop                                | oui      | le client     | —             |
+| Resend (ou équivalent)              | —        | —             | —             |
+| Cal.com                             | —        | —             | —             |
+| Boîtes email professionnelles       | —        | —             | —             |
+| Médiateur de la consommation        | —        | —             | —             |
 
 ### Juridique
 
-| Question                                  | Réponse                                                          |
-| ----------------------------------------- | ---------------------------------------------------------------- |
-| Société qui vend aux clients finaux       | APEX COMPANY L.L.C-FZ (textes de l'ancien site, 21/09)           |
-| Numéro d'immatriculation de cette société | 2645781 — licence 2645781.01, **expire le 19/02/2027**           |
-| Adresse du siège                          | Meydan Grandstand, 6th Floor, Meydan Road, Nad Al Sheba, Dubaï   |
-| Directeur de la publication               | Franck Alexandre                                                 |
-| Hébergeur du site — nom et adresse        | Vercel indiqué dans les mentions ; à confirmer à la souscription |
-| Adresse de contact                        | —                                                                |
-| Adresse pour les demandes RGPD            | payment@apexcompany.com (textes de l'ancien site)                |
-| Médiateur de la consommation              | —                                                                |
-| Régime de TVA retenu                      | Pas de TVA européenne ; Stripe Tax (22/09)                       |
-| Représentant dans l'Union (RGPD)          | —                                                                |
-| Conseil juridique consulté ?              | —                                                                |
+| Question                                  | Réponse                                                                   |
+| ----------------------------------------- | ------------------------------------------------------------------------- |
+| Société qui vend aux clients finaux       | APEX COMPANY L.L.C-FZ (textes de l'ancien site, 21/09)                    |
+| Numéro d'immatriculation de cette société | 2645781 — licence 2645781.01, **expire le 19/02/2027**                    |
+| Adresse du siège                          | Meydan Grandstand, 6th Floor, Meydan Road, Nad Al Sheba, Dubaï            |
+| Directeur de la publication               | Franck Alexandre                                                          |
+| Hébergeur du site — nom et adresse        | Vercel indiqué dans les mentions ; à confirmer à la souscription          |
+| Adresse de contact                        | —                                                                         |
+| Adresse pour les demandes RGPD            | payment@apexcompany.com (textes de l'ancien site)                         |
+| Médiateur de la consommation              | —                                                                         |
+| Régime de TVA retenu                      | Whop collecte et reverse, 2 % (23/09) — Whop devient _merchant of record_ |
+| Facture fiscale : Whop ou APEX COMPANY ?  | À trancher avec le juriste : les CGV disent APEX COMPANY                  |
+| Représentant dans l'Union (RGPD)          | —                                                                         |
+| Conseil juridique consulté ?              | —                                                                         |
 
 ### Contenu
 
-| Élément                                       | État | Note |
-| --------------------------------------------- | ---- | ---- |
-| Catalogue réel saisi dans `/admin/formations` | —    | —    |
-| Biographies et photos des formateurs          | —    | —    |
-| Témoignages, avec accord écrit                | —    | —    |
-| Chiffres de réassurance validés et datés      | —    | —    |
-| Logo et visuels                               | —    | —    |
-| Charte graphique du designer                  | —    | —    |
-| Preuve sociale externe (type Trustpilot)      | —    | —    |
+| Élément                                  | État                                                | Note                                          |
+| ---------------------------------------- | --------------------------------------------------- | --------------------------------------------- |
+| Catalogue réel en base                   | fait le 23/09, **les 9 produits sont en brouillon** | Publiables dès que les rôles Discord existent |
+| Biographies et photos des formateurs     | —                                                   | —                                             |
+| Témoignages, avec accord écrit           | —                                                   | —                                             |
+| Chiffres de réassurance validés et datés | —                                                   | —                                             |
+| Logo                                     | —                                                   | —                                             |
+| Visuels et photos de la marque           | —                                                   | —                                             |
+| Charte graphique                         | fournie le 23/09 (bannière)                         | Le site est repeint avec                      |
+| Preuve sociale externe (type Trustpilot) | —                                                   | —                                             |
+| Textes des emails automatiques           | —                                                   | Brouillons à relire, section 3                |
+| Descriptions longues des 9 produits      | —                                                   | Objectifs, prérequis                          |
 
 ### Décisions
 
-| Question                                  | Réponse                                             |
-| ----------------------------------------- | --------------------------------------------------- |
-| Où vivent les vidéos exclusives ?         | Plateforme externe, hors projet (16/09)             |
-| Plan Supabase Pro — 25 $/mois             | Pas besoin pour le dev (16/09) ; recommandé en prod |
-| Second prestataire de paiement (PayPal) ? | Pas en v1 (16/09)                                   |
-| Tutoiement ou vouvoiement                 | Vouvoiement (16/09)                                 |
+| Question                                   | Réponse                                             |
+| ------------------------------------------ | --------------------------------------------------- |
+| Où vivent les vidéos exclusives ?          | Plateforme externe, hors projet (16/09)             |
+| Plan Supabase Pro — 25 $/mois              | Pas besoin pour le dev (16/09) ; recommandé en prod |
+| Second prestataire de paiement (PayPal) ?  | Pas en v1 (16/09)                                   |
+| Tutoiement ou vouvoiement                  | Vouvoiement (16/09)                                 |
+| Prestataire de paiement                    | Whop, en remplacement de Stripe (23/09)             |
+| Événements et séminaires sur le site ?     | Non — billetterie externe (23/09)                   |
+| Les 7 liens hors catalogue : on continue ? | —                                                   |
+| `apexcompany.com` devient le site ?        | —                                                   |
