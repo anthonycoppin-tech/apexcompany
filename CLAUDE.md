@@ -386,9 +386,12 @@ lectures seules, sans Docker — c'est ce qui a permis de trancher ici.
 
 ### Branches nettoyées
 
-Il ne reste que `main`. `claude/systeme-de-messages` était fusionnée par la PR #20,
-`claude/confident-newton-2w22x1` entièrement dans `main`, et `claude/quirky-goldberg-v91bjn`
-portait un vouvoiement que le chantier du 16 septembre avait déjà refait.
+`claude/confident-newton-2w22x1` a disparu du distant. **Deux branches y sont toujours**, au
+24 septembre, et aucune ne porte de travail à récupérer : `claude/systeme-de-messages` est
+entièrement dans `main` (PR #20), et `claude/quirky-goldberg-v91bjn` n'a qu'un commit propre —
+un vouvoiement que le chantier du 16 septembre avait déjà refait — sous quatre fusions de
+`main`. Elles se suppriment sans regret, mais ça n'a pas été fait : effacer une branche d'un
+distant partagé se décide, ça ne se déduit pas.
 
 ## Point d'étape — 18 septembre 2026
 
