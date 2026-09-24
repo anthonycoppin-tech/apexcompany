@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import type { Json } from '@apex/db';
 
+import { requireRole } from '@/lib/auth/roles';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
@@ -40,6 +41,12 @@ export async function rattacherPaiement(
   _precedent: EtatAction,
   donnees: FormData,
 ): Promise<EtatAction> {
+  // Une action serveur est une API publique : la garde du layout ne la protège
+  // pas, seule cette ligne le fait. Elle manquait ici, et tout ce qui suit
+  // passe par la clé de service, donc hors RLS — cette action ouvre un accès
+  // payant et émet une facture au nom de l'adresse qu'on lui donne.
+  await requireRole(['admin', 'owner']);
+
   const logId = (donnees.get('log_id') ?? '').toString();
   const formationId = (donnees.get('formation_id') ?? '').toString();
   const email = (donnees.get('email') ?? '').toString().trim().toLowerCase();
@@ -54,9 +61,10 @@ export async function rattacherPaiement(
   } = await supabase.auth.getUser();
   if (!user) return echoue('Session expirée.');
 
-  const admin = createServiceRoleClient();
-
-  const { data: journal } = await admin
+  // La ligne de la file, lue **sous RLS** : `automation_logs_staff_lit` la
+  // réserve au staff. Deux verrous valent mieux qu'un sur une action qui
+  // encaisse, et celui-ci ne coûte rien — c'est la même requête.
+  const { data: journal } = await supabase
     .from('automation_logs')
     .select('id, details')
     .eq('id', logId)
@@ -64,6 +72,8 @@ export async function rattacherPaiement(
     .maybeSingle();
 
   if (!journal) return echoue('Ce paiement n’est plus dans la file.');
+
+  const admin = createServiceRoleClient();
 
   const details = (journal.details ?? {}) as {
     event?: string;

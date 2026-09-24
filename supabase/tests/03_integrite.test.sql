@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(38);
+select plan(45);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -198,6 +198,51 @@ select is(
   'propres actions y sont, ce qui vide laudit de son sens'
 );
 
+-- ── L'élévation de privilège, qui n'était testée nulle part ────────────────
+-- `user_roles` est la seule table qui décide de qui peut quoi, et sa politique
+-- d'écriture est réservée à `owner` depuis le premier jour. Rien ne le
+-- vérifiait. Un admin qui s'accorde `owner` obtient le journal d'audit, les
+-- paramètres, et le droit de s'effacer du journal.
+
+select throws_ok(
+  $$insert into public.user_roles (user_id, role)
+    values ('22222222-2222-2222-2222-222222222222', 'owner')$$,
+  '42501',
+  null,
+  'un admin ne peut pas saccorder le rôle owner'
+);
+
+-- **Un update et un delete, eux, ne lèvent rien**, et c'est le piège de la RLS :
+-- la politique d'écriture ne rend aucune ligne visible à l'admin, donc
+-- PostgreSQL en met zéro à jour — sans erreur. Seul l'insert bute sur un
+-- `with check`. On vérifie donc l'effet, pas le message.
+
+select lives_ok(
+  $$update public.user_roles set role = 'owner'
+     where user_id = '22222222-2222-2222-2222-222222222222'$$,
+  'son update ne lève rien : la RLS ne refuse pas, elle ne voit rien'
+);
+
+select is(
+  (select role::text from public.user_roles
+    where user_id = '22222222-2222-2222-2222-222222222222'),
+  'admin',
+  'et il est toujours admin, pas owner'
+);
+
+select lives_ok(
+  $$delete from public.user_roles
+     where user_id = '11111111-1111-1111-1111-111111111111'$$,
+  'son delete sur le rôle de lowner ne lève rien non plus'
+);
+
+select is(
+  (select count(*) from public.user_roles
+    where user_id = '11111111-1111-1111-1111-111111111111' and role = 'owner')::int,
+  1,
+  'et lowner en place a toujours le sien'
+);
+
 -- ── Rôle owner ─────────────────────────────────────────────────────────────
 
 set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
@@ -205,6 +250,22 @@ set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","r
 select cmp_ok(
   (select count(*) from public.audit_logs)::int, '>', 0,
   'owner relit le journal daudit'
+);
+
+-- Le pendant du test précédent : la politique ne ferme pas la porte à tout le
+-- monde, sinon plus personne ne pourrait nommer un administrateur. On rend le
+-- rôle aussitôt — le compte visé est celui du pôle branding, et les
+-- assertions qui suivent vérifient précisément ce qu'il ne doit pas voir.
+select lives_ok(
+  $$insert into public.user_roles (user_id, role)
+    values ('55555555-5555-5555-5555-555555555555', 'admin')$$,
+  'owner, lui, accorde un rôle'
+);
+
+select lives_ok(
+  $$delete from public.user_roles
+     where user_id = '55555555-5555-5555-5555-555555555555' and role = 'admin'$$,
+  'et le retire'
 );
 
 -- ── Rôle branding ──────────────────────────────────────────────────────────

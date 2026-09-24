@@ -51,8 +51,16 @@ grant usage on schema tap to public;
 grant insert, select, truncate on tap.resultats to public;
 grant usage, select on all sequences in schema tap to public;
 
+-- Le nombre annoncé est retenu : pg_prove échoue si le fichier n'exécute pas
+-- exactement ce qu'il a planifié, et c'est une erreur facile à commettre en
+-- ajoutant une assertion. Sans cette doublure-ci, le rejeu local dirait « tout
+-- va bien » et la CI, elle, refuserait le fichier.
 create or replace function public.plan(n int) returns text
-language sql as $f$ select '1..' || n $f$;
+language plpgsql as $f$
+begin
+  perform set_config('tap.plan', n::text, true);
+  return '1..' || n;
+end $f$;
 
 create or replace function public.finish() returns setof text
 language sql as $f$ select '# fin' $f$;
@@ -216,7 +224,18 @@ for (const fichier of fichiers) {
 
   const resultats = (await db.query('select ok, description, detail from tap.resultats order by n'))
     .rows;
+  const planAnnonce = Number(
+    (await db.query(`select current_setting('tap.plan', true) as n`)).rows[0].n,
+  );
   await db.exec('rollback;');
+
+  if (Number.isFinite(planAnnonce) && planAnnonce !== resultats.length) {
+    echecs += 1;
+    console.log(
+      `  ✗ ${nom} — plan annoncé ${planAnnonce}, ${resultats.length} assertions exécutées`,
+    );
+    continue;
+  }
 
   const rates = resultats.filter((r) => !r.ok);
   total += resultats.length;

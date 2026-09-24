@@ -212,6 +212,42 @@ async function main() {
   verifier('admin voit les deux propositions', await compter('public.propositions'), 2);
   verifier('admin ne lit pas le journal daudit', await compter('public.audit_logs'), 0);
 
+  // L'élévation de privilège. `user_roles` décide de qui peut quoi, et son
+  // écriture est réservée à `owner` depuis le premier jour — sans que rien ne
+  // le vérifie jusqu'au 24 septembre 2026. Un admin qui s'accorde `owner`
+  // obtient le journal d'audit, les paramètres, et le droit de s'effacer du
+  // journal.
+  let insertionRefusee = false;
+  try {
+    await db.exec(`insert into public.user_roles (user_id, role)
+                   values ('22222222-2222-2222-2222-222222222222', 'owner');`);
+  } catch {
+    insertionRefusee = true;
+  }
+  verifier('admin ne peut pas saccorder le rôle owner', insertionRefusee, true);
+
+  // Un update, lui, ne lève rien : la politique ne rend aucune ligne visible à
+  // l'admin, donc PostgreSQL en met zéro à jour, en silence. C'est l'effet
+  // qu'on vérifie, jamais le message.
+  await db.exec(`update public.user_roles set role = 'owner'
+                 where user_id = '22222222-2222-2222-2222-222222222222';`);
+  verifier(
+    'et son update ne le change pas non plus — la RLS ne refuse pas, elle ne voit rien',
+    (
+      await db.query(`select role::text as r from public.user_roles
+                      where user_id = '22222222-2222-2222-2222-222222222222'`)
+    ).rows[0]?.r,
+    'admin',
+  );
+
+  await db.exec(`delete from public.user_roles
+                 where user_id = '11111111-1111-1111-1111-111111111111';`);
+  verifier(
+    'ni son delete sur le rôle de lowner',
+    await compter(`public.user_roles where user_id = '11111111-1111-1111-1111-111111111111'`),
+    1,
+  );
+
   await devenir('11111111-1111-1111-1111-111111111111');
   const auditOwner = await compter('public.audit_logs');
   verifier('owner lit le journal daudit', auditOwner > 0, true);
