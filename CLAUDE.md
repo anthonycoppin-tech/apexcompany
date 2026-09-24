@@ -20,10 +20,127 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
-## Point d'étape — 23 septembre 2026
+## Point d'étape — 24 septembre 2026
 
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
 contredit pas.
+
+Journée sans livraison du client : relecture, vérification, et deux défauts de sécurité trouvés
+en regardant du code écrit la veille. Le catalogue réel est **en vente** à la fin de la journée.
+
+### La CI était rouge depuis la veille, et personne ne l'avait vu
+
+Deux causes, aucune visible en local : **dix fichiers non passés par Prettier** — `format:check`
+est une étape de la CI — et **un test pgTAP qui comptait le catalogue en dur**. « formateur A
+voit tout le catalogue » attendait 4 produits ; la migration de données du 23 en a inséré neuf.
+Le cloisonnement n'avait pas bougé d'un pouce : c'est le nombre écrit en dur qui était faux, et
+il le redeviendrait à chaque publication du client.
+
+Les trois assertions du catalogue se mesurent désormais **au contenu réel de la table**, relevé
+avant tout changement de rôle. Une assertion de plus vérifie qu'il reste au moins un brouillon,
+sans quoi « il voit tout » passerait même si la politique filtrait sur `actif`.
+
+**La raison pour laquelle personne n'a rien vu est fermée** : `npm run db:test:pglite` rejoue les
+neuf fichiers pgTAP sur PGlite en doublant les neuf fonctions de pgTAP — 160 assertions, plan
+compris, sans Docker. Vérifié contre le vrai défaut : sur l'ancien fichier, il rend « obtenu 13,
+attendu 4 », exactement ce que la CI disait. **Deux choses à ne pas défaire** dans
+`scripts/rejouer-pgtap.mjs` : `lives_ok` et `throws_ok` s'exécutent avec les droits de
+l'appelant — en `security definer` elles tourneraient hors RLS et tous les tests d'écriture
+cloisonnée passeraient sans rien prouver ; et une assertion non doublée est signalée comme
+telle, sinon on corrigerait le test au lieu du script.
+
+**Un défaut dans l'environnement PGlite lui-même** est sorti de là : il appliquait
+`grant all on all functions` **après** les migrations, ce qui annulait les révocations posées sur
+`purger_prospects_inactifs()` et `effacer_personne()` — deux fonctions qui suppriment des
+comptes. Les droits sont désormais posés **avant**, par `alter default privileges`, comme
+Supabase le fait. `scripts/environnement-pglite.mjs` est partagé par les deux outils.
+
+### Deux règles qui ne vivaient que dans un écran
+
+C'est la même famille que « la RLS est la sécurité, pas le filtre d'affichage », et elle a mordu
+deux fois dans la même journée.
+
+- **`rattacherPaiement()` ne vérifiait aucun rôle.** Elle ouvre un accès payant, émet une facture
+  et attribue un rôle Discord à l'adresse qu'on lui donne, et tout son travail passe par la clé
+  de service, donc hors RLS. Le fichier d'à côté porte pourtant la règle en toutes lettres :
+  « une action serveur est une API publique ». Corrigé par `requireRole` **et** la lecture de la
+  file sous RLS. Les dix-sept autres fichiers d'actions ont été relus : aucun autre trou.
+- **« Un produit publié déclare son rôle Discord » n'existait que dans le back-office.** Le
+  commentaire de `enregistrerFormation()` le disait franchement — « celle-là n'existe nulle part
+  ailleurs » — mais quatre documents affirmaient le contraire. Un `update` en SQL passait à
+  côté : produit en vente, paiement encaissé, facture émise, **aucun accès ouvert**.
+  `20260924100000_a_publication_avec_role.sql` la met dans le schéma ; l'écran garde la sienne,
+  qui explique en français plutôt que de répondre `23514`.
+
+**L'élévation de privilège n'était testée nulle part** : `user_roles` décide de qui peut quoi,
+son écriture est réservée à `owner` depuis le premier jour, et rien ne le vérifiait. Sept
+assertions pgTAP, trois PGlite — et le piège qu'elles documentent : **seul l'`insert` lève une
+erreur.** Un `update` ou un `delete` ne lèvent rien, la politique ne rendant aucune ligne
+visible ; on vérifie l'effet, jamais le message.
+
+### Le catalogue réel est en vente
+
+Les neuf rôles Discord ont été créés à la main, leurs identifiants **vérifiés avant d'être
+écrits** — un snowflake porte sa date de création, les neuf tombent dans le quart d'heure où ils
+ont été créés, et ils sont distincts. Les neuf produits sont publiés, les trois du jeu d'essai
+dépubliés. Vu à l'écran : l'accueil rend APEX PRIME à 59 € **/ mois** et sa fiche annuelle à
+490 € **/ an**, première vérification de la périodicité par produit avec de vraies données.
+
+**Les témoignages et fiches formateurs du jeu d'essai restent publiés**, à la demande d'Anthony :
+ils portent tous la mention « (jeu d'essai) », et valent mieux qu'une page vide en attendant le
+contenu du client.
+
+**APEX PRIME mensuel et annuel partagent un rôle**, et c'est voulu : même accès, deux
+périodicités. Le partage est sûr par construction — `revoquer_acces_expires()` vérifie, avant
+chaque retrait, qu'aucune autre inscription active du même client ne porte ce rôle. L'affirmation
+inverse, écrite le 24 au matin dans le document du client, était fausse.
+
+`npm run discord:roles` fait tout ce travail sans copier-coller : il crée les rôles manquants,
+retrouve par leur nom ceux qui existent — à la casse, aux tirets et aux underscores près —, écrit
+les identifiants et publie. **Un identifiant ne vaut que sur son serveur** : la production
+demandera de le relancer là-bas.
+
+### Le webhook Whop, relu faute de pouvoir l'exécuter
+
+Deux défauts, tous deux « la base affirme ce qu'elle ne sait pas ». Un litige dont le montant est
+illisible s'enregistrait **à zéro euro**, sur l'écran où l'on décide de contester — le montant de
+l'encaissement contesté sert désormais de repli, tracé, et sans lui on nomme le litige plutôt que
+de l'inventer. Et **revenir sur une résiliation remettait un impayé en « actif »**, le faisant
+disparaître du tri de `/admin/abonnements`, qui met les impayés en premier.
+
+### Ce que ce poste peut faire, contrairement à ce qui était écrit
+
+**Le proxy d'entreprise casse TLS pour Node** : tout `fetch` sortant échoue sur
+`SELF_SIGNED_CERT_IN_CHAIN`, et le message « fetch failed » laisse croire que la base est
+inaccessible. `node --use-system-ca` fait confiance au magasin de Windows et règle tout —
+la base hébergée comme l'API Discord répondent. **Le serveur de développement doit être lancé
+avec `NODE_OPTIONS=--use-system-ca`**, sans quoi toutes les pages s'affichent vides, sans erreur.
+La CLI Supabase reste hors jeu : binaire Go, et elle tente une connexion directe à
+`db.<ref>.supabase.co`, hôte qui ne résout plus.
+
+### Documents remis d'aplomb
+
+`04-DATA-MODEL.md` avait dérivé — il décrivait `orders.echelonne`, supprimée par une migration
+qu'il mentionne lui-même, ignorait `whop`, et **trois tables existantes n'y étaient pas**. Relu
+contre `database.types.ts` par un script qui compare colonne par colonne : les 24 tables et les
+16 fonctions y sont. Les deux blocs SQL de sa section RLS omettaient `security definer` et
+`search_path` — recopiés tels quels, ils fabriquaient une récursion infinie.
+
+Stripe est sorti de la spécification, `08-CE-QUI-MANQUE.md` a été refait pour le rendez-vous
+client (dont une **section 3 bis** qui n'existait nulle part : les clients qui achètent déjà par
+les liens Whop sont inconnus de la base, et leur faire reprendre un abonnement les ferait payer
+deux fois), et l'étape catalogue de `10-MISE-EN-PRODUCTION.md` a été corrigée — les produits
+arrivent par migration, il ne faut pas les ressaisir.
+
+### Ce qui reste, inchangé
+
+Le nom de domaine, les trois clés Whop et une heure de bac à sable, la relecture juridique. Plus
+deux choses nées aujourd'hui : **ouvrir les salons Discord à ces neuf rôles** — un rôle sans
+permission n'ouvre rien —, et **la liste des clients déjà actifs**, à demander au client.
+
+## Point d'étape — 23 septembre 2026
+
+**Reste vrai pour tout ce que le point d'étape du 24 septembre ne contredit pas.**
 
 Le client a livré trois choses le même jour : une bannière qui arrête la charte graphique, un
 document de seize liens de paiement **Whop**, et la décision de quitter Stripe.
@@ -769,11 +886,10 @@ fait pendant son absence, avec son accord obtenu après coup : `/offres` → `/f
 `/coachs` → `/formateurs`, plusieurs routes de la révision 2 supprimées. À avoir en tête avant
 de merger du travail commencé sur l'ancienne arborescence.
 
-**Le catalogue de la base hébergée contient encore des données façon révision 2**, migrées
-telles quelles : par exemple « Accélérateur » y est un `type_produit = 'formation'` en groupe,
-alors que c'est en réalité un accompagnement individuel. Le site affiche donc des données
-fausses tant que le catalogue n'a pas été rechargé avec les vrais produits — ce n'est pas un
-bug du code, c'est un problème de données à corriger dès qu'elles sont connues.
+~~**Le catalogue de la base hébergée contient encore des données façon révision 2**.~~
+**Plus vrai depuis le 24 septembre 2026** : les neuf produits du client sont en vente et ceux
+du jeu d'essai sont dépubliés. La remarque est gardée parce qu'elle explique ce qu'on a lu à
+l'écran pendant deux semaines.
 
 **Le design system vit dans `apps/web/src/app/globals.css`**, en tokens Tailwind v4. Aucune
 page ne pose de couleur littérale : tout passe par `bg-surface`, `text-encre-doux`,

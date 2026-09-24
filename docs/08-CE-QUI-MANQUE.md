@@ -38,8 +38,9 @@ des seize liens de paiement Whop, le lien d'invitation Discord et les comptes de
 
 **Les quatre manques qui bloquent réellement la vente**, dans l'ordre :
 
-1. **les neuf identifiants de rôle Discord** — un par produit. Sans eux, aucun produit ne peut
-   être publié, donc rien n'est en vente (section 3) ;
+1. ~~les neuf identifiants de rôle Discord~~ — **fait le 24 septembre** : les rôles sont créés,
+   les neuf produits publiés, et les trois produits du jeu d'essai retirés de la vente. À
+   refaire sur le serveur de production le jour venu, par une commande (section 3) ;
 2. **le nom de domaine**, qui commande l'envoi des emails, l'adresse du webhook, l'indexation
    et les mentions légales (section 4 bis) ;
 3. **les trois clés Whop**, et une heure dans le bac à sable — rien du chemin de l'argent n'a
@@ -70,13 +71,13 @@ compile », jamais que « ça marche ».
 pour y rejouer l'installation (`apps/bot/README.md`) et remplacer les identifiants ci-dessous.
 C'est bloquant dès l'entrée du tunnel, puisque c'est là que le rôle `invité` est attribué.
 
-| À fournir                                                | Variable                                          |
-| -------------------------------------------------------- | ------------------------------------------------- |
-| Identifiant du serveur Discord                           | `DISCORD_GUILD_ID`                                |
-| Jeton du bot                                             | `DISCORD_BOT_TOKEN`                               |
-| Identifiant et secret de l'application (connexion OAuth) | À saisir dans le tableau de bord Supabase         |
-| Identifiant du rôle `invité`                             | `DISCORD_ROLE_INVITE_ID`                          |
-| ~~Lien d'invitation permanent au serveur~~               | **Fourni le 23 septembre**, dans `lib/reseaux.ts` |
+| À fournir                                                | Variable                                             |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| Identifiant du serveur Discord                           | `DISCORD_GUILD_ID`                                   |
+| Jeton du bot                                             | `DISCORD_BOT_TOKEN`                                  |
+| Identifiant et secret de l'application (connexion OAuth) | À saisir dans le tableau de bord Supabase            |
+| ~~Identifiant du rôle `invité`~~                         | **Fourni le 24 septembre**, `DISCORD_ROLE_INVITE_ID` |
+| ~~Lien d'invitation permanent au serveur~~               | **Fourni le 23 septembre**, dans `lib/reseaux.ts`    |
 
 Deux réglages à faire sur le serveur, et le second est un piège classique :
 
@@ -409,12 +410,20 @@ Du travail de développeur, noté dans `09-CHANTIERS.md`, à faire avant d'ouvri
 Rien de tout cela n'a été inventé, et rien ne le sera : une biographie ou un témoignage
 fabriqué sur un site de formation en investissement est un risque, pas un espace réservé.
 
-### Les neuf produits attendent leur rôle Discord
+### Les neuf produits sont en vente — sur l'environnement de développement
 
 **Le catalogue réel est en base depuis le 23 septembre**, tiré du document de seize liens de
-paiement transmis par le client : les neuf produits ci-dessous existent, avec leur prix, leur
-durée d'accès et leur plan Whop. Ce n'est donc plus le manque qu'il était — mais **aucun n'est
-en vente**, et un seul élément les en empêche.
+paiement transmis par le client : les neuf produits ci-dessous, avec leur prix, leur durée
+d'accès et leur plan Whop.
+
+**Le 24 septembre, les rôles Discord ont été créés et les neuf publiés.** Ce manque-là est
+donc levé, et les trois produits du jeu d'essai sont sortis de la vente. `/formations` montre
+le vrai catalogue, APEX PRIME à 59 € par mois et 490 € par an.
+
+**Ce qui reste vrai pour la production** : les identifiants de rôle ne valent que sur le
+serveur Discord où ils ont été créés. Le jour de la mise en ligne, il faudra les recréer sur
+le serveur de production et les réinscrire — c'est l'affaire d'une commande
+(`npm run discord:roles`), pas d'une ressaisie.
 
 **Un produit publié doit déclarer son rôle Discord**, et c'est voulu : sans lui, il encaisse
 un paiement, ouvre une commande, une inscription et une facture — et n'ouvre aucun accès. Le
@@ -426,8 +435,11 @@ back-office le refuse depuis le 13 septembre ; **la base le refuse depuis le 24*
 Discord attribue au moment où le rôle est créé — il ne s'invente pas, et le recopier neuf fois
 à la main se paie d'une faute de frappe qui ne se verrait qu'au premier paiement. **Il suffit
 de l'accès administrateur au serveur** : `npm run discord:roles` crée les rôles manquants,
-sans aucune permission, et écrit leur identifiant dans chaque fiche produit. Ce qu'il reste à
-faire ensuite est humain — ouvrir les salons à ces rôles, et cocher « publié ».
+sans aucune permission, et écrit leur identifiant dans chaque fiche produit.
+
+**Ce qui reste humain, et qui n'est pas fait** : ouvrir les salons à ces rôles. Un rôle sans
+permission n'ouvre rien tant qu'aucun salon ne le reconnaît — un client paierait, recevrait
+son rôle, et ne verrait aucun salon nouveau.
 
 | Produit                         | Prix        | Ce qu'un paiement ouvre | Rôle Discord   |
 | ------------------------------- | ----------- | ----------------------- | -------------- |
@@ -659,25 +671,25 @@ JJ/MM » pour une clé — **jamais par la clé elle-même**.
 
 ### Accès techniques
 
-| Élément                                | État                                 | Qui s'en occupe | Note |
-| -------------------------------------- | ------------------------------------ | --------------- | ---- |
-| Clé serveur Supabase                   | fournie le 12/09                     | —               | —    |
-| Serveur Discord créé                   | —                                    | —               | —    |
-| Application et bot Discord             | —                                    | —               | —    |
-| Rôle `invité` créé, bot au-dessus      | —                                    | —               | —    |
-| Fournisseur Discord activé (Supabase)  | —                                    | —               | —    |
-| Compte Cal.com de Franck               | —                                    | —               | —    |
-| Webhooks Cal.com disponibles ?         | —                                    | —               | —    |
-| Clés Whop (API, compte, webhook)       | —                                    | —               | —    |
-| Webhook Whop créé, 8 événements cochés | —                                    | —               | —    |
-| Mode fiscal Whop choisi                | « collecte et reverse » (2 %), 23/09 | —               | —    |
-| **Les 9 rôles Discord des produits**   | —                                    | —               | —    |
-| Envoi d'emails configuré               | —                                    | —               | —    |
-| SPF, DKIM, Return-Path posés           | —                                    | —               | —    |
-| **DMARC posé** (`_dmarc.<domaine>`)    | —                                    | —               | —    |
-| Webhook Resend et son secret           | —                                    | —               | —    |
-| Planificateur de la révocation         | —                                    | —               | —    |
-| Nom de domaine et hébergement du site  | —                                    | —               | —    |
+| Élément                                | État                                 | Qui s'en occupe | Note                       |
+| -------------------------------------- | ------------------------------------ | --------------- | -------------------------- |
+| Clé serveur Supabase                   | fournie le 12/09                     | —               | —                          |
+| Serveur Discord créé                   | —                                    | —               | —                          |
+| Application et bot Discord             | —                                    | —               | —                          |
+| Rôle `invité` créé                     | créé le 24/09                        | Anthony         | Bot au-dessus : à vérifier |
+| Fournisseur Discord activé (Supabase)  | —                                    | —               | —                          |
+| Compte Cal.com de Franck               | —                                    | —               | —                          |
+| Webhooks Cal.com disponibles ?         | —                                    | —               | —                          |
+| Clés Whop (API, compte, webhook)       | —                                    | —               | —                          |
+| Webhook Whop créé, 8 événements cochés | —                                    | —               | —                          |
+| Mode fiscal Whop choisi                | « collecte et reverse » (2 %), 23/09 | —               | —                          |
+| **Les 9 rôles Discord des produits**   | créés le 24/09 (serveur de dev)      | Anthony         | À recréer en production    |
+| Envoi d'emails configuré               | —                                    | —               | —                          |
+| SPF, DKIM, Return-Path posés           | —                                    | —               | —                          |
+| **DMARC posé** (`_dmarc.<domaine>`)    | —                                    | —               | —                          |
+| Webhook Resend et son secret           | —                                    | —               | —                          |
+| Planificateur de la révocation         | —                                    | —               | —                          |
+| Nom de domaine et hébergement du site  | —                                    | —               | —                          |
 
 ### Abonnements à souscrire
 
@@ -714,19 +726,19 @@ Les coûts et ce qu'ils achètent sont en section 4 bis. Ici, seulement où ça 
 
 ### Contenu
 
-| Élément                                  | État                                                | Note                                          |
-| ---------------------------------------- | --------------------------------------------------- | --------------------------------------------- |
-| Catalogue réel en base                   | fait le 23/09, **les 9 produits sont en brouillon** | Publiables dès que les rôles Discord existent |
-| Biographies et photos des formateurs     | —                                                   | —                                             |
-| Témoignages, avec accord écrit           | —                                                   | —                                             |
-| Chiffres de réassurance validés et datés | —                                                   | —                                             |
-| Logo                                     | —                                                   | —                                             |
-| Visuels et photos de la marque           | —                                                   | —                                             |
-| Charte graphique                         | fournie le 23/09 (bannière)                         | Le site est repeint avec                      |
-| Preuve sociale externe (type Trustpilot) | —                                                   | —                                             |
-| Textes des emails automatiques           | —                                                   | Brouillons à relire, section 3                |
-| Descriptions longues des 9 produits      | —                                                   | Objectifs, prérequis                          |
-| Liste des clients déjà actifs            | —                                                   | Export Whop des adhésions, section 3 bis      |
+| Élément                                  | État                         | Note                                         |
+| ---------------------------------------- | ---------------------------- | -------------------------------------------- |
+| Catalogue réel en base                   | **en vente depuis le 24/09** | Les 3 produits du jeu d'essai sont dépubliés |
+| Biographies et photos des formateurs     | —                            | —                                            |
+| Témoignages, avec accord écrit           | —                            | —                                            |
+| Chiffres de réassurance validés et datés | —                            | —                                            |
+| Logo                                     | —                            | —                                            |
+| Visuels et photos de la marque           | —                            | —                                            |
+| Charte graphique                         | fournie le 23/09 (bannière)  | Le site est repeint avec                     |
+| Preuve sociale externe (type Trustpilot) | —                            | —                                            |
+| Textes des emails automatiques           | —                            | Brouillons à relire, section 3               |
+| Descriptions longues des 9 produits      | —                            | Objectifs, prérequis                         |
+| Liste des clients déjà actifs            | —                            | Export Whop des adhésions, section 3 bis     |
 
 ### Décisions
 
