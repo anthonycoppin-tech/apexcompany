@@ -386,12 +386,16 @@ lectures seules, sans Docker — c'est ce qui a permis de trancher ici.
 
 ### Branches nettoyées
 
-`claude/confident-newton-2w22x1` a disparu du distant. **Deux branches y sont toujours**, au
-24 septembre, et aucune ne porte de travail à récupérer : `claude/systeme-de-messages` est
-entièrement dans `main` (PR #20), et `claude/quirky-goldberg-v91bjn` n'a qu'un commit propre —
-un vouvoiement que le chantier du 16 septembre avait déjà refait — sous quatre fusions de
-`main`. Elles se suppriment sans regret, mais ça n'a pas été fait : effacer une branche d'un
-distant partagé se décide, ça ne se déduit pas.
+**Il ne reste que `main` — vraiment, au 24 septembre 2026.** La dernière,
+`claude/quirky-goldberg-v91bjn`, a été supprimée ce jour-là après vérification de ce qu'elle
+apportait : sept fichiers, **uniquement des commentaires** passés au vouvoiement, celui des
+textes visibles ayant déjà été fait sur `main` le 16 septembre. Aucune ligne de code, aucun
+chantier en cours.
+
+Son dernier commit est `b744769ddd81487f556998e4d42ca2645642dff4`, et
+`claude/systeme-de-messages` s'arrêtait à `64d42b179c7dfac0fc20d52471d20a33d42bd3cc` — notés
+ici parce qu'une branche supprimée se recrée tant que le commit est connu :
+`git push origin <sha>:refs/heads/<nom>`.
 
 ## Point d'étape — 18 septembre 2026
 
