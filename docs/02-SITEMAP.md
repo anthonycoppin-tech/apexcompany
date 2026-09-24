@@ -137,7 +137,7 @@ exposer le back-office au branding. Aucune donnée nominative — que des agrég
 /admin/abonnements          Abonnements actifs, renouvellements, échecs de prélèvement
 
 /admin/paiements
-  /transactions             Stripe + PayPal unifiés
+  /transactions             Encaissements, quel que soit le prestataire
   /remboursements
   /litiges
 

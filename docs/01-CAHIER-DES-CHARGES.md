@@ -60,8 +60,8 @@ logique par type dans le worker : le worker lit une date, il n'a pas à savoir c
 vendu.
 
 En revanche la **couche paiement porte bien deux mécaniques distinctes** : un abonnement
-Stripe (avec ses renouvellements, ses échecs de prélèvement, ses relances et sa résiliation)
-n'a presque rien de commun avec un paiement unique. C'est le vrai surcoût de la révision 3
+(avec ses renouvellements, ses échecs de prélèvement, ses relances et sa résiliation) n'a
+presque rien de commun avec un paiement unique. C'est le vrai surcoût de la révision 3
 côté serveur, et il faut le budgéter comme tel.
 
 ### Le type de produit ne dit pas comment le cours se donne
@@ -334,7 +334,8 @@ Quatre raisons, dans l'ordre d'importance :
 
 - **La conversion devient mesurable.** Qui a proposé quoi, à quel prix, et est-ce que ça a
   été payé. C'est la statistique que le tableau de bord formateur doit afficher, et un lien
-  Stripe collé à la main n'en donne aucune.
+  de paiement collé à la main n'en donne aucune — le catalogue Whop du 23 septembre en compte
+  seize, et c'est exactement ce qu'on rattrape à la main dans `/admin/paiements/rattrapage`.
 - **Le produit vendu change souvent** — c'est le cas nominal ici. Une nouvelle proposition
   remplace la précédente et l'historique garde la trace du changement. Avec des liens bruts,
   deux liens restent valides en même temps et personne ne sait lequel fait foi.
@@ -596,16 +597,16 @@ L'ancien découpage en 7 phases était organisé autour des cohortes et des repl
 suit le chemin de l'argent, qui est aussi le chemin le plus court vers quelque chose
 d'utilisable.
 
-| Ordre | Contenu                                                                         |
-| ----- | ------------------------------------------------------------------------------- |
-| 1     | Fondations — **fait**, à corriger du §5                                         |
-| 2     | Tunnel d'entrée : formulaire, création de compte, Discord `invité`, `/reserver` |
-| 3     | Espace formateur : fiches, RDV, propositions                                    |
-| 4     | Paiement une fois : proposition, Stripe, facture, inscription, rôle Discord     |
-| 5     | Abonnement : renouvellement, échec, résiliation, révocation automatique         |
-| 6     | Espace client                                                                   |
-| 7     | Site public — contenu marketing, SEO, pages légales                             |
-| 8     | Événements, migration des données, recette                                      |
+| Ordre | Contenu                                                                           |
+| ----- | --------------------------------------------------------------------------------- |
+| 1     | Fondations — **fait**, à corriger du §5                                           |
+| 2     | Tunnel d'entrée : formulaire, création de compte, Discord `invité`, `/reserver`   |
+| 3     | Espace formateur : fiches, RDV, propositions                                      |
+| 4     | Paiement une fois : proposition, encaissement, facture, inscription, rôle Discord |
+| 5     | Abonnement : renouvellement, échec, résiliation, révocation automatique           |
+| 6     | Espace client                                                                     |
+| 7     | Site public — contenu marketing, SEO, pages légales                               |
+| 8     | Événements, migration des données, recette                                        |
 
 Le paiement unique et l'abonnement sont séparés volontairement : le premier suffit à vendre
 les accompagnements et les formations, c'est-à-dire les gros paniers. L'abonnement communauté
@@ -696,7 +697,7 @@ Nouvelles précisions du même jour, arrivées après la première rédaction de
   `/formations/[slug]`, confirmé — ce n'était qu'une recommandation, c'est désormais une
   décision. L'audit reste réservé aux accompagnements et aux formations. C'est une entorse
   assumée au « un seul tunnel » de `02-SITEMAP.md`. **Fait** : `/formations/[slug]/souscrire` porte le parcours complet — formulaire court
-  (prénom, email, consentement), création du compte, paiement Stripe. La fiche produit bascule
+  (prénom, email, consentement), création du compte, paiement. La fiche produit bascule
   son appel à l'action selon `type_produit`, et la route redirige vers la fiche si le produit
   n'est pas un abonnement, vérifié côté serveur et pas seulement à l'affichage.
 - **La remise accordée par le formateur est autorisée, sans plafond.** Franck dirige

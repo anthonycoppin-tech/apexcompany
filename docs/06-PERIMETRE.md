@@ -154,7 +154,7 @@ quelque chose d'utilisable.
 | 1 bis | Migrations de la révision 3 : renommages, suppressions, nouvelles tables — **fait** | 1 sem ✓    |
 | 2     | Tunnel d'entrée : formulaire natif, compte, Discord `invité`, Cal.com               | 2 sem      |
 | 3     | Espace formateur : tableau de bord, RDV, fiches, propositions, statistiques         | 2 sem      |
-| 4     | Paiement une fois : Stripe, facture, inscription, rôle Discord                      | 2 sem      |
+| 4     | Paiement une fois : encaissement, facture, inscription, rôle Discord                | 2 sem      |
 | 5     | Abonnement : renouvellement, échec de prélèvement, résiliation, révocation          | 1,5 sem    |
 | 6     | Espace client                                                                       | 1 sem      |
 | 7     | Site public : contenu marketing, SEO, pages légales                                 | 2 sem      |
@@ -165,10 +165,18 @@ retire 1,5 semaine de replays et de planning de sessions, mais ajoute l'espace f
 mécanique d'abonnement, qui coûtent davantage.
 
 **État au 8 septembre 2026.** Les phases 1 et 1 bis sont livrées. Les phases 2 à 7 sont
-**écrites mais jamais exécutées en réel** : ni serveur Discord, ni compte Cal.com, ni clés
-Stripe, ni clé serveur Supabase. Le back-office est commencé — garde, navigation et tableau de
-bord ; ses autres écrans restent des placeholders. Restent entièrement à faire : la phase 8,
+**écrites mais jamais exécutées en réel** : ni serveur Discord, ni compte Cal.com, ni clés de
+paiement, ni clé serveur Supabase. Le back-office est commencé — garde, navigation et tableau
+de bord ; ses autres écrans restent des placeholders. Restent entièrement à faire : la phase 8,
 les six pages légales, et le contenu client (biographies, témoignages, visuels, catalogue réel).
+
+**Où ça en est au 24 septembre 2026.** Les écrans du back-office ne sont plus des
+placeholders, les six pages légales sont rédigées — non relues par un juriste —, et le
+catalogue réel est en base depuis le 23. Discord a tourné contre un vrai serveur le
+12 septembre ; **le reste n'a toujours jamais été exécuté en réel**, paiement compris. Ce qui
+bloque n'est plus du développement : c'est ce que `08-CE-QUI-MANQUE.md` réclame au client.
+Phase 8 toujours entière, et les événements en sont sortis — tranché le 23 septembre, la
+billetterie reste externe.
 
 Ces estimations ne sont donc pas consommées à hauteur de ce qui est écrit : tant qu'une
 fonctionnalité n'a pas tourné contre les vrais services, il faut compter la recette qui va avec.
