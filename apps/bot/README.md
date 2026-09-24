@@ -330,8 +330,10 @@ npm run discord:roles -- --appliquer --publier
 npm run discord:roles -- --appliquer --reparer
 ```
 
-**Un produit ne peut pas être publié sans `discord_role_id`** : la base le refuse,
-parce qu'il encaisserait un paiement sans ouvrir d'accès. Les neuf produits
+**Un produit ne peut pas être publié sans `discord_role_id`** : l'écran du
+back-office le refuse depuis le 13 septembre 2026, et la base depuis le 24 —
+sans rôle, le produit encaisse un paiement, ouvre une inscription et une
+facture, et n'ouvre aucun accès. Les neuf produits
 réels du client sont donc en brouillon depuis le 23 septembre 2026, et le site
 continue d'afficher ceux du jeu d'essai.
 

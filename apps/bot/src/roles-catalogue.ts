@@ -3,8 +3,9 @@
  * catalogue, et écrit son identifiant dans `formations.discord_role_id`.
  *
  * **Pourquoi ce script existe.** Un produit ne peut pas être publié sans
- * `discord_role_id` — la base le refuse, et c'est voulu : il encaisserait un
- * paiement sans ouvrir d'accès. Les neuf produits réels livrés par le client le
+ * `discord_role_id` — l'écran le refuse, et la base aussi depuis le
+ * 24 septembre 2026 : sans rôle, il encaisserait un paiement sans ouvrir
+ * d'accès. Les neuf produits réels livrés par le client le
  * 23 septembre 2026 sont donc en brouillon, et le site continue d'afficher les
  * produits du jeu d'essai. La seule chose qui manque est un identifiant par
  * produit, et un identifiant Discord ne s'invente pas : c'est un nombre attribué

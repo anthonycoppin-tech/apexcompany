@@ -286,6 +286,30 @@ async function main() {
   }
   verifier('une facture émise ne peut pas être supprimée', factureImmuable, true);
 
+  // Un produit publié sans rôle Discord encaisse, ouvre une commande, une
+  // inscription et une facture — et n'ouvre aucun accès. La règle existait
+  // depuis le 13 septembre 2026, mais seulement dans l'écran du back-office :
+  // un `update` en SQL passait à côté. Elle est dans le schéma depuis le 24.
+  let publicationSansRole = false;
+  try {
+    await db.exec(`update public.formations set actif = true
+                    where slug = 'mentorat-prive';`);
+  } catch {
+    publicationSansRole = true;
+  }
+  verifier('un produit ne se publie pas sans rôle Discord', publicationSansRole, true);
+
+  // Le pendant : la règle ne doit pas gêner un brouillon, qui est justement
+  // l'état dans lequel arrive un catalogue livré par le client.
+  let brouillonSansRole = true;
+  try {
+    await db.exec(`update public.formations set ordre = ordre
+                    where slug = 'mentorat-prive';`);
+  } catch {
+    brouillonSansRole = false;
+  }
+  verifier('mais un brouillon sans rôle se modifie sans obstacle', brouillonSansRole, true);
+
   // Le filet contre le webhook rejoué, version révision 3 : lunicité porte sur
   // (user_id, formation_id) restreinte aux inscriptions actives.
   let doubleInscription = false;

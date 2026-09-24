@@ -12,6 +12,18 @@ dev partagée. Ça n'a pas changé.
 
 ## À faire avant de coder — état de la base partagée
 
+> **Une migration attend un `db:push` — `20260924100000_a_publication_avec_role.sql`.**
+> Elle pose en base la règle « un produit publié déclare son rôle Discord », qui n'existait
+> que dans l'écran du back-office depuis le 13 septembre. Un `update` en SQL — pour publier un
+> produit un soir de démo, par exemple — passait à côté, et le produit se vendait sans ouvrir
+> d'accès.
+>
+> **Si elle échoue, ne pas la corriger** : c'est qu'un produit publié n'a pas de rôle, et
+> c'est lui le problème. La requête qui le nomme est en tête du fichier.
+>
+> Vérifiée en PGlite (141 contrôles) et rejouée en pgTAP (160 assertions) — mais **pas encore
+> appliquée sur la base partagée**, ce poste ne l'atteignant pas.
+
 > **Plus aucune migration en attente — vérifié le 23 septembre au soir.**
 > `20260923130000_a_periodicite_abonnement.sql` est appliquée, et `db:types:linked` redonne un
 > `database.types.ts` identique (diff vide — attendu : la migration ne change aucune forme de

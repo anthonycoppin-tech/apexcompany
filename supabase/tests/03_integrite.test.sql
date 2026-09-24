@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(45);
+select plan(47);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -62,6 +62,26 @@ select throws_ok(
   null,
   null,
   'une facture émise ne peut pas être supprimée'
+);
+
+-- ── Un produit publié déclare son rôle Discord ─────────────────────────────
+-- Sans lui, il encaisse, ouvre une commande, une inscription et une facture, et
+-- n'ouvre aucun accès : le client paie et n'a rien. La règle vivait depuis le
+-- 13 septembre 2026 dans le seul écran du back-office — un `update` en SQL
+-- passait à côté. Elle est dans le schéma depuis le 24.
+
+select throws_ok(
+  $$update public.formations set actif = true where slug = 'mentorat-prive'$$,
+  '23514',
+  null,
+  'un produit ne se publie pas sans rôle Discord'
+);
+
+-- Le pendant : un brouillon sans rôle doit rester modifiable, puisque c'est
+-- l'état dans lequel arrive un catalogue livré par le client.
+select lives_ok(
+  $$update public.formations set ordre = ordre where slug = 'mentorat-prive'$$,
+  'mais un brouillon sans rôle se modifie sans obstacle'
 );
 
 -- ── Intégrité commerciale ──────────────────────────────────────────────────

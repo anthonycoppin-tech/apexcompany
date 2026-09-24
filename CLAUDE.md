@@ -109,8 +109,8 @@ les paiements qui ont déjà un encaissement, plutôt que de poser un drapeau qu
 ### Le catalogue : huit produits sur seize
 
 PALACE 1/2/3, MATRIX 3.0, APEX BLACK, APEX PARTNER (et sa formule lancement) et APEX PRIME
-mensuel entrent dans le modèle sans rien changer. **Ils arrivent en brouillon** : la base refuse
-un produit publié sans `discord_role_id`, et c'est voulu — il encaisserait un paiement sans
+mensuel entrent dans le modèle sans rien changer. **Ils arrivent en brouillon** : un produit publié
+doit déclarer son `discord_role_id`, et c'est voulu — il encaisserait un paiement sans
 ouvrir d'accès. Les rôles sont réclamés au client.
 
 **Quatre choses ne rentraient pas**, détaillées en tête de

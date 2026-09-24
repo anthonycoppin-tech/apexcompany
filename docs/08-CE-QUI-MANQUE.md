@@ -416,8 +416,11 @@ paiement transmis par le client : les neuf produits ci-dessous existent, avec le
 durée d'accès et leur plan Whop. Ce n'est donc plus le manque qu'il était — mais **aucun n'est
 en vente**, et un seul élément les en empêche.
 
-**La base refuse de publier un produit sans identifiant de rôle Discord**, et c'est voulu : il
-encaisserait un paiement sans ouvrir d'accès.
+**Un produit publié doit déclarer son rôle Discord**, et c'est voulu : sans lui, il encaisse
+un paiement, ouvre une commande, une inscription et une facture — et n'ouvre aucun accès. Le
+back-office le refuse depuis le 13 septembre ; **la base le refuse depuis le 24**
+(`20260924100000_a_publication_avec_role.sql`), parce qu'une règle qui ne vit que dans un
+écran ne tient pas un `update` fait ailleurs.
 
 **Il n'y a rien à nous envoyer produit par produit.** Un identifiant de rôle est un nombre que
 Discord attribue au moment où le rôle est créé — il ne s'invente pas, et le recopier neuf fois
