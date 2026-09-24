@@ -51,6 +51,11 @@ des seize liens de paiement Whop, le lien d'invitation Discord et les comptes de
 Le reste — biographies, témoignages, logo, textes des emails — ne bloque pas une vente, mais
 laisse des sections vides sur un site qui vend cher.
 
+**Et une question qui n'était posée nulle part, ajoutée le 24 septembre** : les clients qui
+achètent déjà par les liens Whop n'existent pas dans la base. À la mise en ligne, ils n'ont
+aucun espace client, et leur demander de reprendre un abonnement leur ferait payer deux fois
+(section 3 bis).
+
 ---
 
 ## 1. Accès techniques
@@ -509,6 +514,54 @@ c'est ce qui le rend croyable, et ce qui permettra de voir qu'il a vieilli.
 
 ---
 
+## 3 bis. Les clients qui existent déjà
+
+**Le client vend depuis des mois, par ses seize liens de paiement.** Ces acheteurs-là ont un
+accès, un rôle Discord posé à la main, et pour certains un abonnement qui se prélève tous les
+mois. **La plateforme ne connaît aucun d'eux** : pas de compte, pas d'inscription, pas de date
+de fin d'accès, pas de facture.
+
+Le jour de la mise en ligne, ça se voit de deux façons, et les deux sont mauvaises :
+
+- **ils n'ont pas d'espace client.** Ils se connectent, et le site leur dit qu'ils n'ont aucun
+  accès en cours — alors qu'ils paient ;
+- **si on leur demande de reprendre un abonnement sur le site, ils paient deux fois**, puisque
+  leur adhésion Whop continue de se prélever de son côté.
+
+**Ce n'est pas une question de développement**, ou pas d'abord : personne ici ne sait ce qui
+existe. Ce qu'il faut du client, en une seule fois :
+
+| À fournir                                         | Pourquoi                                                                    |
+| ------------------------------------------------- | --------------------------------------------------------------------------- |
+| La liste des clients actifs                       | Nom, adresse email — c'est la clé qui relie tout le reste                   |
+| Ce que chacun a acheté                            | Pour retrouver le produit au catalogue                                      |
+| Depuis quand, et jusqu'à quand                    | Sans date de fin, la révocation automatique ne sait pas quoi faire          |
+| Ceux qui ont un abonnement en cours               | Ce sont les seuls qui risquent le double prélèvement                        |
+| Leur compte Discord, si le client le connaît      | Sinon chacun devra relier le sien lui-même, ce qui est une relance à écrire |
+| Ce qui existe ailleurs (Circle, groupe, tableur…) | Pour ne pas découvrir une deuxième liste après la bascule                   |
+
+**Un export Whop des adhésions actives couvre la plus grosse part**, et c'est le plus simple à
+demander.
+
+### Deux points à trancher, et le second est pour le juriste
+
+- **Les abonnements en cours restent prélevés par Whop**, et c'est une bonne nouvelle : le
+  prestataire ne change pas, donc il n'y a rien à re-souscrire. Le site n'a qu'à enregistrer
+  l'accès. Reste à vérifier, adhésion par adhésion, que le plan acheté correspond bien à un
+  produit du catalogue.
+- **Ces clients n'ont aucune acceptation des CGV enregistrée.** La règle posée le 21 septembre
+  est « pas de preuve, pas de vente », et c'est elle qui interdit déjà d'ouvrir un accès sur une
+  ressemblance dans la file de rattrapage. Importer un client existant, c'est ouvrir un accès
+  sans cette preuve. **C'est une question pour le juriste**, à poser avec la relecture : un
+  achat antérieur au site n'a pas été conclu sous ces CGV, et il faut savoir ce qui vaut
+  acceptation pour lui.
+
+**Rien n'est écrit pour cette reprise** — c'est la phase 8 de `06-PERIMETRE.md`, et elle ne peut
+pas commencer avant d'avoir la liste. Elle est courte si les données sont propres, longue si
+elles sont à reconstituer de mémoire.
+
+---
+
 ## 4. Décisions en attente
 
 **Aucune ne reste ouverte côté produit** depuis le 16 septembre 2026 : vidéos exclusives sur
@@ -560,16 +613,22 @@ décision, pas une formalité.
 2. **Discord.** Le plus long à mettre en place, et le plus bloquant.
 3. **Les neuf rôles Discord du catalogue**, un par produit. Le catalogue lui-même est en base
    depuis le 23 septembre ; sans les rôles, aucun produit ne peut être mis en vente.
-4. **Cal.com**, avec la vérification des webhooks.
-5. **Whop** — les trois clés, la liste d'événements du webhook, le mode fiscal —, puis un vrai
+4. **Le nom de domaine**, et la décision sur `apexcompany.com`. Il commande les emails,
+   l'adresse du webhook, l'indexation et les mentions légales, et les enregistrements DNS
+   mettent quelques heures à se propager : le demander tard fait attendre tout le reste.
+5. **Cal.com**, avec la vérification des webhooks.
+6. **Whop** — les trois clés, la liste d'événements du webhook, le mode fiscal —, puis un vrai
    parcours d'achat de bout en bout dans le bac à sable. **C'est le test qui compte, et c'est
    une heure** : rien du chemin de l'argent n'a jamais tourné contre le vrai service.
-6. **L'envoi d'emails**, à vérifier avant d'ouvrir les ventes, sous peine de les bloquer toutes.
+7. **La liste des clients déjà actifs**, qui peut être demandée dès maintenant : elle ne bloque
+   rien tant que le site n'est pas ouvert, mais elle est longue à reconstituer si personne ne
+   l'a sous la main (section 3 bis).
+8. **L'envoi d'emails**, à vérifier avant d'ouvrir les ventes, sous peine de les bloquer toutes.
    Les quatre enregistrements DNS **dès que le domaine existe**, sans attendre le reste : ils se
    propagent en quelques heures, et DMARC gagne à rester en observation quelques jours avant
    d'être resserré.
-7. **Le planificateur** de la révocation quotidienne.
-8. **Le juridique**, en parallèle et sans attendre : c'est ce qui a le plus long délai.
+9. **Le planificateur** de la révocation quotidienne.
+10. **Le juridique**, en parallèle et sans attendre : c'est ce qui a le plus long délai.
 
 ---
 
@@ -647,6 +706,7 @@ Les coûts et ce qu'ils achètent sont en section 4 bis. Ici, seulement où ça 
 | Preuve sociale externe (type Trustpilot) | —                                                   | —                                             |
 | Textes des emails automatiques           | —                                                   | Brouillons à relire, section 3                |
 | Descriptions longues des 9 produits      | —                                                   | Objectifs, prérequis                          |
+| Liste des clients déjà actifs            | —                                                   | Export Whop des adhésions, section 3 bis      |
 
 ### Décisions
 
