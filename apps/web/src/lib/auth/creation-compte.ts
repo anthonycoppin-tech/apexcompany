@@ -112,8 +112,13 @@ export async function creerCompteEtSession({
     await admin.from('profiles').update({ telephone }).eq('id', userId);
   }
 
+  // **L'email, même si `user_id` est là.** Une preuve de consentement doit
+  // survivre à la suppression du compte : `user_id` passe alors à NULL, et
+  // sans email la ligne n'a plus aucun identifiant — ce qui faisait échouer la
+  // suppression elle-même (migration du 24 septembre 2026).
   await admin.from('consents').insert({
     user_id: userId,
+    email,
     type: 'confidentialite',
     accorde: true,
     version_texte: versionConsentement,

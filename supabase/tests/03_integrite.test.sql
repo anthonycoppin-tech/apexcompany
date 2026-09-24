@@ -6,7 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
-select plan(47);
+select plan(50);
 
 -- ── Idempotence des webhooks ───────────────────────────────────────────────
 
@@ -62,6 +62,45 @@ select throws_ok(
   null,
   null,
   'une facture émise ne peut pas être supprimée'
+);
+
+-- ── Un compte client doit pouvoir être supprimé ───────────────────────────
+-- Il ne le pouvait pas : `consents.user_id` est en `on delete set null`, et la
+-- contrainte exigeait un identifiant — la ligne devenait invalide et faisait
+-- échouer la suppression entière, sur un 23514 parlant de `consents`. Le droit
+-- à l'effacement butait là-dessus, et la purge à dix ans aussi.
+
+insert into auth.users (
+  id, email, aud, role, raw_user_meta_data,
+  confirmation_token, recovery_token, email_change,
+  email_change_token_new, email_change_token_current,
+  phone_change, phone_change_token, reauthentication_token)
+values ('0b000000-0000-0000-0000-0000000000ef', 'part.bientot@example.com',
+  'authenticated', 'authenticated', '{"prenom":"Test"}'::jsonb,
+  '', '', '', '', '', '', '', '');
+
+insert into public.consents (user_id, email, type, accorde, version_texte)
+values ('0b000000-0000-0000-0000-0000000000ef', 'part.bientot@example.com',
+        'confidentialite', true, 'v1');
+
+select lives_ok(
+  $$delete from auth.users where id = '0b000000-0000-0000-0000-0000000000ef'$$,
+  'un compte client peut être supprimé'
+);
+
+-- Et la preuve survit : c'est tout l'objet de cette table, append-only.
+select is(
+  (select count(*) from public.consents
+    where email = 'part.bientot@example.com' and user_id is null)::int, 1,
+  'son consentement survit, rattaché à son adresse'
+);
+
+select throws_ok(
+  $$insert into public.consents (user_id, type, accorde, version_texte)
+    values ('66666666-6666-6666-6666-666666666666', 'marketing', true, 'v1')$$,
+  '23502',
+  null,
+  'un consentement sans adresse est refusé'
 );
 
 -- ── Un produit publié déclare son rôle Discord ─────────────────────────────

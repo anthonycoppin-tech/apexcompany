@@ -49,7 +49,7 @@ values ('0c000000-0000-0000-0000-000000000001', 'cal_efface',
         now() + interval '1 day', now() + interval '1 day' + interval '45 minutes');
 
 insert into public.consents (user_id, email, type, accorde, version_texte) values
-  ('0d000000-0000-0000-0000-000000000001', null, 'confidentialite', true, '2026-09-v1'),
+  ('0d000000-0000-0000-0000-000000000001', 'efface.moi@example.com', 'confidentialite', true, '2026-09-v1'),
   (null, 'efface.moi@example.com', 'confidentialite', true, '2026-09-v1');
 
 insert into public.orders (lead_id, formation_id, montant_cents, statut, provider, provider_order_id)

@@ -89,7 +89,7 @@ insert into public.appointments (lead_id, cal_booking_id, debut, fin, created_at
    now() - interval '4 years');
 
 insert into public.consents (user_id, email, type, accorde, version_texte, created_at) values
-  ('0e000000-0000-0000-0000-000000000001', null, 'confidentialite', true, 'v1', now() - interval '4 years'),
+  ('0e000000-0000-0000-0000-000000000001', 'purge.e1@example.com', 'confidentialite', true, 'v1', now() - interval '4 years'),
   (null, 'ancien.lead@example.com', 'confidentialite', true, 'v1', now() - interval '4 years'),
   (null, 'client.a@apex.test', 'marketing', true, 'v1', now() - interval '4 years');
 
@@ -150,7 +150,8 @@ select is(
 );
 
 select is(
-  (select count(*) from public.consents where email = 'client.a@apex.test')::int, 1,
+  (select count(*) from public.consents
+    where email = 'client.a@apex.test' and type = 'marketing')::int, 1,
   'un consentement dont l''adresse appartient encore à un client est conservé'
 );
 

@@ -286,6 +286,47 @@ async function main() {
   }
   verifier('une facture émise ne peut pas être supprimée', factureImmuable, true);
 
+  // **Un compte client doit pouvoir être supprimé.** Il ne le pouvait pas :
+  // `consents.user_id` est en `on delete set null`, et la contrainte exigeait
+  // un identifiant — donc la ligne devenait invalide et faisait échouer la
+  // suppression entière, sur un 23514 parlant de `consents`. Le droit à
+  // l'effacement butait là-dessus, et la purge à dix ans aussi.
+  await db.exec(`insert into auth.users (
+                   id, email, aud, role, raw_user_meta_data,
+                   confirmation_token, recovery_token, email_change,
+                   email_change_token_new, email_change_token_current,
+                   phone_change, phone_change_token, reauthentication_token)
+                 values ('0b000000-0000-0000-0000-0000000000ef', 'part.bientot@example.com',
+                   'authenticated', 'authenticated', '{"prenom":"Test"}'::jsonb,
+                   '', '', '', '', '', '', '', '');`);
+  await db.exec(`insert into public.consents (user_id, email, type, accorde, version_texte)
+                 values ('0b000000-0000-0000-0000-0000000000ef',
+                         'part.bientot@example.com', 'confidentialite', true, 'v1');`);
+
+  let suppressionPossible = true;
+  try {
+    await db.exec(`delete from auth.users where id = '0b000000-0000-0000-0000-0000000000ef';`);
+  } catch {
+    suppressionPossible = false;
+  }
+  verifier('un compte client peut être supprimé', suppressionPossible, true);
+
+  // Et la preuve survit : c'est tout l'objet de la table, append-only.
+  verifier(
+    'son consentement survit, rattaché à son adresse',
+    await compter(`public.consents where email = 'part.bientot@example.com' and user_id is null`),
+    1,
+  );
+
+  let consentementSansEmail = false;
+  try {
+    await db.exec(`insert into public.consents (user_id, type, accorde, version_texte)
+                   values ('66666666-6666-6666-6666-666666666666', 'marketing', true, 'v1');`);
+  } catch {
+    consentementSansEmail = true;
+  }
+  verifier('un consentement sans adresse est refusé', consentementSansEmail, true);
+
   // Un produit publié sans rôle Discord encaisse, ouvre une commande, une
   // inscription et une facture — et n'ouvre aucun accès. La règle existait
   // depuis le 13 septembre 2026, mais seulement dans l'écran du back-office :
@@ -936,7 +977,7 @@ async function main() {
   );
   verifier(
     'un consentement dont l’adresse appartient encore à un client est conservé',
-    await compter(`public.consents where email = 'client.a@apex.test'`),
+    await compter(`public.consents where email = 'client.a@apex.test' and type = 'marketing'`),
     1,
   );
   verifier(

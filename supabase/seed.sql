@@ -373,9 +373,11 @@ insert into public.discord_links (user_id, discord_user_id, discord_username, ro
   ('66666666-6666-6666-6666-666666666666', '100000000000000001', 'chloe_a', '["900000000000000002"]'::jsonb, now()),
   ('77777777-7777-7777-7777-777777777777', '100000000000000002', 'camil_b', '["900000000000000001"]'::jsonb, now());
 
-insert into public.consents (user_id, type, accorde, version_texte, ip) values
-  ('66666666-6666-6666-6666-666666666666', 'confidentialite', true, '2026-09-v1', '203.0.113.10'),
-  ('77777777-7777-7777-7777-777777777777', 'confidentialite', true, '2026-09-v1', '203.0.113.11');
+-- L'email est obligatoire depuis le 24 septembre 2026, même avec un `user_id` :
+-- c'est lui qui identifie la preuve une fois le compte supprimé.
+insert into public.consents (user_id, email, type, accorde, version_texte, ip) values
+  ('66666666-6666-6666-6666-666666666666', 'client.a@apex.test', 'confidentialite', true, '2026-09-v1', '203.0.113.10'),
+  ('77777777-7777-7777-7777-777777777777', 'client.b@apex.test', 'confidentialite', true, '2026-09-v1', '203.0.113.11');
 
 -- Contenu éditorial ────────────────────────────────────────────────────────
 -- Témoignages et fiches formateurs sont du contenu client : ce qui suit est un
