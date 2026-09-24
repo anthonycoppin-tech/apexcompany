@@ -180,8 +180,19 @@ tuile « Suivi des réceptions » passe à « Branché ».
 
 ## 10. Le catalogue
 
-Saisir les vrais produits dans `/admin/formations`, chacun avec son **rôle Discord de
-production** — l'écran refuse de publier un produit sans rôle, et c'est voulu.
+**Les neuf produits sont déjà là** : la migration du 23 septembre 2026 les insère, avec leur
+prix, leur durée d'accès et leur plan Whop. Il n'y a donc rien à ressaisir. Une
+seconde saisie sous le même intitulé serait d'ailleurs refusée — le `slug` est unique — mais
+sous un intitulé légèrement différent elle passerait, et le doublon ne serait relié à aucun
+plan Whop.
+
+**Ils arrivent tous en brouillon, et rien n'est en vente tant qu'ils y restent.** Pour chacun,
+dans `/admin/formations` : coller son **rôle Discord de production**, compléter la description,
+puis publier. L'écran refuse de publier sans rôle, et c'est voulu — un produit publié sans rôle
+encaisse un paiement sans ouvrir d'accès.
+
+**Vérifier `/formations` juste après** : un catalogue vide n'est pas une erreur visible, c'est
+une page qui s'affiche normalement et ne vend rien.
 
 Et avant d'ouvrir les ventes, relire `/admin/legal` : les pages légales sont en ligne dès le
 déploiement, et ce qu'un juriste doit trancher y est listé. **Si l'hébergeur n'est pas
@@ -207,6 +218,9 @@ Avec une vraie carte, sur le vrai site, et un compte qui n'est pas de l'équipe 
    de l'étape 9 est bien branché. Et une adresse volontairement fausse
    (`rien@<domaine>.invalid`) doit ressortir en « Rebond », pas rester en « Envoyé ».
 7. Remboursement depuis le back-office → accès fermé, rôle retiré.
-8. Le lendemain : les journaux des tâches planifiées dans Vercel, et `/admin/logs`.
+8. **`/admin/paiements/rattrapage` est vide** — ou ne contient que des paiements passés par
+   les liens hors catalogue, ce qui est le cas normal. Un encaissement du site qui atterrit là
+   veut dire que ses métadonnées ne sont pas remontées, et ce client n'a pas d'accès.
+9. Le lendemain : les journaux des tâches planifiées dans Vercel, et `/admin/logs`.
 
 Chaque étape qui échoue ici est une étape qui aurait échoué chez un client.
