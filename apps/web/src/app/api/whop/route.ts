@@ -192,10 +192,25 @@ export async function POST(request: Request) {
             .update(
               resilie
                 ? { statut: 'resiliee', resiliation_demandee_le: new Date().toISOString() }
-                : { statut: 'active', resiliation_demandee_le: null },
+                : { resiliation_demandee_le: null },
             )
             .eq('provider', 'whop')
             .eq('provider_subscription_id', adhesion);
+
+          // Revenir sur une résiliation efface la date, mais **ne remet pas un
+          // impayé en « actif »** : un client peut annuler sa résiliation sans
+          // que son prélèvement ait abouti pour autant, et
+          // `/admin/abonnements` trie les impayés en premier — les perdre de
+          // vue, c'est perdre l'encaissement. Seul un prélèvement réussi
+          // requalifie un abonnement en actif, dans `renouveler_abonnement()`.
+          if (!resilie) {
+            await supabase
+              .from('subscriptions')
+              .update({ statut: 'active' })
+              .eq('provider', 'whop')
+              .eq('provider_subscription_id', adhesion)
+              .eq('statut', 'resiliee');
+          }
         }
 
         return NextResponse.json({ recu: true, resiliee: resilie });
@@ -226,8 +241,64 @@ export async function POST(request: Request) {
       case 'dispute.created':
       case 'dispute.updated': {
         const litige = donnees as Record<string, unknown>;
-        const montantCents = decimalVersCents(litige.amount);
+        const references = referencesDuPaiement(litige);
         const echeance = litige.due_at ?? litige.evidence_due_at;
+
+        // `disputes.montant_cents` est NOT NULL : il faut un nombre. Mais
+        // écrire zéro quand Whop ne donne pas de montant lisible afficherait
+        // « litige de 0,00 € » sur l'écran où l'on décide de contester ou non,
+        // et c'est la sorte d'affirmation fausse que le reste du dépôt refuse
+        // — même règle que la TVA et que les montants d'encaissement.
+        //
+        // **Le montant de l'encaissement contesté est un repli honnête** : un
+        // litige porte sur un paiement, presque toujours en entier. On le lit
+        // ici, avant l'appel — c'est une lecture, pas une écriture métier :
+        // tout ce qui s'écrit reste dans la transaction de la fonction.
+        let montantCents = decimalVersCents(litige.amount);
+        let montantRepli = false;
+
+        if (montantCents === null && references.length > 0) {
+          const { data: conteste } = await supabase
+            .from('payments')
+            .select('montant_cents')
+            .eq('provider', 'whop')
+            .in('provider_payment_id', references)
+            .maybeSingle();
+
+          montantCents = conteste?.montant_cents ?? null;
+          montantRepli = montantCents !== null;
+        }
+
+        // Ni montant lisible, ni encaissement retrouvé : il n'y a rien à
+        // inscrire qui soit vrai. On nomme le litige plutôt que de l'inventer
+        // — et la fonction aurait de toute façon acquitté un litige dont le
+        // paiement est introuvable.
+        if (montantCents === null) {
+          await supabase.from('automation_logs').insert({
+            declencheur: 'whop.litige',
+            entite_type: 'disputes',
+            statut: 'echec',
+            details: {
+              event: idEvenement,
+              raison: 'Montant illisible et encaissement introuvable',
+              litige: litige as Json,
+            },
+          });
+          return NextResponse.json({ recu: true, ignore: 'montant illisible' });
+        }
+
+        if (montantRepli) {
+          await supabase.from('automation_logs').insert({
+            declencheur: 'whop.litige',
+            entite_type: 'disputes',
+            statut: 'ignore',
+            details: {
+              event: idEvenement,
+              raison: 'Montant illisible — repris de lencaissement contesté',
+              montant_cents: montantCents,
+            },
+          });
+        }
 
         const { data, error } = await supabase.rpc('enregistrer_litige', {
           p_provider: 'whop',
@@ -235,8 +306,8 @@ export async function POST(request: Request) {
           p_event_type: evenement.type,
           p_payload: payload,
           p_provider_dispute_id: String(litige.id ?? idEvenement),
-          p_references: referencesDuPaiement(litige),
-          p_montant_cents: montantCents ?? 0,
+          p_references: references,
+          p_montant_cents: montantCents,
           p_statut: statutLitige(litige.status),
           p_motif: typeof litige.reason === 'string' ? litige.reason : undefined,
           p_deadline: typeof echeance === 'string' ? echeance : undefined,
