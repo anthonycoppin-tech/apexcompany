@@ -1375,5 +1375,16 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   développeurs : par email (lien et code), sans mot de passe.** Le parcours des plateformes de
   formation et de communauté comparables, cohérent avec des comptes créés sans mot de passe par
   le formulaire. L'équipe garde le mot de passe. **Fait.**
+- **Profils de formateur** — **tranché le 25 septembre 2026 par le client, modélisation déléguée
+  aux développeurs** : _formateur admin_ = `formateur` + `admin`, qui voit tout ; _formateur
+  employé_ = `formateur` seul, sans argent ni statistiques. Pas de rôle dédié : « tout » reste
+  défini par la RLS du staff (`lib/auth/profils.ts`). **Fait.**
+- **Création de compte sans le formulaire** — **tranché le 25 septembre 2026 : oui**, avec la
+  liaison Discord enchaînée (`/inscription`). **Fait.**
+- **Annonce d'événement sur l'accueil** — **tranché le 25 septembre 2026 : oui**, écrite par le
+  client depuis `/admin/annonces`, avec une fin d'affichage obligatoire. Une annonce, pas une
+  billetterie : les événements restent hors périmètre. **Fait.**
+- **Rôle `branding`** — **retiré le 25 septembre 2026** : personne ne le tient chez le client.
+  La conversion par réseau se lit dans le back-office. **Fait.**
 - **Messagerie coach ↔ client** — recommandation : hors v1, l'échange reste sur
   Discord. Voir l'argumentaire dans `docs/06-PERIMETRE.md`.

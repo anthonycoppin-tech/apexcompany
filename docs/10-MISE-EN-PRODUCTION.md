@@ -75,8 +75,9 @@ Dans le tableau de bord du projet de production :
    where role = 'client' and user_id = (select id from auth.users where email = '<adresse>');
    ```
 
-3. Se connecter sur `/connexion` avec ce compte, et créer les autres comptes de l'équipe par
-   _Add user_, leurs rôles se donnant ensuite depuis `/admin/utilisateurs`. Franck reçoit
+3. Se connecter sur `/connexion` avec ce compte, et créer les autres comptes de l'équipe depuis
+   `/admin/utilisateurs` → « Ajouter un membre de l'équipe » : compte, profil et mot de passe
+   provisoire en une fois, sans passer par le tableau de bord Supabase. Franck reçoit
    `formateur` **et** `admin` — c'est ce qui fait de lui un _formateur admin_, qui voit tout,
    statistiques et back-office compris ; un formateur employé ne reçoit que `formateur`
    (`lib/auth/profils.ts`). Son identifiant va dans `AUDIT_CONSEILLER_USER_ID` (étape 5).

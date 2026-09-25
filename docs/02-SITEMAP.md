@@ -30,11 +30,10 @@ la racine du domaine, plus des paramètres de source (`?src=ig`, `?src=yt`, `?sr
 au premier contact et stockés sur le lead. Pas de page-relais type Linktree : chaque
 redirection perd du monde, et vous voulez savoir quel réseau convertit réellement.
 
-**Le tunnel a un seul chemin, et il commence par le formulaire.** `/qualification` est la
-porte d'entrée de tout ce qui suit : il crée le compte, attribue le rôle Discord `invité` et
-ouvre l'accès à `/reserver`. Les fiches produit servent à convaincre, pas à acheter — sauf
-peut-être l'abonnement communauté, dont la vente en self-service est un point ouvert
-(`01-CAHIER-DES-CHARGES.md` §8.2).
+**Le tunnel conseillé commence par le formulaire.** `/qualification` crée le compte, attribue
+le rôle Discord `invité` et ouvre l'accès à `/reserver`. **Depuis le 25 septembre 2026, ce
+n'est plus le seul chemin** : tout le catalogue s'achète directement depuis sa fiche, et
+`/inscription` crée un compte sans le formulaire (voir les ajouts en fin de document).
 
 **`/evenements` est reporté** après la première livraison : une liste d'événements, et
 « prendre son ticket » appelle une billetterie externe. Aucune gestion de réservation dans la

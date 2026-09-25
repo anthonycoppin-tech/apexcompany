@@ -28,7 +28,30 @@ permettra de changer.
 Une fois les clés en place, `/admin/parametres` (réservé au rôle `owner`) affiche en direct ce
 qui est configuré et ce qui manque encore. C'est le premier écran à ouvrir.
 
-## Où ça en est — 24 septembre 2026
+## Où ça en est — 25 septembre 2026
+
+**Le site a été présenté au client**, et ses retours sont faits : tout le catalogue s'achète
+directement, un compte se crée sans le formulaire, l'accueil annonce un événement (le challenge
+du 15 octobre), et le back-office distingue le formateur admin du formateur employé.
+
+**Ce que le client prépare** : le contenu, les règles de gestion, et **la liste de tous les
+abonnements** dont il a besoin — le catalogue en base n'en porte que deux (APEX PRIME mensuel
+et annuel).
+
+**Ce qui lui manque pour travailler** :
+
+- **Voir le site.** Un site d'aperçu protégé par mot de passe est prêt côté code ; il manque
+  **un compte Vercel en plan Pro**, le même que celui qui hébergera la production (section 4
+  bis). Une fois ouvert, le client y saisit lui-même annonces, témoignages, fiches formateurs
+  et catalogue, depuis le back-office.
+- **Les adresses de l'équipe** : celle de Franck, qui aura le profil _formateur admin_, et
+  celles des formateurs employés. Les comptes se créent depuis « Comptes et rôles ».
+- **Le détail du challenge du 15 octobre** — horaire, programme, où s'inscrire. L'annonce en
+  ligne ne dit rien qu'on ne sache, et se complète depuis `/admin/annonces`.
+
+Les quatre blocages de la vente ci-dessous sont inchangés.
+
+## Où ça en était — 24 septembre 2026
 
 Relu de bout en bout après la journée du 23 septembre, qui a fait bouger trois choses de cette
 liste. **Ce qui a été livré par le client** : la charte graphique (une bannière), le document
@@ -602,7 +625,9 @@ pour le développement, salons Discord par défaut, prospects conservés trois a
 raisons dans `CLAUDE.md`. Le vendeur est tranché le 21 septembre (APEX COMPANY L.L.C-FZ), et le
 23 septembre a tranché le prestataire de paiement (Whop, en remplacement de Stripe), la TVA
 (mode « Whop collecte et reverse », 2 %) et les événements (pas de réservation de place sur le
-site). **Une seule décision de ces trois engage au-delà du code** : le mode fiscal, parce qu'il
+site). Le 25 septembre, après la présentation, le client a demandé que tout le catalogue
+s'achète directement et qu'un compte puisse se créer sans le formulaire ; le rôle `branding` a
+été retiré, faute de quelqu'un pour le tenir. **Une seule décision de ces trois engage au-delà du code** : le mode fiscal, parce qu'il
 fait de Whop le vendeur apparent sur la facture (section 2).
 
 ---
@@ -616,7 +641,7 @@ développeurs y sont invités.
 | Service                         | Pour quoi                                              | Coût                                                                                                                             |
 | ------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
 | Nom de domaine                  | L'adresse du site                                      | ~10–20 € par an — **`apexcompany.com` existe déjà** (ancien site) : est-ce ce domaine, et qui le contrôle ?                      |
-| Vercel (plan Pro)               | Héberger le site et la tâche quotidienne de révocation | ~20 $ par mois — le plan gratuit exclut l'usage commercial                                                                       |
+| Vercel (plan Pro)               | Héberger le site et la tâche quotidienne de révocation | ~20 $ par mois — le plan gratuit exclut l'usage commercial. **Sert dès maintenant au site d'aperçu du client**                   |
 | Railway ou équivalent           | Faire tourner le bot Discord en continu                | ~5 $ par mois                                                                                                                    |
 | Supabase (plan Pro, production) | Base de données, comptes, **sauvegardes quotidiennes** | 25 $ par mois — recommandé dès l'ouverture des ventes                                                                            |
 | Whop                            | Encaisser les paiements — **compte déjà ouvert**       | Pas d'abonnement ; commission par paiement, **+ 2 %** pour le mode fiscal retenu. Le taux exact est celui du compte : à relever. |

@@ -13,7 +13,7 @@ les outils de travail interne de l'équipe.**
 | ---------------------------------------------- | -------------------------------------------------- |
 | Un seul lien pour les réseaux sociaux          | Page d'entrée unique avec traçage de source        |
 | Qualification puis rendez-vous au même endroit | Formulaire natif, compte créé, `/reserver`         |
-| Suppression des funnels redondants             | Un produit = une fiche, un seul tunnel             |
+| Suppression des funnels redondants             | Un produit = une fiche ; achat direct ou audit     |
 | CRM prospects et clients                       | Back-office, cœur du projet                        |
 | Tableau de bord formateur                      | Zone dédiée : RDV, fiches, propositions, stats     |
 | Proposition commerciale après l'audit          | Émise depuis `/formateur`, traçable et expirable   |
@@ -199,7 +199,8 @@ Trois autres points de cette liste ont été tranchés le même jour et sont sor
 **il n'y a pas de règle d'éligibilité côté Tally** — tout prospect qui soumet le formulaire est
 éligible, hors refus des mineurs, et le tunnel n'a donc aucun écran « non éligible » à
 construire ; **la vente en self-service de l'abonnement communauté est confirmée**, achat
-direct depuis `/formations/[slug]`, entorse assumée au principe du tunnel unique ; et **la
+direct depuis `/formations/[slug]`, entorse assumée au principe du tunnel unique — **étendue à
+tout le catalogue le 25 septembre**, à la demande du client ; et **la
 remise formateur est autorisée, sans plafond** — Franck décide seul du prix qu'il propose. Le
 détail et l'état d'implémentation de chacun sont dans `01-CAHIER-DES-CHARGES.md` §8.
 

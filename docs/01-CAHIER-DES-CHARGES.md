@@ -13,6 +13,22 @@ L'écart n'est pas cosmétique : il supprime des pans entiers de la spec précé
 ajoute un qui n'existait pas (l'espace formateur). D'où ce document plutôt qu'une série de
 retouches.
 
+> **Retours de la présentation client — 25 septembre 2026.** Quatre inflexions, qui priment
+> sur la suite de ce document là où elles le contredisent :
+>
+> - **Tout le catalogue s'achète directement**, au prix affiché, depuis la fiche produit. Le
+>   formulaire et l'audit restent le chemin conseillé, et le seul qui mène à une proposition à
+>   un autre prix ; ils ne sont plus un passage obligé.
+> - **Un compte se crée sans le formulaire** (`/inscription`), et la liaison Discord
+>   s'enchaîne, donc le rôle `invité`.
+> - **Deux profils de formateur** : _formateur admin_ (`formateur` + `admin`) voit tout,
+>   statistiques et back-office compris ; _formateur employé_ (`formateur` seul) voit ses
+>   affectations, sans argent ni statistiques. Les statistiques se lisent aussi sur une journée.
+> - **L'accueil peut annoncer un événement** (`/admin/annonces`) — une annonce, pas une
+>   billetterie : les événements restent hors périmètre.
+>
+> Et le rôle `branding` est retiré (§2).
+
 ## Ce que ce document remplace
 
 | Point                         | Ancienne spec                                                    | Désormais                                                                                      |
@@ -430,7 +446,9 @@ personne.
 /                        Accueil — point d'entrée unique des réseaux, vidéo d'accroche
 /formations              Catalogue — les trois types de produit
 /formations/[slug]       Fiche produit
+/formations/[slug]/souscrire  Achat direct, tout le catalogue (25 septembre)
 /qualification           Le formulaire — crée le compte
+/inscription             Un compte sans le formulaire, puis Discord (25 septembre)
 /reserver                Formateur + créneau (connecté, éligible)
 /formateurs              L'équipe
 /faq
@@ -445,6 +463,7 @@ personne.
 ```
 /espace                   Ses accès en cours, Discord, prochain RDV
 /espace/rendez-vous       RDV passés et à venir
+/espace/propositions      Toutes ses propositions — entrée du menu (25 septembre)
 /espace/propositions/[id] Proposition reçue → paiement
 /espace/factures          Factures, échéances, et gestion de l'abonnement
 /espace/compte            Informations personnelles
@@ -478,6 +497,10 @@ Disparaissent : `/espace/planning` (plus de sessions de cohorte), `/espace/repla
 /formateur/statistiques  RDV honorés, no-show, propositions émises, taux de conversion
 ```
 
+**Depuis le 25 septembre, `/formateur/statistiques` est réservé au formateur admin**, qui y voit
+l'équipe entière ou un formateur, sur une période ou une journée. Le formateur employé n'a ni
+cette page ni les taux du tableau de bord.
+
 La fiche client affiche en tête ce que le formulaire a capté : **budget déclaré, blocage
 principal, niveau, délai**. C'est ce qui prépare l'appel, et c'est disponible gratuitement
 puisque la personne vient de le saisir.
@@ -501,6 +524,10 @@ que ses clients, et jamais d'argent.** Seul son énoncé change — « ses cohor
 Inchangé par rapport à `02-SITEMAP.md`, moins `/admin/cohortes`, `/admin/sessions` et
 `/admin/coaching`, plus une vue des propositions émises et une vue des abonnements actifs
 (renouvellements à venir, échecs de prélèvement, résiliations).
+
+Ajouts du 25 septembre : `/admin/annonces` (le bandeau d'événement de l'accueil),
+`/admin/reseaux` (la conversion par réseau, qui vivait hors du back-office), et dans
+`/admin/utilisateurs` des filtres par profil et la création du compte d'un membre de l'équipe.
 
 ---
 
