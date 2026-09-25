@@ -150,6 +150,14 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Action serveur non gardée             | fait | Anthony     | 24 sept. |
 | Relecture du webhook Whop             | fait | Anthony     | 24 sept. |
 | Catalogue réel mis en vente           | fait | Anthony     | 24 sept. |
+| Retours de la présentation client     | pris | Anthony     | 25 sept. |
+
+### Retours de la présentation client — pris le 25 septembre
+
+Achat direct de tous les produits, proposition visible dans l'espace client, inscription sans
+le formulaire (Discord en invité), statistiques formateur sur une journée, formateur admin /
+formateur employé, bandeau d'annonce d'événement sur l'accueil, accès du client au site pour
+qu'il y travaille.
 
 ### Les trois sujets du 23 septembre — faits, sauf ce qui attend le client
 
