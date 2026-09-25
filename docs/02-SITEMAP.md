@@ -114,7 +114,10 @@ catalogue et ceux des propositions qu'il a émises — ses statistiques de vente
 /statistiques               Prospects, audits et clients par réseau d'origine, sur une période
 ```
 
-Une page, pas un espace : c'est tout ce dont le rôle `branding` a besoin dans la plateforme
+**Déplacée le 25 septembre 2026 dans le back-office, `/admin/reseaux`** ; `/statistiques` y
+redirige. **Le rôle `branding` a été retiré le 25 septembre 2026** : personne ne le tient chez le client. La valeur reste dans l'énumération SQL, que PostgreSQL ne sait pas amputer, mais une contrainte interdit de l'attribuer (`20260925110000_a_retrait_branding.sql`).
+
+Une page, pas un espace : c'est tout ce dont le rôle `branding` avait besoin dans la plateforme
 (`06-PERIMETRE.md`). Ouverte à `branding`, `admin` et `owner`, hors de `(admin)` pour ne pas
 exposer le back-office au branding. Aucune donnée nominative — que des agrégats, calculés par
 `stats_conversion()`. Ajoutée le 16 septembre 2026.

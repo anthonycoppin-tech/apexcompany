@@ -1,6 +1,8 @@
 import type { EmailOtpType } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+import { rolesConnus } from '@apex/db';
+
 import { destinationApresConnexion } from '@/lib/auth/destination';
 import { PARAM } from '@/lib/messages/catalogue';
 import { createClient } from '@/lib/supabase/server';
@@ -62,6 +64,6 @@ export async function GET(request: Request) {
   const { data: lignes } = await supabase.from('user_roles').select('role').eq('user_id', userId);
 
   return NextResponse.redirect(
-    new URL(destinationApresConnexion(lignes?.map((l) => l.role) ?? []), url.origin),
+    new URL(destinationApresConnexion(rolesConnus(lignes?.map((l) => l.role) ?? [])), url.origin),
   );
 }

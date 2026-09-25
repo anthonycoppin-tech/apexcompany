@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import { type AppRole } from '@apex/db';
+import { rolesConnus, type AppRole } from '@apex/db';
 
 import { BoutonDeconnexion } from '@/components/bouton-deconnexion';
 import { BoutonQualification } from '@/components/bouton-qualification';
@@ -41,7 +41,7 @@ export function EtatSession() {
       }
 
       const { data } = await supabase.from('user_roles').select('role').eq('user_id', userId);
-      if (vivant) setRoles(data?.map((l) => l.role) ?? []);
+      if (vivant) setRoles(rolesConnus(data?.map((l) => l.role) ?? []));
     }
 
     supabase.auth.getUser().then(({ data }) => lireRoles(data.user?.id));

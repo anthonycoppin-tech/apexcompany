@@ -58,6 +58,18 @@ Le site a été présenté au client. Ses retours sont tous faits, en une journ�
   l'indexation. Procédure : `docs/10-MISE-EN-PRODUCTION.md` §5 bis — **sans `CRON_SECRET`**,
   sinon les tâches planifiées tourneraient sur la base de dev.
 
+**Retours sur le back-office, le même jour.** La conversion par réseau s'ouvre dans le
+back-office (`/admin/reseaux`), avec son menu. Chaque ligne des listes de contenu et du
+catalogue porte un lien « Modifier » — le nom était déjà un lien, rien ne le disait. **Comptes et
+rôles** montre l'équipe par défaut, avec des filtres et une recherche, et l'owner y **crée le
+compte d'un membre de l'équipe** avec son profil, mot de passe provisoire facultatif ; « Fiches
+formateurs » dit qu'une fiche ne donne aucun accès. **Le rôle `branding` est retiré** : la
+valeur reste dans l'énumération SQL (PostgreSQL ne sait pas la retirer sans recréer le type et
+toutes les politiques qui en dépendent), une contrainte interdit de l'attribuer, et
+`rolesConnus()` la filtre côté TypeScript. **`20260925110000_a_retrait_branding.sql` attend un
+`db:push`** ; d'ici là rien ne casse, le compte `branding@apex.test` n'a simplement plus nulle
+part où aller.
+
 **Vu à l'écran**, sur un build de production contre la base partagée : les neuf fiches (bouton
 d'achat partout), la page d'achat d'une formation, `/inscription`, les écrans de l'employé
 (statistiques refusées, taux absents), ceux du formateur admin — obtenu en donnant `admin` à
@@ -1232,8 +1244,8 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
   table, à relire à chaque migration qui en touche une — et ce qu'il faut obtenir pour écrire
   chaque page légale. Une seule réponse débloque la moitié de la liste : qui vend.
   **`/admin/emails`** (18 septembre) : état de l'envoi, registre des emails partis, aperçu des modèles.
-  **`/statistiques`** (16 septembre) donne la conversion par réseau au rôle `branding` — une
-  page hors de `(admin)`, liée depuis le back-office, vue à l'écran avec de vraies sessions.
+  **La conversion par réseau** vit dans le back-office, `/admin/reseaux`, depuis le 25 septembre ;
+  `/statistiques` y redirige, le rôle `branding` qui la justifiait ayant été retiré.
   **L'édition du catalogue est écrite** (`/admin/formations/[id]` et `/nouveau`), avec deux
   garde-fous : la cohérence type de produit / durée d'accès est vérifiée avant la base pour
   donner un message lisible, et **un produit ne peut pas être publié sans rôle Discord** — il

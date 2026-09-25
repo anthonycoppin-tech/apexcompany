@@ -8,6 +8,8 @@ import { MessageLigne } from '@/components/message';
 import { BoutonAction, CHAMP, Carte, Conteneur } from '@/components/ui';
 import { PARAM, messageConstant } from '@/lib/messages/catalogue';
 import { alerte, type Message } from '@/lib/messages/types';
+import { rolesConnus } from '@apex/db';
+
 import { destinationApresConnexion } from '@/lib/auth/destination';
 import { createClient } from '@/lib/supabase/client';
 
@@ -368,5 +370,5 @@ async function destinationDe(userId: string): Promise<string> {
     .select('role')
     .eq('user_id', userId);
 
-  return destinationApresConnexion(lignes?.map((l) => l.role) ?? []);
+  return destinationApresConnexion(rolesConnus(lignes?.map((l) => l.role) ?? []));
 }

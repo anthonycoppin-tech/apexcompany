@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { ROLES_STAFF, type AppRole } from '@apex/db';
+import { ROLES_STAFF, rolesConnus, type AppRole } from '@apex/db';
 
 import { createClient } from '@/lib/supabase/server';
 
@@ -25,7 +25,7 @@ export async function getUserRoles(): Promise<AppRole[]> {
 
   if (error) throw error;
 
-  return data.map((r) => r.role);
+  return rolesConnus(data.map((r) => r.role));
 }
 
 /**

@@ -38,7 +38,12 @@ const nextConfig: NextConfig = {
   // L'ancien site publiait son avertissement sous `/disclaimer`, et ses CGV y
   // renvoyaient : un lien déjà diffusé ne doit pas tomber sur une 404.
   async redirects() {
-    return [{ source: '/disclaimer', destination: '/avertissement', permanent: true }];
+    return [
+      { source: '/disclaimer', destination: '/avertissement', permanent: true },
+      // L'ancienne page du rôle branding, retiré le 25 septembre 2026 : un favori
+      // du staff mène à la même page, dans le back-office.
+      { source: '/statistiques', destination: '/admin/reseaux', permanent: false },
+    ];
   },
 };
 

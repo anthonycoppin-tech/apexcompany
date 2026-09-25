@@ -12,7 +12,6 @@ import { changerRole } from './actions';
 const LIBELLES: Record<AppRole, string> = {
   client: 'Client',
   formateur: 'Formateur',
-  branding: 'Branding',
   admin: 'Admin',
   owner: 'Owner',
 };

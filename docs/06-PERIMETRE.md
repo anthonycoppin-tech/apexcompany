@@ -124,12 +124,10 @@ dès l'étape 2 du plan de construction.
 | ----------- | --------------------------------------------------------------------------- |
 | `client`    | Ses données, ses rendez-vous, ses propositions, sa facturation              |
 | `formateur` | Ses affectations uniquement : clients, rendez-vous, notes, ses statistiques |
-| `branding`  | Accès minimal : statistiques de conversion, liens et visuels du site        |
 | `admin`     | CRM complet, paiements, remboursements, catalogue, documents                |
 | `owner`     | Tout, plus la gestion des rôles et l'audit                                  |
 
-**Le rôle `branding` a très peu à faire dans la plateforme** — son travail est en dehors. Ne
-lui construisez pas un espace dédié : un accès en lecture aux statistiques suffit largement.
+**Le rôle `branding` a été retiré le 25 septembre 2026** : personne ne le tient chez le client. La valeur reste dans l'énumération SQL, que PostgreSQL ne sait pas amputer, mais une contrainte interdit de l'attribuer (`20260925110000_a_retrait_branding.sql`). La conversion par réseau se lit dans le back-office.
 
 **Le rôle `formateur` est le plus délicat.** « Ses affectations uniquement » est une politique
 RLS, pas un filtre d'affichage. Un formateur ne doit pas pouvoir lister les clients d'un

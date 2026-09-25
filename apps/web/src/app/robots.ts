@@ -27,7 +27,6 @@ export default function robots(): MetadataRoute.Robots {
         '/admin',
         '/espace',
         '/formateur',
-        '/statistiques',
         '/api/',
         '/connexion',
         // Écrans qui n'ont de sens qu'au sein d'un parcours : indexés seuls,

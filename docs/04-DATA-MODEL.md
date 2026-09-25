@@ -32,6 +32,7 @@ prénom. Il se remplit au paiement, où la facturation l'exige.
 **`user_roles`** — `id`, `user_id`, `role`, `granted_by`, `granted_at`
 
 ✅ **écrit** : l'énumération devient `client`, `formateur`, `branding`, `admin`, `owner`.
+**Le rôle `branding` a été retiré le 25 septembre 2026** : personne ne le tient chez le client. La valeur reste dans l'énumération SQL, que PostgreSQL ne sait pas amputer, mais une contrainte interdit de l'attribuer (`20260925110000_a_retrait_branding.sql`).
 La valeur `coach` est renommée.
 
 **Ces rôles n'ont rien à voir avec les rôles Discord.** `user_roles` décide de ce qu'une

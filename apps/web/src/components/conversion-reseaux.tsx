@@ -24,14 +24,12 @@ const pourcentage = (part: number, total: number) =>
 /**
  * Quel réseau amène des prospects, et lequel amène des clients.
  *
- * C'est le besoin du pôle branding (`04-DATA-MODEL.md`) : `leads.source` est
- * verrouillée au premier contact précisément pour que ce tableau reste juste.
- * Tout le calcul est dans `stats_conversion()` ; ce composant ne fait qu'afficher.
+ * `leads.source` est verrouillée au premier contact précisément pour que ce
+ * tableau reste juste. Tout le calcul est dans `stats_conversion()`, réservée au
+ * staff ; ce composant ne fait qu'afficher.
  *
- * Affiché à deux adresses depuis le 25 septembre 2026 : `/statistiques` pour le
- * rôle `branding`, qui n'a pas le back-office, et `/admin/reseaux` pour le
- * staff, qui y perdait sinon le menu du back-office. `chemin` garde les liens
- * de période sur l'adresse d'où l'on vient.
+ * Servi par `/admin/reseaux`. Il avait une seconde adresse, `/statistiques`,
+ * pour le rôle `branding`, retiré le 25 septembre 2026.
  */
 export async function ConversionReseaux({
   periode,

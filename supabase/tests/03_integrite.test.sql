@@ -2,7 +2,7 @@
 -- Les garanties qui ne relèvent pas de la RLS mais qui coûtent aussi cher
 -- quand elles cèdent : idempotence des webhooks, numérotation des factures,
 -- immuabilité de la source dun lead, cohérence des types de produit, et accès
--- des rôles admin / owner / branding.
+-- des rôles admin / owner.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
@@ -313,32 +313,40 @@ select cmp_ok(
 
 -- Le pendant du test précédent : la politique ne ferme pas la porte à tout le
 -- monde, sinon plus personne ne pourrait nommer un administrateur. On rend le
--- rôle aussitôt — le compte visé est celui du pôle branding, et les
--- assertions qui suivent vérifient précisément ce qu'il ne doit pas voir.
+-- rôle aussitôt : c'est le passage de formateur employé à formateur admin.
 select lives_ok(
   $$insert into public.user_roles (user_id, role)
-    values ('55555555-5555-5555-5555-555555555555', 'admin')$$,
+    values ('44444444-4444-4444-4444-444444444444', 'admin')$$,
   'owner, lui, accorde un rôle'
 );
 
 select lives_ok(
   $$delete from public.user_roles
-     where user_id = '55555555-5555-5555-5555-555555555555' and role = 'admin'$$,
+     where user_id = '44444444-4444-4444-4444-444444444444' and role = 'admin'$$,
   'et le retire'
 );
 
--- ── Rôle branding ──────────────────────────────────────────────────────────
+-- ── Le rôle branding, retiré le 25 septembre 2026 ──────────────────────────
+--
+-- La valeur reste dans l'énumération, que PostgreSQL ne sait pas amputer :
+-- c'est la contrainte qui la rend inerte, même pour un owner.
 
-set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}';
-
-select is(
-  (select count(*) from public.leads)::int, 0,
-  'branding na aucun accès aux leads nominatifs'
+select throws_ok(
+  $$insert into public.user_roles (user_id, role)
+    values ('44444444-4444-4444-4444-444444444444', 'branding')$$,
+  '23514',
+  null,
+  'le rôle branding ne peut plus être attribué, même par un owner'
 );
 
-select cmp_ok(
-  (select count(*) from public.stats_conversion())::int, '>', 0,
-  'branding obtient les statistiques de conversion par réseau, en agrégat'
+-- Sans le branding, les statistiques de conversion sont au staff seul.
+set local request.jwt.claims = '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}';
+
+select throws_ok(
+  $$select * from public.stats_conversion()$$,
+  '42501',
+  null,
+  'un formateur employé nobtient pas les statistiques de conversion'
 );
 
 set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated"}';

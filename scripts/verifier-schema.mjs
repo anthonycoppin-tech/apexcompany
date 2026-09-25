@@ -1226,6 +1226,38 @@ async function main() {
   verifier('un lien qui nest ni un chemin ni du HTTPS est refusé', lienDangereux, true);
   await db.exec(`delete from public.annonces where titre like 'verif-%';`);
 
+  // ── Le rôle branding, retiré le 25 septembre 2026 ────────────────────────
+  // La valeur reste dans l'énumération, que PostgreSQL ne sait pas amputer :
+  // c'est la contrainte qui la rend inerte, même pour un owner.
+  console.log('\nRôle branding retiré\n');
+  await devenir('11111111-1111-1111-1111-111111111111');
+  let brandingAttribue = true;
+  try {
+    await db.exec(`insert into public.user_roles (user_id, role)
+                   values ('44444444-4444-4444-4444-444444444444', 'branding');`);
+  } catch {
+    brandingAttribue = false;
+  }
+  verifier(
+    'le rôle branding ne peut plus être attribué, même par un owner',
+    brandingAttribue,
+    false,
+  );
+
+  await devenir('33333333-3333-3333-3333-333333333333');
+  let formateurStats = true;
+  try {
+    await db.query('select * from public.stats_conversion();');
+  } catch {
+    formateurStats = false;
+  }
+  verifier(
+    'un formateur employé nobtient pas les statistiques de conversion',
+    formateurStats,
+    false,
+  );
+  await enTantQuAdministrateur();
+
   // ── Filet : plus aucune trace du vocabulaire de la révision 2 ────────────
   const vestiges = await db.query(`
     select tablename from pg_tables

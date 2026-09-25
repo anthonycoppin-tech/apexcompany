@@ -23,7 +23,6 @@
 --   admin       22222222-2222-2222-2222-222222222222
 --   formateur A 33333333-3333-3333-3333-333333333333
 --   formateur B 44444444-4444-4444-4444-444444444444
---   branding    55555555-5555-5555-5555-555555555555
 --   client A    66666666-6666-6666-6666-666666666666
 --   client B    77777777-7777-7777-7777-777777777777
 
@@ -88,7 +87,6 @@ select pg_temp.creer_utilisateur('11111111-1111-1111-1111-111111111111', 'owner@
 select pg_temp.creer_utilisateur('22222222-2222-2222-2222-222222222222', 'admin@apex.test',        'Adam',    'Admin');
 select pg_temp.creer_utilisateur('33333333-3333-3333-3333-333333333333', 'formateur.a@apex.test',  'Camille', 'FormateurA');
 select pg_temp.creer_utilisateur('44444444-4444-4444-4444-444444444444', 'formateur.b@apex.test',  'Bruno',   'FormateurB');
-select pg_temp.creer_utilisateur('55555555-5555-5555-5555-555555555555', 'branding@apex.test',     'Bella',   'Branding');
 select pg_temp.creer_utilisateur('66666666-6666-6666-6666-666666666666', 'client.a@apex.test',     'Chloe',   'ClientA');
 select pg_temp.creer_utilisateur('77777777-7777-7777-7777-777777777777', 'client.b@apex.test',     'Camil',   'ClientB');
 
@@ -98,8 +96,7 @@ insert into public.user_roles (user_id, role) values
   ('11111111-1111-1111-1111-111111111111', 'owner'),
   ('22222222-2222-2222-2222-222222222222', 'admin'),
   ('33333333-3333-3333-3333-333333333333', 'formateur'),
-  ('44444444-4444-4444-4444-444444444444', 'formateur'),
-  ('55555555-5555-5555-5555-555555555555', 'branding');
+  ('44444444-4444-4444-4444-444444444444', 'formateur');
 
 delete from public.user_roles
 where role = 'client'
@@ -107,8 +104,7 @@ where role = 'client'
     '11111111-1111-1111-1111-111111111111',
     '22222222-2222-2222-2222-222222222222',
     '33333333-3333-3333-3333-333333333333',
-    '44444444-4444-4444-4444-444444444444',
-    '55555555-5555-5555-5555-555555555555'
+    '44444444-4444-4444-4444-444444444444'
   );
 
 -- Catalogue ────────────────────────────────────────────────────────────────

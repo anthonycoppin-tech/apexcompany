@@ -95,8 +95,8 @@ Deuxième chose à comprendre, parce que la confusion est facile : **il y a deux
 rôles qui ne se recouvrent pas.**
 
 **Les rôles applicatifs** vivent dans `user_roles`. Ils décident de ce qu'une requête a le
-droit de lire dans la base, via la RLS. Ils ne changent pas : `client`, `formateur`,
-`branding`, `admin`, `owner`.
+droit de lire dans la base, via la RLS : `client`, `formateur`, `admin`, `owner`.
+**Le rôle `branding` a été retiré le 25 septembre 2026** : personne ne le tient chez le client. La valeur reste dans l'énumération SQL, que PostgreSQL ne sait pas amputer, mais une contrainte interdit de l'attribuer (`20260925110000_a_retrait_branding.sql`).
 
 **Les rôles Discord** vivent sur le serveur Discord. Ils décident de ce qu'une personne voit
 comme contenu : salons, conférences, replays.
