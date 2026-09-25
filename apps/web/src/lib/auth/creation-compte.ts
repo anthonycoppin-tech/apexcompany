@@ -96,11 +96,16 @@ export async function creerCompteEtSession({
   if (error || !compte.user) {
     const existe = error?.message?.toLowerCase().includes('already') ?? false;
 
+    // « Déjà prise » ne veut pas forcément dire « un compte porte cette
+    // adresse » : Supabase refuse aussi l'adresse d'une identité reliée —
+    // l'email du compte Discord relié à un autre compte. Constaté le
+    // 25 septembre 2026 : l'adresse n'avait aucun compte, et « connectez-vous »
+    // envoyait vers une connexion qui ne pouvait pas aboutir.
     return {
       ok: false,
       compteExiste: existe,
       erreur: existe
-        ? 'Un compte existe déjà avec cette adresse. Connectez-vous pour continuer.'
+        ? 'Cette adresse est déjà utilisée, par un compte ou par le compte Discord relié à un compte. Connectez-vous avec l’adresse de ce compte.'
         : 'La création du compte a échoué. Réessayez dans un instant.',
     };
   }
