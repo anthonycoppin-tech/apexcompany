@@ -52,8 +52,7 @@ Le site a été présenté au client. Ses retours sont tous faits, en une journ�
 - **Un bandeau d'événement en tête de l'accueil**, écrit depuis `/admin/annonces`. La table
   `annonces` impose une **fin d'affichage**, et c'est la politique RLS qui retire l'annonce
   échue — même famille que « le site ne ment plus ». La première annonce, le challenge du
-  15 octobre, arrive par la migration. **`20260925100000_a_annonces.sql` attend un
-  `db:push`** ; d'ici là l'accueil s'affiche sans bandeau, rien ne casse.
+  15 octobre, arrive par la migration. `20260925100000_a_annonces.sql` est **appliquée et vérifiée** (25 septembre au soir).
 - **Le client peut consulter le site** par un second projet Vercel fermé par un mot de passe :
   `APERCU_ACCES` active une authentification HTTP sur tout le site sauf `/api/`, et interdit
   l'indexation. Procédure : `docs/10-MISE-EN-PRODUCTION.md` §5 bis — **sans `CRON_SECRET`**,
@@ -64,7 +63,7 @@ d'achat partout), la page d'achat d'une formation, `/inscription`, les écrans d
 (statistiques refusées, taux absents), ceux du formateur admin — obtenu en donnant `admin` à
 `formateur.b` le temps de la vérification, puis retiré —, `/admin/annonces`, la vue d'une
 journée, et le mot de passe du site d'aperçu. **Pas vus** : la liaison Discord enchaînée après
-`/inscription` (elle crée un vrai compte), et le bandeau lui-même, qui attend la migration.
+`/inscription` (elle crée un vrai compte), et le bandeau lui-même, vu depuis sur l'accueil une fois la migration appliquée.
 
 ## Point d'étape — 24 septembre 2026
 

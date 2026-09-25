@@ -159,11 +159,7 @@ le formulaire (Discord en invité), statistiques sur une journée, formateur adm
 employé, bandeau d'annonce d'événement sur l'accueil, accès du client au site pour qu'il y
 travaille. Détail dans le point d'étape du 25 septembre de `CLAUDE.md`.
 
-**Une migration attend un `db:push`** : `20260925100000_a_annonces.sql` (table `annonces` et
-la première annonce, le challenge du 15 octobre). Tant qu'elle n'est pas appliquée, l'accueil
-s'affiche sans bandeau et `/admin/annonces` est vide — rien ne casse. Types ajoutés à la main ;
-`db:types:linked` doit redonner le même fichier. **À vérifier par le contenu** : la politique
-`annonces_publiees_en_lecture` et l'annonce du challenge.
+**`20260925100000_a_annonces.sql` est appliquée** — poussée par Christopher dans l'heure, et **vérifiée par le comportement** le 25 au soir : lecture anonyme de la seule annonce du challenge, écriture anonyme refusée (`42501`), annonce sans fin d'affichage refusée (`23502`), lien `javascript:` refusé (`23514`), bandeau vu sur l'accueil d'un build de production (« Dans 20 jours »).
 
 ### Les trois sujets du 23 septembre — faits, sauf ce qui attend le client
 

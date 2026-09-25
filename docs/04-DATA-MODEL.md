@@ -8,8 +8,7 @@ d'accès distinctes ; arrivée des propositions et des abonnements.
 **État au 24 septembre 2026.** Le schéma décrit ici est **appliqué**, sur la base hébergée
 comme en local : 35 migrations, **24 tables**, **16 fonctions**, vérifiées par
 `npm run db:check` (134 vérifications) et par la suite pgTAP. **Le 25 septembre**, une
-36ᵉ migration ajoute une 25ᵉ table, `annonces` (section _Contenu éditorial_) — écrite et
-testée, **en attente de `db:push`**. La réserve qui figurait ici — « pas encore appliqué sur
+36ᵉ migration ajoute une 25ᵉ table, `annonces` (section _Contenu éditorial_) — appliquée et vérifiée le jour même. La réserve qui figurait ici — « pas encore appliqué sur
 le projet hébergé » — est levée depuis le 8 septembre, et `packages/db/src/database.types.ts`
 est régénéré depuis cette base.
 
