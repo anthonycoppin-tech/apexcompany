@@ -77,7 +77,9 @@ Dans le tableau de bord du projet de production :
 
 3. Se connecter sur `/connexion` avec ce compte, et créer les autres comptes de l'équipe par
    _Add user_, leurs rôles se donnant ensuite depuis `/admin/utilisateurs`. Franck reçoit
-   `formateur` ; son identifiant va dans `AUDIT_CONSEILLER_USER_ID` (étape 5).
+   `formateur` **et** `admin` — c'est ce qui fait de lui un _formateur admin_, qui voit tout,
+   statistiques et back-office compris ; un formateur employé ne reçoit que `formateur`
+   (`lib/auth/profils.ts`). Son identifiant va dans `AUDIT_CONSEILLER_USER_ID` (étape 5).
 
 ## 4. Discord
 
@@ -117,6 +119,32 @@ en v1, et les vidéos sont hors projet.
 
 Contrôle : `/admin/parametres` (compte `owner`) dit quels services sont branchés, sans afficher
 aucune valeur.
+
+### 5 bis. Le site d'aperçu, pour que le client travaille dessus
+
+Avant l'ouverture, le client doit pouvoir consulter le site et y saisir son contenu (annonces,
+témoignages, fiches formateurs, catalogue). **C'est un second projet Vercel, sur la base de dev
+partagée**, fermé par un mot de passe :
+
+1. Nouveau projet Vercel depuis le dépôt GitHub, répertoire racine `apps/web`. **Plan Pro**
+   (l'essai de 14 jours suffit pour commencer) : le plan gratuit refuse le déploiement, à cause
+   de la tâche horaire de `vercel.json`.
+2. Variables : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+   `SUPABASE_SERVICE_ROLE_KEY` et `DISCORD_ROLE_INVITE_ID` — les valeurs de `apps/web/.env.local`
+   —, `NEXT_PUBLIC_SITE_URL` à l'adresse `https://….vercel.app` du projet, et
+   **`APERCU_ACCES` = `identifiant:mot-de-passe`**. C'est elle qui ferme le site
+   (`lib/apercu.ts`) : tout visiteur doit se connecter, et aucune page ne s'indexe.
+3. **Ne pas renseigner `CRON_SECRET`** : les tâches planifiées répondent alors 503 sans rien
+   faire. Sans cette précaution, la révocation et la purge tourneraient sur la base de dev.
+4. Supabase → _Authentication → URL Configuration_ : ajouter `https://….vercel.app/**` aux
+   _Redirect URLs_, sans quoi les liens de connexion et la liaison Discord ramènent sur
+   localhost.
+5. Donner au client l'adresse et le mot de passe. Pour qu'il écrive dans le back-office : il
+   crée son compte sur `/inscription`, puis un `owner` lui donne `admin` depuis
+   `/admin/utilisateurs` et lui retire `client`.
+
+Sans les clés Whop, le paiement répond qu'il n'est pas configuré : le site d'aperçu ne peut pas
+encaisser, et c'est ce qu'on veut.
 
 ## 6. Le worker Discord
 

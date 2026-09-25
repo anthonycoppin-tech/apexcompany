@@ -12,17 +12,14 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { echoue, reussi, type EtatAction } from '@/lib/messages/types';
 
 /**
- * Souscrire directement à un abonnement, sans passer par l'audit.
+ * Acheter directement un produit du catalogue, sans passer par l'audit.
  *
- * Tranché par le chef de projet le 8 septembre 2026. C'est une entorse assumée
- * au « un seul tunnel » de `02-SITEMAP.md`, et elle se justifie : imposer un
- * rendez-vous de vente pour un abonnement mensuel coûterait la majorité des
- * inscriptions. L'audit reste obligatoire pour les accompagnements et les
- * formations, où le panier justifie qu'on vérifie que le produit correspond.
- *
- * **Réservé aux produits de type `abonnement`**, et vérifié ici plutôt que
- * seulement à l'affichage : une action serveur est une API publique, elle ne
- * peut pas faire confiance à l'écran qui l'appelle.
+ * Tranché pour l'abonnement le 8 septembre 2026, **étendu à tout le catalogue
+ * le 25 septembre** à la demande du client, après la présentation : formations
+ * et accompagnements se vendent aussi au prix affiché, sans rendez-vous.
+ * L'audit reste proposé — il mène à une proposition, seul chemin vers un prix
+ * différent du catalogue. Ici, le prix est toujours celui du catalogue, relu en
+ * base : une action serveur est une API publique.
  *
  * Le formulaire est volontairement court — prénom, email, consentement. Le
  * questionnaire de qualification n'a pas lieu d'être : il sert à préparer un
@@ -55,12 +52,6 @@ export async function souscrire(_precedent: EtatAction, donnees: FormData): Prom
     .maybeSingle();
 
   if (!formation) return echoue('Ce produit n’est pas disponible.');
-
-  if (formation.type_produit !== 'abonnement') {
-    return echoue(
-      'Ce programme ne se souscrit pas en ligne. Il passe par un échange d’orientation préalable.',
-    );
-  }
 
   const {
     data: { user },
@@ -105,9 +96,9 @@ export async function souscrire(_precedent: EtatAction, donnees: FormData): Prom
     userId = creation.userId;
     emailVerifie = false;
 
-    // Un souscripteur direct est un client, pas un prospect qualifié : il n'a
-    // répondu à aucune question. On garde tout de même une fiche, pour que le
-    // CRM ne connaisse pas deux populations dont l'une serait invisible.
+    // Un acheteur direct n'a répondu à aucune question. On garde tout de même
+    // une fiche, pour que le CRM ne connaisse pas deux populations dont l'une
+    // serait invisible — et parce qu'une proposition part toujours d'une fiche.
     await createServiceRoleClient()
       .from('leads')
       .insert({

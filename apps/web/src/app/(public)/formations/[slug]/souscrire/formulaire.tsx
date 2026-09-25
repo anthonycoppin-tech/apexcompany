@@ -13,16 +13,18 @@ import { souscrire } from './actions';
  *
  * Trois champs quand la personne n'a pas de compte, aucun quand elle en a un.
  * Le questionnaire de qualification n'a pas lieu d'être ici : il sert à
- * préparer un audit qui n'aura pas lieu, et le poser devant un abonnement
- * mensuel coûterait exactement ce que la vente en self-service cherche à
+ * préparer un audit qui n'aura pas lieu, et le poser devant un achat direct
+ * coûterait exactement ce que la vente en self-service cherche à
  * gagner.
  */
 export function FormulaireSouscription({
   slug,
+  typeProduit,
   connecte,
   libelleBouton,
 }: {
   slug: string;
+  typeProduit: string;
   connecte: boolean;
   libelleBouton: string;
 }) {
@@ -85,8 +87,9 @@ export function FormulaireSouscription({
         </div>
       )}
 
-      {/* Un produit souscrit ici est toujours un abonnement (vérifié par l'action). */}
-      <CasesAcceptation typeProduit="abonnement" />
+      {/* Le texte de renonciation dépend du type : un accompagnement se
+          rétracte au prorata, une formation et un abonnement non. */}
+      <CasesAcceptation typeProduit={typeProduit} />
 
       <MessageLigne message={messageDe(etat)} />
 
@@ -99,7 +102,8 @@ export function FormulaireSouscription({
       </button>
 
       <p className="text-center text-xs text-encre-doux">
-        Paiement sécurisé par Whop. Résiliable à tout moment depuis votre espace.
+        Paiement sécurisé par Whop.
+        {typeProduit === 'abonnement' ? ' Résiliable à tout moment depuis votre espace.' : ''}
       </p>
     </form>
   );

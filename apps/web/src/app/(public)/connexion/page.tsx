@@ -239,8 +239,12 @@ export default function ConnexionPage() {
 
             <p className="text-sm text-encre-doux">
               Pas encore de compte ?{' '}
+              <Link href="/inscription" className="font-medium underline">
+                Créez-le en trente secondes
+              </Link>
+              , ou{' '}
               <Link href="/qualification" className="font-medium underline">
-                Faites le point sur votre situation
+                faites d’abord le point sur votre situation
               </Link>
               .
             </p>

@@ -150,14 +150,20 @@ qu'on cherche à éviter. Un commit dédié, poussé dans la foulée, avant de c
 | Action serveur non gardée             | fait | Anthony     | 24 sept. |
 | Relecture du webhook Whop             | fait | Anthony     | 24 sept. |
 | Catalogue réel mis en vente           | fait | Anthony     | 24 sept. |
-| Retours de la présentation client     | pris | Anthony     | 25 sept. |
+| Retours de la présentation client     | fait | Anthony     | 25 sept. |
 
-### Retours de la présentation client — pris le 25 septembre
+### Retours de la présentation client — faits le 25 septembre
 
 Achat direct de tous les produits, proposition visible dans l'espace client, inscription sans
-le formulaire (Discord en invité), statistiques formateur sur une journée, formateur admin /
-formateur employé, bandeau d'annonce d'événement sur l'accueil, accès du client au site pour
-qu'il y travaille.
+le formulaire (Discord en invité), statistiques sur une journée, formateur admin / formateur
+employé, bandeau d'annonce d'événement sur l'accueil, accès du client au site pour qu'il y
+travaille. Détail dans le point d'étape du 25 septembre de `CLAUDE.md`.
+
+**Une migration attend un `db:push`** : `20260925100000_a_annonces.sql` (table `annonces` et
+la première annonce, le challenge du 15 octobre). Tant qu'elle n'est pas appliquée, l'accueil
+s'affiche sans bandeau et `/admin/annonces` est vide — rien ne casse. Types ajoutés à la main ;
+`db:types:linked` doit redonner le même fichier. **À vérifier par le contenu** : la politique
+`annonces_publiees_en_lecture` et l'annonce du challenge.
 
 ### Les trois sujets du 23 septembre — faits, sauf ce qui attend le client
 

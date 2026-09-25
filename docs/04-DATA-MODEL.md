@@ -7,7 +7,9 @@ d'accès distinctes ; arrivée des propositions et des abonnements.
 
 **État au 24 septembre 2026.** Le schéma décrit ici est **appliqué**, sur la base hébergée
 comme en local : 35 migrations, **24 tables**, **16 fonctions**, vérifiées par
-`npm run db:check` (134 vérifications) et par la suite pgTAP. La réserve qui figurait ici — « pas encore appliqué sur
+`npm run db:check` (134 vérifications) et par la suite pgTAP. **Le 25 septembre**, une
+36ᵉ migration ajoute une 25ᵉ table, `annonces` (section _Contenu éditorial_) — écrite et
+testée, **en attente de `db:push`**. La réserve qui figurait ici — « pas encore appliqué sur
 le projet hébergé » — est levée depuis le 8 septembre, et `packages/db/src/database.types.ts`
 est régénéré depuis cette base.
 
@@ -293,6 +295,17 @@ site, et un formateur peut exister sans fiche publiée.
 **Leur suppression laisse une trace** depuis le 15 septembre — le déclencheur d'audit ne
 couvrait que les modifications, et supprimer un témoignage effaçait donc la seule preuve du
 consentement : celle qu'on veut produire le jour où la ligne n'existe plus.
+
+**`annonces`** (25 septembre 2026) — `id`, `surtitre`, `titre`, `texte`, `date_evenement`,
+`lien_url`, `lien_libelle`, `publiee`, `fin_affichage` (**obligatoire**), `created_at`,
+`updated_at`
+
+Le bandeau d'événement du premier bloc de l'accueil, écrit depuis `/admin/annonces`. **Une
+annonce a toujours une fin d'affichage**, et c'est la politique de lecture publique qui la fait
+respecter (`publiee and fin_affichage > now()`) : un événement passé ne peut pas rester en tête
+de l'accueil parce que quelqu'un a oublié de dépublier. Un lien est un chemin du site ou une
+adresse `https://`, jamais autre chose. Suppression tracée. Aucune réservation de place : les
+événements restent hors périmètre.
 
 ## Emails
 

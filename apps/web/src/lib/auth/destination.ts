@@ -1,5 +1,7 @@
 import { type AppRole } from '@apex/db';
 
+import { estFormateurAdmin } from './profils';
+
 /**
  * Où mène une connexion réussie, selon les rôles du compte.
  *
@@ -15,6 +17,9 @@ import { type AppRole } from '@apex/db';
  * fonction existe précisément pour que ce rebond ne puisse plus arriver.
  */
 export function destinationApresConnexion(roles: readonly AppRole[]): string {
+  // Le formateur admin arrive dans son espace de travail quotidien, pas dans
+  // le back-office — il y passe par un lien de l'en-tête (25 septembre 2026).
+  if (estFormateurAdmin(roles)) return '/formateur';
   if (roles.includes('admin') || roles.includes('owner')) return '/admin';
   if (roles.includes('formateur')) return '/formateur';
   if (roles.includes('client')) return '/espace';

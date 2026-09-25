@@ -30,4 +30,6 @@ export const urlSite = (process.env.NEXT_PUBLIC_SITE_URL || DEFAUT).replace(/\/+
  * répondre, en surchargeant `NEXT_PUBLIC_SITE_URL` ou par un en-tête
  * `X-Robots-Tag`. À vérifier quand l'hébergement sera tranché.
  */
-export const siteIndexable = urlSite.startsWith('https://');
+// Un site d'aperçu protégé par mot de passe (`lib/apercu.ts`) est servi en
+// HTTPS, mais ne doit pas plus s'indexer qu'un poste de développement.
+export const siteIndexable = urlSite.startsWith('https://') && !process.env.APERCU_ACCES;

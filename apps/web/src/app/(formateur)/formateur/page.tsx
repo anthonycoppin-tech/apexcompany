@@ -15,6 +15,8 @@ import {
   scoreAppel,
 } from '@/lib/formateur/suivi';
 import { libelle } from '@/lib/qualification/questionnaire';
+import { estFormateurAdmin } from '@/lib/auth/profils';
+import { getUserRoles } from '@/lib/auth/roles';
 import { createClient } from '@/lib/supabase/server';
 
 type Tache = {
@@ -42,8 +44,13 @@ const FIN_ACCES_JOURS = 14;
  *
  * Toutes les requêtes passent par la RLS : ce qui s'affiche est exactement ce
  * que les politiques laissent lire. Aucun montant sur cet écran.
+ *
+ * Le formateur employé n'y voit pas les taux (présence, propositions sur
+ * 30 jours) : ce sont des statistiques, réservées au formateur admin depuis le
+ * 25 septembre 2026. Il garde ce qui sert à travailler — ses audits, ses tâches.
  */
 export default async function Page() {
+  const admin = estFormateurAdmin(await getUserRoles());
   const supabase = await createClient();
   const { debut, fin } = bornesDuJour();
   const maintenant = new Date().getTime();
@@ -324,14 +331,18 @@ export default async function Page() {
         <Tuile
           libelle="Propositions en cours"
           valeur={String(enCours)}
-          detail={`${acceptees30} acceptée${acceptees30 > 1 ? 's' : ''} sur 30 jours`}
+          detail={
+            admin ? `${acceptees30} acceptée${acceptees30 > 1 ? 's' : ''} sur 30 jours` : undefined
+          }
         />
-        <Tuile
-          libelle="Présence aux audits"
-          valeur={pourcentage(honores30, honores30 + absents30)}
-          detail="Sur 30 jours"
-          href="/formateur/statistiques"
-        />
+        {admin && (
+          <Tuile
+            libelle="Présence aux audits"
+            valeur={pourcentage(honores30, honores30 + absents30)}
+            detail="Sur 30 jours"
+            href="/formateur/statistiques"
+          />
+        )}
       </div>
 
       <section className="space-y-4">
@@ -451,13 +462,15 @@ export default async function Page() {
         )}
       </section>
 
-      <p className="text-sm text-encre-doux">
-        {emises30} proposition{emises30 > 1 ? 's' : ''} émise{emises30 > 1 ? 's' : ''} sur 30 jours
-        ·{' '}
-        <Link href="/formateur/statistiques" className="text-accent hover:underline">
-          toutes les statistiques
-        </Link>
-      </p>
+      {admin && (
+        <p className="text-sm text-encre-doux">
+          {emises30} proposition{emises30 > 1 ? 's' : ''} émise{emises30 > 1 ? 's' : ''} sur 30
+          jours ·{' '}
+          <Link href="/formateur/statistiques" className="text-accent hover:underline">
+            toutes les statistiques
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

@@ -31,6 +31,10 @@ const RUBRIQUES: Array<{ titre: string; questions: Array<[string, string]> }> = 
         'Non, et il n’engage à rien. C’est un point sur votre situation, pas une présentation de produit. À l’issue, vous recevez une proposition écrite si un programme correspond — vous décidez ensuite, depuis votre espace.',
       ],
       [
+        'Peut-on acheter un programme sans passer par l’échange ?',
+        'Oui. Chaque programme s’achète directement depuis sa fiche, au prix affiché, et votre accès s’ouvre dès le paiement. L’échange d’orientation reste là si vous hésitez sur le programme qui vous correspond.',
+      ],
+      [
         'Faut-il déjà savoir trader ?',
         'Non. Les programmes sont organisés par niveau, du parcours découverte à la pratique confirmée. C’est précisément ce que l’échange d’orientation permet de situer.',
       ],

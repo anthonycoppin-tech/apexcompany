@@ -66,10 +66,10 @@ function prixDecimal(cents: number): string {
 /**
  * `/formations/[slug]` — la fiche produit.
  *
- * Elle sert à convaincre, pas à acheter : le seul appel à l'action mène à
- * `/qualification`. Un bouton « acheter » ici court-circuiterait l'échange
- * d'orientation, qui est précisément l'endroit où l'on vérifie que le programme
- * correspond à la situation de la personne.
+ * Deux appels à l'action depuis le 25 septembre 2026 : acheter au prix
+ * affiché, ou faire d'abord le point. Le client a demandé que tout le catalogue
+ * reste achetable directement ; l'échange d'orientation reste là pour qui
+ * hésite, et c'est lui seul qui mène à une proposition à un autre prix.
  *
  * Tout ce qui s'affiche vient du catalogue en base — titre, objectifs,
  * prérequis, durée, tarif. Rien n'est écrit en dur : le back-office reste la
@@ -197,11 +197,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
               ))}
             </dl>
 
-            {/* L'abonnement se souscrit directement, tranché le 8 septembre 2026 :
-                imposer un rendez-vous de vente pour un abonnement mensuel
-                coûterait la majorité des inscriptions. Les accompagnements et
-                les formations continuent de passer par l'échange d'orientation,
-                où le panier justifie qu'on vérifie que le produit correspond. */}
+            {/* Tout le catalogue s'achète directement depuis le 25 septembre
+                2026 (l'abonnement depuis le 8). L'échange d'orientation reste
+                proposé en second : c'est le seul chemin vers une proposition à
+                un prix différent du catalogue. */}
             {formation.type_produit === 'abonnement' ? (
               <div className="space-y-3 border-t border-filet pt-5">
                 <Bouton href={`/formations/${formation.slug}/souscrire`} className="w-full">
@@ -213,11 +212,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
               </div>
             ) : (
               <div className="space-y-3 border-t border-filet pt-5">
-                <Bouton href="/qualification" className="w-full">
-                  Faire le point sur ma situation
+                <Bouton href={`/formations/${formation.slug}/souscrire`} className="w-full">
+                  Acheter maintenant
+                </Bouton>
+                <Bouton href="/qualification" variante="secondaire" className="w-full">
+                  Faire le point d’abord
                 </Bouton>
                 <p className="text-center text-xs text-encre-doux">
-                  On vérifie ensemble que ce programme correspond avant toute inscription.
+                  Un doute ? On vérifie ensemble que ce programme vous correspond.
                 </p>
               </div>
             )}

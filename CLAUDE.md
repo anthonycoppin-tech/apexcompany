@@ -20,10 +20,55 @@ n'est limité à un périmètre, on se répartit par sujet.
 types de produit, disparition des cohortes et des replays, espace formateur dédié.
 `01-CAHIER-DES-CHARGES.md` porte le raisonnement, les autres en tirent les conséquences.
 
-## Point d'étape — 24 septembre 2026
+## Point d'étape — 25 septembre 2026
 
 **Prime sur tous les points d'étape ci-dessous**, qui restent vrais pour ce que celui-ci ne
 contredit pas.
+
+Le site a été présenté au client. Ses retours sont tous faits, en une journée.
+
+- **Tout le catalogue s'achète directement**, au prix affiché — plus seulement l'abonnement.
+  L'échange d'orientation reste proposé en second sur chaque fiche : c'est le seul chemin vers
+  une proposition à un autre prix. La phrase « l'audit reste obligatoire pour les
+  accompagnements et les formations », partout où elle subsiste plus bas, est périmée.
+- **La proposition a sa place dans l'espace client** (`/espace/propositions`, dans le menu) et un
+  vrai bouton « Voir et régler » sur `/espace` : pendant la présentation, personne ne l'a
+  trouvée. Une proposition échue n'y passe plus pour « en attente ».
+- **`/inscription`** crée un compte sans le formulaire et enchaîne la liaison Discord — donc le
+  rôle `invité`. Mêmes garde-fous que `/qualification` (champ piège, limite par adresse,
+  session existante refusée), et une déclaration de majorité à la place de la question d'âge.
+  Chaque compte, comme chaque acheteur direct, a sa fiche prospect : **une proposition part
+  toujours d'une fiche**, sans elle Franck ne pourrait rien lui adresser.
+- **Deux profils de formateur, sans nouveau rôle** (`lib/auth/profils.ts`). _Formateur admin_ =
+  `formateur` + `admin` : la RLS du staff lui ouvre tout, l'espace formateur montre donc
+  l'équipe entière, et il a les statistiques et le back-office. _Formateur employé_ =
+  `formateur` seul : ses affectations, **ni statistiques ni taux** — la page le renvoie, le
+  tableau de bord les masque. Un rôle dédié aurait fait deux définitions de « tout » qui
+  divergeraient. Le formateur admin arrive sur `/formateur`, pas sur `/admin`.
+- **Les statistiques se lisent sur une journée** (`?jour=AAAA-MM-JJ`, ou « Aujourd'hui »),
+  formateur et back-office, **de minuit à minuit à Paris** (`lib/statistiques/periode.ts`,
+  testé) — pour lire un événement sur sa seule journée. Le formateur admin filtre aussi par
+  formateur.
+- **Un bandeau d'événement en tête de l'accueil**, écrit depuis `/admin/annonces`. La table
+  `annonces` impose une **fin d'affichage**, et c'est la politique RLS qui retire l'annonce
+  échue — même famille que « le site ne ment plus ». La première annonce, le challenge du
+  15 octobre, arrive par la migration. **`20260925100000_a_annonces.sql` attend un
+  `db:push`** ; d'ici là l'accueil s'affiche sans bandeau, rien ne casse.
+- **Le client peut consulter le site** par un second projet Vercel fermé par un mot de passe :
+  `APERCU_ACCES` active une authentification HTTP sur tout le site sauf `/api/`, et interdit
+  l'indexation. Procédure : `docs/10-MISE-EN-PRODUCTION.md` §5 bis — **sans `CRON_SECRET`**,
+  sinon les tâches planifiées tourneraient sur la base de dev.
+
+**Vu à l'écran**, sur un build de production contre la base partagée : les neuf fiches (bouton
+d'achat partout), la page d'achat d'une formation, `/inscription`, les écrans de l'employé
+(statistiques refusées, taux absents), ceux du formateur admin — obtenu en donnant `admin` à
+`formateur.b` le temps de la vérification, puis retiré —, `/admin/annonces`, la vue d'une
+journée, et le mot de passe du site d'aperçu. **Pas vus** : la liaison Discord enchaînée après
+`/inscription` (elle crée un vrai compte), et le bandeau lui-même, qui attend la migration.
+
+## Point d'étape — 24 septembre 2026
+
+**Reste vrai pour tout ce que le point d'étape du 25 septembre ne contredit pas.**
 
 Journée sans livraison du client : relecture, vérification, et deux défauts de sécurité trouvés
 en regardant du code écrit la veille. Le catalogue réel est **en vente** à la fin de la journée.
@@ -1238,6 +1283,8 @@ Phases de `docs/06-PERIMETRE.md`, réordonnées en révision 3 sur le chemin de 
 - **Vente en self-service de l'abonnement communauté** — **tranché le 8 septembre 2026 : oui.**
   Achat direct depuis `/formations/[slug]`, sans passer par l'audit. Entorse assumée au « un
   seul tunnel » de `02-SITEMAP.md`. **Écrit** : `/formations/[slug]/souscrire`.
+  **Étendu à tout le catalogue le 25 septembre 2026**, à la demande du client après la
+  présentation : formations et accompagnements s'achètent aussi au prix affiché.
 - **Remise accordée par le formateur** — **tranché le 8 septembre 2026 : oui, sans plafond.**
   Franck dirige l'accompagnement commercial et décide seul du prix qu'il propose. **Écrit** :
   montant saisissable, prix catalogue en valeur par défaut, et écart consigné dans

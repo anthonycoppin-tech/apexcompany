@@ -1,9 +1,13 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
 
 import { Tableau, Tuile } from '@/components/admin';
 import { Histogramme } from '@/components/histogramme';
+import { SelecteurPeriode } from '@/components/selecteur-periode';
+import { estFormateurAdmin } from '@/lib/auth/profils';
+import { getUserRoles } from '@/lib/auth/roles';
 import { SOURCES } from '@/lib/crm/pipeline';
 import {
   JOUR_MS,
@@ -24,25 +28,24 @@ import {
   TRANCHES_BUDGET,
   ZONES_GEO,
 } from '@/lib/qualification/questionnaire';
+import { lirePeriode } from '@/lib/statistiques/periode';
 import { createClient } from '@/lib/supabase/server';
-
-const PERIODES = [
-  { valeur: '30', libelle: '30 jours', jours: 30 },
-  { valeur: '90', libelle: '90 jours', jours: 90 },
-  { valeur: '365', libelle: '12 mois', jours: 365 },
-  { valeur: 'tout', libelle: 'Depuis le début', jours: null },
-] as const;
 
 const SEMAINES = 8;
 
 type Ligne = { cle: string; libelle: string; prospects: number; clients: number };
 
 /**
- * `/formateur/statistiques` — ses chiffres, et seulement les siens.
+ * `/formateur/statistiques` — les chiffres de l'accompagnement commercial.
  *
- * Le périmètre n'est pas filtré ici : les politiques RLS ne laissent lire que
- * ses prospects, ses audits et ses propositions, donc compter tout ce qui
- * revient donne exactement ses chiffres.
+ * **Réservé au formateur admin depuis le 25 septembre 2026** : le formateur
+ * employé n'a pas accès aux statistiques (`lib/auth/profils.ts`). Le formateur
+ * admin porte un rôle du staff, la RLS lui rend donc toute l'équipe — et il
+ * peut restreindre à un formateur (`?formateur=`), filtré ici sur les colonnes
+ * d'affectation.
+ *
+ * **Une journée se choisit** (`?jour=AAAA-MM-JJ`), demandé le même jour pour
+ * lire les chiffres d'un événement sur sa seule journée.
  *
  * **Aucun encaissement.** Les seuls montants de cet écran sont ceux des
  * propositions qu'il a émises — le prix qu'il a proposé, l'exception documentée
@@ -56,44 +59,73 @@ type Ligne = { cle: string; libelle: string; prospects: number; clients: number 
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ periode?: string }>;
+  searchParams: Promise<{ periode?: string; jour?: string; formateur?: string }>;
 }) {
-  const { periode } = await searchParams;
-  const choisie = PERIODES.find((p) => p.valeur === periode) ?? PERIODES[1];
+  if (!estFormateurAdmin(await getUserRoles())) redirect('/formateur');
+
+  const parametres = await searchParams;
+  const periode = lirePeriode(parametres, '30');
+  const dansPeriode = periode.dans;
   const maintenant = new Date().getTime();
-  const depuisMs = choisie.jours === null ? 0 : maintenant - choisie.jours * JOUR_MS;
-  const dansPeriode = (d: string | null | undefined) =>
-    !!d && new Date(d).getTime() >= depuisMs && new Date(d).getTime() <= maintenant;
 
   const supabase = await createClient();
 
+  // Les formateurs de l'équipe, pour le filtre. Lisible parce que le
+  // formateur admin est du staff (`user_roles_staff_lit`).
+  const { data: equipe } = await supabase
+    .from('user_roles')
+    .select('user_id, profiles!user_roles_user_id_fkey(prenom, nom, email)')
+    .eq('role', 'formateur');
+  const formateurs = (equipe ?? []).map((f) => ({
+    id: f.user_id,
+    nom:
+      [f.profiles?.prenom, f.profiles?.nom].filter(Boolean).join(' ') ||
+      f.profiles?.email ||
+      'Formateur',
+  }));
+  const choisi = formateurs.find((f) => f.id === parametres.formateur) ?? null;
+
+  // Un filtre d'affichage, pas une frontière : la frontière, c'est la RLS.
+  const qLeads = supabase
+    .from('leads')
+    .select(
+      'id, statut, source, tranche_budget, blocage, niveau_trading, delai_objectif, prop_firm, situation_pro, zone_geo, created_at, user_id',
+    );
+  const qRdv = supabase
+    .from('appointments')
+    .select('id, lead_id, debut, created_at, issue, statut');
+  const qProps = supabase
+    .from('propositions')
+    .select(
+      'id, statut, created_at, updated_at, lead_id, user_id, montant_cents, devise, expire_le, formation_id, formations(titre, prix_cents)',
+    );
+  const qInscriptions = supabase
+    .from('inscriptions')
+    .select('id, statut, date_debut, date_fin_acces, formations(titre, modalite)');
+  const qNotes = supabase
+    .from('suivi_notes')
+    .select('inscription_id, type, visible_client, created_at');
+
   const [leads, rdv, propositions, echanges, inscriptions, notes] = await Promise.all([
-    supabase
-      .from('leads')
-      .select(
-        'id, statut, source, tranche_budget, blocage, niveau_trading, delai_objectif, prop_firm, situation_pro, zone_geo, created_at, user_id',
-      ),
-    supabase.from('appointments').select('id, lead_id, debut, created_at, issue, statut'),
-    supabase
-      .from('propositions')
-      .select(
-        'id, statut, created_at, updated_at, lead_id, user_id, montant_cents, devise, expire_le, formation_id, formations(titre, prix_cents)',
-      ),
+    choisi ? qLeads.eq('assigned_to', choisi.id) : qLeads,
+    choisi ? qRdv.eq('conseiller_id', choisi.id) : qRdv,
+    choisi ? qProps.eq('formateur_id', choisi.id) : qProps,
     supabase
       .from('lead_events')
       .select('lead_id, created_at, payload')
       .eq('type', 'echange')
       .order('created_at'),
-    supabase
-      .from('inscriptions')
-      .select('id, statut, date_debut, date_fin_acces, formations(titre, modalite)'),
-    supabase.from('suivi_notes').select('inscription_id, type, visible_client, created_at'),
+    choisi ? qInscriptions.eq('formateur_id', choisi.id) : qInscriptions,
+    choisi ? qNotes.eq('formateur_id', choisi.id) : qNotes,
   ]);
 
   const tousLeads = leads.data ?? [];
   const tousRdv = rdv.data ?? [];
   const toutesProps = propositions.data ?? [];
-  const tousEchanges = echanges.data ?? [];
+  // Les échanges suivent les prospects retenus : un échange n'a pas de
+  // formateur à lui, il a une fiche.
+  const leadsRetenus = new Set(tousLeads.map((l) => l.id));
+  const tousEchanges = (echanges.data ?? []).filter((e) => leadsRetenus.has(e.lead_id));
 
   // ── L'entonnoir des prospects arrivés sur la période ─────────────────────
   const cohorte = tousLeads.filter((l) => dansPeriode(l.created_at));
@@ -335,23 +367,40 @@ export default async function Page({
   return (
     <div className="space-y-10">
       <div className="space-y-4">
-        <h1 className="text-3xl font-extrabold">Mes statistiques</h1>
-        <nav className="flex flex-wrap gap-2" aria-label="Période">
-          {PERIODES.map((p) => (
-            <Link
-              key={p.valeur}
-              href={`/formateur/statistiques?periode=${p.valeur}`}
-              aria-current={p.valeur === choisie.valeur ? 'page' : undefined}
-              className={`rounded-douce border px-3 py-1.5 text-sm ${
-                p.valeur === choisie.valeur
-                  ? 'border-encre bg-encre text-fond'
-                  : 'border-filet text-encre-doux hover:bg-fond'
-              }`}
-            >
-              {p.libelle}
-            </Link>
-          ))}
-        </nav>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-extrabold">Statistiques</h1>
+          <p className="text-encre-doux first-letter:uppercase">
+            {periode.libelle} · {choisi ? choisi.nom : 'toute l’équipe'}
+          </p>
+        </div>
+        <SelecteurPeriode
+          chemin="/formateur/statistiques"
+          periode={periode}
+          conserver={{ formateur: choisi?.id }}
+        />
+        {formateurs.length > 1 && (
+          <nav className="flex flex-wrap gap-2 text-sm" aria-label="Formateur">
+            {[{ id: '', nom: 'Toute l’équipe' }, ...formateurs].map((f) => {
+              const actif = (choisi?.id ?? '') === f.id;
+              const params = new URLSearchParams(periode.parametres);
+              if (f.id) params.set('formateur', f.id);
+              return (
+                <Link
+                  key={f.id || 'tous'}
+                  href={`/formateur/statistiques?${params.toString()}`}
+                  aria-current={actif ? 'page' : undefined}
+                  className={`rounded-full border px-3 py-1 ${
+                    actif
+                      ? 'border-accent text-encre'
+                      : 'border-filet text-encre-doux hover:bg-fond'
+                  }`}
+                >
+                  {f.nom}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
       </div>
 
       {/* L'avertissement précède les chiffres, sinon il ne sert à rien : on ne
@@ -390,8 +439,8 @@ export default async function Page({
         <div className="space-y-1">
           <h2 className="text-xl font-bold">Ventes</h2>
           <p className="text-sm text-encre-doux">
-            Vos propositions acceptées sur la période, au montant que vous avez proposé — pas ce qui
-            a été encaissé.
+            Les propositions acceptées sur la période, au montant proposé — pas ce qui a été
+            encaissé, qui se lit dans le back-office.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

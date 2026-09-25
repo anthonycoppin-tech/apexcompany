@@ -1,21 +1,14 @@
-import Link from 'next/link';
-
 import { formaterMontant } from '@apex/db';
 
 import { EnTete, Tableau, Tuile, Vide } from '@/components/admin';
 import { Histogramme } from '@/components/histogramme';
 import { SOURCES } from '@/lib/crm/pipeline';
 import { JOUR_MS, nomComplet, pourcentage } from '@/lib/formateur/suivi';
+import { SelecteurPeriode } from '@/components/selecteur-periode';
+import { lirePeriode } from '@/lib/statistiques/periode';
 import { createClient } from '@/lib/supabase/server';
 
 export const metadata = { title: 'Statistiques' };
-
-const PERIODES = [
-  { valeur: '30', libelle: '30 jours', jours: 30 },
-  { valeur: '90', libelle: '90 jours', jours: 90 },
-  { valeur: '365', libelle: '12 mois', jours: 365 },
-  { valeur: 'tout', libelle: 'Depuis le début', jours: null },
-] as const;
 
 const SEMAINES = 12;
 const MOIS = 12;
@@ -43,14 +36,13 @@ const cellule = 'py-2.5 pr-4 tabular-nums';
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ periode?: string }>;
+  searchParams: Promise<{ periode?: string; jour?: string }>;
 }) {
-  const { periode } = await searchParams;
-  const choisie = PERIODES.find((p) => p.valeur === periode) ?? PERIODES[1];
+  // Une journée se choisit aussi, pour lire un événement sur sa seule journée
+  // (25 septembre 2026) — `lib/statistiques/periode.ts`.
+  const periode = lirePeriode(await searchParams, '30');
   const maintenant = new Date().getTime();
-  const depuisMs = choisie.jours === null ? 0 : maintenant - choisie.jours * JOUR_MS;
-  const dansPeriode = (d: string | null | undefined) =>
-    !!d && new Date(d).getTime() >= depuisMs && new Date(d).getTime() <= maintenant;
+  const dansPeriode = periode.dans;
 
   const supabase = await createClient();
 
@@ -280,22 +272,10 @@ export default async function Page({
         description="Toute l’activité, argent compris. Le tableau de bord dit ce qui se passe aujourd’hui ; cette page dit comment ça évolue."
       />
 
-      <nav className="flex flex-wrap gap-2" aria-label="Période">
-        {PERIODES.map((p) => (
-          <Link
-            key={p.valeur}
-            href={`/admin/statistiques?periode=${p.valeur}`}
-            aria-current={p.valeur === choisie.valeur ? 'page' : undefined}
-            className={`rounded-douce border px-3 py-1.5 text-sm ${
-              p.valeur === choisie.valeur
-                ? 'border-encre bg-encre text-fond'
-                : 'border-filet text-encre-doux hover:bg-fond'
-            }`}
-          >
-            {p.libelle}
-          </Link>
-        ))}
-      </nav>
+      <div className="space-y-2">
+        <SelecteurPeriode chemin="/admin/statistiques" periode={periode} />
+        <p className="text-sm text-encre-doux first-letter:uppercase">{periode.libelle}</p>
+      </div>
 
       <section className="space-y-4">
         <h2 className="text-lg font-bold">Chiffre d’affaires</h2>

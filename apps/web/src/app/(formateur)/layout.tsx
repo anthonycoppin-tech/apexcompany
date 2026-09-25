@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { BoutonDeconnexion } from '@/components/bouton-deconnexion';
 import { NavigationEspace } from '@/components/navigation-espace';
 import { Conteneur } from '@/components/ui';
+import { estFormateurAdmin } from '@/lib/auth/profils';
 import { requireRole } from '@/lib/auth/roles';
 
 const LIENS = [
@@ -11,7 +12,12 @@ const LIENS = [
   { href: '/formateur/rendez-vous', libelle: 'Rendez-vous' },
   { href: '/formateur/clients', libelle: 'Prospects' },
   { href: '/formateur/accompagnements', libelle: 'Accompagnements' },
+];
+
+/** Réservés au formateur admin : les chiffres de l'activité, et le back-office. */
+const LIENS_ADMIN = [
   { href: '/formateur/statistiques', libelle: 'Statistiques' },
+  { href: '/admin', libelle: 'Back-office' },
 ];
 
 /**
@@ -35,9 +41,15 @@ const LIENS = [
  * Le formateur voit si l'accès est actif, pas ce qu'il a coûté. Les seuls
  * montants de la zone sont les prix du catalogue et ceux des propositions
  * qu'il émet lui-même (CLAUDE.md, « Un formateur ne voit que ses affectations »).
+ *
+ * **Deux profils depuis le 25 septembre 2026** (`lib/auth/profils.ts`) : le
+ * formateur admin porte aussi un rôle du staff, et la RLS lui ouvre donc tout —
+ * les mêmes écrans montrent alors l'équipe entière. Le formateur employé
+ * n'a ni les statistiques ni le back-office.
  */
 export default async function FormateurLayout({ children }: { children: ReactNode }) {
-  await requireRole(['formateur']);
+  const roles = await requireRole(['formateur']);
+  const admin = estFormateurAdmin(roles);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
@@ -49,11 +61,13 @@ export default async function FormateurLayout({ children }: { children: ReactNod
             </span>
             {/* La zone est nommée : un formateur qui a aussi un compte client
                 doit savoir d'un coup d'œil où il se trouve. */}
-            <span className="text-sm text-encre-doux">formateur</span>
+            <span className="text-sm text-encre-doux">
+              {admin ? 'formateur admin' : 'formateur'}
+            </span>
           </Link>
 
           <div className="flex items-center gap-4">
-            <NavigationEspace liens={LIENS} />
+            <NavigationEspace liens={admin ? [...LIENS, ...LIENS_ADMIN] : LIENS} />
             <BoutonDeconnexion />
           </div>
         </Conteneur>

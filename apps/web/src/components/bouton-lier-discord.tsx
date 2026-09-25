@@ -19,6 +19,23 @@ import { MessageLigne } from './message';
  * Le scope demandé est `identify`, et rien d'autre : on a besoin de son
  * identifiant, pas de lire ses serveurs ni ses messages.
  */
+/**
+ * Part vers Discord pour y relier le compte connecté. Ne revient que sur un
+ * échec : en cas de succès, le navigateur quitte la page. Partagé avec
+ * l'inscription directe, qui l'enchaîne sans attendre de clic.
+ */
+export async function lancerLiaisonDiscord(): Promise<{ echec: boolean }> {
+  const supabase = createClient();
+  const { error } = await supabase.auth.linkIdentity({
+    provider: 'discord',
+    options: {
+      redirectTo: `${window.location.origin}/api/discord/callback`,
+      scopes: 'identify',
+    },
+  });
+  return { echec: Boolean(error) };
+}
+
 export function BoutonLierDiscord({ libelle = 'Connecter mon compte Discord' }) {
   const [message, setMessage] = useState<Message | null>(null);
   const [enCours, setEnCours] = useState(false);
@@ -27,16 +44,9 @@ export function BoutonLierDiscord({ libelle = 'Connecter mon compte Discord' }) 
     setEnCours(true);
     setMessage(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.linkIdentity({
-      provider: 'discord',
-      options: {
-        redirectTo: `${window.location.origin}/api/discord/callback`,
-        scopes: 'identify',
-      },
-    });
+    const { echec } = await lancerLiaisonDiscord();
 
-    if (error) {
+    if (echec) {
       setMessage(alerte("La connexion à Discord n'a pas abouti. Réessayez dans un instant."));
       setEnCours(false);
     }

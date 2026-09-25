@@ -46,6 +46,7 @@ const SECTIONS: Array<{ titre: string; liens: Array<{ href: string; libelle: str
     titre: 'Contenu',
     liens: [
       { href: '/admin/contenu', libelle: 'Guide de contenu' },
+      { href: '/admin/annonces', libelle: 'Annonces' },
       { href: '/admin/temoignages', libelle: 'Témoignages' },
       { href: '/admin/formateurs', libelle: 'Fiches formateurs' },
       { href: '/admin/legal', libelle: 'Pages légales' },
@@ -87,6 +88,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <span className="ml-2 text-xs font-medium text-encre-doux">back-office</span>
           </Link>
           <div className="flex items-center gap-4">
+            {roles.includes('formateur') && (
+              <Link href="/formateur" className="text-sm text-encre-doux hover:text-encre">
+                Espace formateur
+              </Link>
+            )}
             <span className="text-xs text-encre-doux">{roles.join(' · ')}</span>
             <BoutonDeconnexion />
           </div>

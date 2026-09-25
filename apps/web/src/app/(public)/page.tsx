@@ -4,6 +4,7 @@ import { formaterMontant } from '@apex/db';
 
 import { DonneesStructurees } from '@/components/donnees-structurees';
 import { Temoignages } from '@/components/temoignages';
+import { BandeauAnnonce } from '@/components/annonce';
 import { BoutonQualification } from '@/components/bouton-qualification';
 import { AvertissementRisque, Bouton, Carte, Conteneur, Section, Surtitre } from '@/components/ui';
 import { SOCIETE } from '@/lib/legal/societe';
@@ -58,6 +59,10 @@ const DONNEES_ORGANISME = {
  * Ce qui change par rapport au site actuel : **un seul chemin**. Tous les
  * appels à l'action mènent à `/qualification`. Pas de bouton « acheter » sur
  * l'accueil, pas de formulaire de contact concurrent.
+ *
+ * **Le premier bloc peut porter une annonce d'événement** depuis le
+ * 25 septembre 2026 (`/admin/annonces`) — le seul appel à l'action qui ne mène
+ * pas à `/qualification`, puisque c'est le client qui choisit où il renvoie.
  */
 
 const PILIERS = [
@@ -154,7 +159,11 @@ export default async function Page() {
   // les lire. C'est pire que ça en pratique : un témoignage sans consentement
   // affiché à Franck lui ferait croire qu'il est en ligne, et cesser de
   // réclamer l'accord. Une page publique montre la même chose à tout le monde.
-  const [{ data: formations }, { data: temoignages }] = await Promise.all([
+  //
+  // Même piège pour les annonces, avec une conséquence de plus : sans ces deux
+  // filtres, un membre du staff connecté verrait ici une annonce échue ou en
+  // brouillon, et la croirait en ligne.
+  const [{ data: formations }, { data: temoignages }, { data: annonce }] = await Promise.all([
     supabase
       .from('formations')
       .select(
@@ -169,6 +178,14 @@ export default async function Page() {
       .eq('publie', true)
       .order('ordre')
       .limit(3),
+    supabase
+      .from('annonces')
+      .select('surtitre, titre, texte, date_evenement, lien_url, lien_libelle')
+      .eq('publiee', true)
+      .gt('fin_affichage', new Date().toISOString())
+      .order('date_evenement', { ascending: true, nullsFirst: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   return (
@@ -177,6 +194,11 @@ export default async function Page() {
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="border-b border-filet bg-fond">
+        {annonce && (
+          <Conteneur className="pt-8 sm:pt-10">
+            <BandeauAnnonce annonce={annonce} />
+          </Conteneur>
+        )}
         <Conteneur className="grid gap-12 py-20 sm:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div className="space-y-7">
             <Surtitre>Approche neuro-éducative</Surtitre>

@@ -8,6 +8,7 @@ import { Carte } from '@/components/ui';
 import { dateHeure } from '@/lib/format';
 import { PARAM, messageConstant } from '@/lib/messages/catalogue';
 import { lireAccesExistant, phraseProlongation } from '@/lib/paiement/acces-existant';
+import { libelleAbonnement } from '@/lib/paiement/libelles';
 import { createClient } from '@/lib/supabase/server';
 
 import { BoutonPayer } from './bouton-payer';
@@ -73,6 +74,10 @@ export default async function Page({
     <div className="max-w-2xl space-y-8">
       <MessageURL message={messageConstant(parametres[PARAM])} />
 
+      <Link href="/espace/propositions" className="text-sm text-encre-doux hover:underline">
+        ← Mes propositions
+      </Link>
+
       <header className="space-y-3">
         <p className="text-sm text-encre-faible">
           Proposition du {dateHeure(proposition.created_at)}
@@ -91,7 +96,9 @@ export default async function Page({
       <Carte className="space-y-4">
         <div className="flex items-baseline justify-between gap-4">
           <span className="text-sm text-encre-doux">
-            {formation.type_produit === 'abonnement' ? 'Par mois' : 'Montant'}
+            {formation.type_produit === 'abonnement'
+              ? libelleAbonnement(formation.duree_acces_jours)
+              : 'Paiement unique'}
           </span>
           <span className="font-titre text-3xl font-extrabold tabular-nums">
             {formaterMontant(proposition.montant_cents, proposition.devise)}

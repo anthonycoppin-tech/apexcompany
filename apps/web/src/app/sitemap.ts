@@ -33,6 +33,7 @@ const PAGES: Array<{ chemin: string; priorite: number; frequence: Frequence }> =
   { chemin: '', priorite: 1, frequence: 'weekly' },
   { chemin: '/formations', priorite: 0.9, frequence: 'weekly' },
   { chemin: '/qualification', priorite: 0.8, frequence: 'monthly' },
+  { chemin: '/inscription', priorite: 0.5, frequence: 'yearly' },
   { chemin: '/formateurs', priorite: 0.6, frequence: 'monthly' },
   { chemin: '/faq', priorite: 0.6, frequence: 'monthly' },
   { chemin: '/contact', priorite: 0.5, frequence: 'yearly' },

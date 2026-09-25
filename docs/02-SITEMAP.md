@@ -180,3 +180,16 @@ formateur. Ces deux règles sont des politiques RLS, pas des filtres d'affichage
 s'ancre sur `inscriptions.formateur_id` et `leads.assigned_to` — une affectation explicite, et
 non une dérivation depuis les rendez-vous passés, qui élargirait le périmètre en silence à
 chaque RDV repris d'un collègue absent. Voir `04-DATA-MODEL.md`.
+
+## Ajouts du 25 septembre 2026 — retours de la présentation client
+
+| Écran                          | Accès                         | Rôle                                                                                      |
+| ------------------------------ | ----------------------------- | ----------------------------------------------------------------------------------------- |
+| `/inscription`                 | visiteur anonyme              | Un compte sans le formulaire ; enchaîne la liaison Discord, donc le rôle `invité`         |
+| `/formations/[slug]/souscrire` | tous                          | **Tout le catalogue** s'achète directement au prix affiché, plus seulement l'abonnement   |
+| `/espace/propositions`         | client                        | Toutes ses propositions, ouvertes ou non ; entrée du menu de l'espace                     |
+| `/formateur/statistiques`      | **formateur admin seulement** | Toute l'équipe ou un formateur, sur une période ou **une journée** (`?jour=`)             |
+| `/admin/annonces`              | admin, owner                  | Le bandeau d'événement du premier bloc de l'accueil, avec une fin d'affichage obligatoire |
+
+**Deux profils de formateur** : le _formateur admin_ porte `formateur` + `admin` et voit tout ;
+le _formateur employé_ porte `formateur` seul — ses affectations, ni argent ni statistiques.

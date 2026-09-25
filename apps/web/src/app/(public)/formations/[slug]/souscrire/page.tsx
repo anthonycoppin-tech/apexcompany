@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 
 import { formaterMontant } from '@apex/db';
 
@@ -7,6 +7,7 @@ import { MessageURL } from '@/components/message-url';
 import { AvertissementRisque, Carte, Conteneur, Section } from '@/components/ui';
 import { PARAM, messageConstant } from '@/lib/messages/catalogue';
 import { lireAccesExistant } from '@/lib/paiement/acces-existant';
+import { dureeAcces, libelleAbonnement } from '@/lib/paiement/libelles';
 import { createClient } from '@/lib/supabase/server';
 
 import { BoutonRenvoyer } from './bouton-renvoyer';
@@ -18,20 +19,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const { data } = await supabase.from('formations').select('titre').eq('slug', slug).maybeSingle();
 
-  return { title: data ? `Souscrire — ${data.titre}` : 'Souscrire' };
+  return { title: data ? `Acheter — ${data.titre}` : 'Acheter' };
 }
 
 /**
  * `/formations/[slug]/souscrire` — la vente en self-service.
  *
- * Réservée aux produits de type `abonnement`, tranché le 8 septembre 2026 : un
- * abonnement mensuel s'achète sans rendez-vous, imposer un audit pour y
- * souscrire coûterait la majorité des inscriptions. Les accompagnements et les
- * formations, eux, continuent de passer par l'échange d'orientation — le panier
- * justifie qu'on vérifie que le produit correspond avant de vendre.
- *
- * Un produit qui n'est pas un abonnement est renvoyé vers sa fiche plutôt que
- * vers un 404 : l'adresse existe, c'est ce produit-là qui ne s'achète pas ici.
+ * Ouverte à l'abonnement le 8 septembre 2026, puis à tout le catalogue le
+ * 25 septembre à la demande du client : formations et accompagnements
+ * s'achètent aussi au prix affiché. L'échange d'orientation reste proposé sur
+ * la fiche, pour qui veut être conseillé avant d'acheter.
  */
 export default async function Page({
   params,
@@ -49,13 +46,19 @@ export default async function Page({
   // bouton « souscrire » sur un produit qui n'est pas en vente.
   const { data: formation } = await supabase
     .from('formations')
-    .select('id, slug, titre, description, prix_cents, devise, type_produit')
+    .select('id, slug, titre, description, prix_cents, devise, type_produit, duree_acces_jours')
     .eq('slug', slug)
     .eq('actif', true)
     .maybeSingle();
 
   if (!formation) notFound();
-  if (formation.type_produit !== 'abonnement') redirect(`/formations/${slug}`);
+
+  const abonnement = formation.type_produit === 'abonnement';
+  const libellePrix = abonnement
+    ? libelleAbonnement(formation.duree_acces_jours)
+    : formation.duree_acces_jours
+      ? `Paiement unique — accès ${dureeAcces(formation.duree_acces_jours)}`
+      : 'Paiement unique — accès illimité';
 
   const {
     data: { user },
@@ -81,7 +84,7 @@ export default async function Page({
 
         <Carte className="space-y-6">
           <div className="flex items-baseline justify-between gap-4 border-b border-filet pb-5">
-            <span className="text-sm text-encre-doux">Par mois</span>
+            <span className="text-sm text-encre-doux">{libellePrix}</span>
             <span className="font-titre text-3xl font-extrabold tabular-nums">
               {formaterMontant(formation.prix_cents, formation.devise)}
             </span>
@@ -114,6 +117,7 @@ export default async function Page({
           ) : (
             <FormulaireSouscription
               slug={slug}
+              typeProduit={formation.type_produit}
               connecte={Boolean(user)}
               libelleBouton={user ? 'Payer et ouvrir mon accès' : 'Créer mon compte et payer'}
             />
@@ -125,7 +129,17 @@ export default async function Page({
           <ul className="list-disc space-y-1 pl-5">
             <li>L’accès au salon Discord du programme, attribué dès l’encaissement.</li>
             <li>Votre facture, disponible dans votre espace.</li>
-            <li>La résiliation en deux clics, sans avoir à écrire à qui que ce soit.</li>
+            {abonnement ? (
+              <li>La résiliation en deux clics, sans avoir à écrire à qui que ce soit.</li>
+            ) : (
+              <li>
+                Un doute sur le bon programme ?{' '}
+                <Link href="/qualification" className="text-accent hover:underline">
+                  Faites d’abord le point avec nous
+                </Link>
+                .
+              </li>
+            )}
           </ul>
         </div>
 

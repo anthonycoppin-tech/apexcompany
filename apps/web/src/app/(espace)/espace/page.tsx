@@ -1,7 +1,9 @@
 import Link from 'next/link';
 
+import { formaterMontant } from '@apex/db';
+
 import { MessageURL } from '@/components/message-url';
-import { Carte, LISTE } from '@/components/ui';
+import { Bouton, Carte, LISTE } from '@/components/ui';
 import { PARAM, messagePaiement } from '@/lib/messages/catalogue';
 import { lireEtatPaiement } from '@/lib/messages/preuves';
 import { dateCourte, dateHeure } from '@/lib/format';
@@ -37,8 +39,11 @@ export default async function Page({
       .eq('statut', 'active'),
     supabase
       .from('propositions')
-      .select('id, expire_le, formations(titre)')
+      .select('id, expire_le, montant_cents, devise, formations(titre)')
       .eq('statut', 'envoyee')
+      // Une proposition échue garde son statut en base : c'est la date qui
+      // fait foi. L'afficher comme « en attente » ferait cliquer pour rien.
+      .or(`expire_le.is.null,expire_le.gt.${new Date().toISOString()}`)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
@@ -79,20 +84,22 @@ export default async function Page({
       {/* La proposition passe avant tout le reste : c'est la seule chose de
           cette page qui attende une décision, et elle expire. */}
       {proposition.data && (
-        <Carte className="space-y-3 border-accent bg-accent-doux">
-          <h2 className="text-lg font-bold">Une proposition vous attend</h2>
-          <p className="text-encre-doux">
-            {proposition.data.formations?.titre}
-            {proposition.data.expire_le
-              ? ` — valable jusqu’au ${dateCourte(proposition.data.expire_le)}`
-              : ''}
-          </p>
-          <Link
-            href={`/espace/propositions/${proposition.data.id}`}
-            className="inline-block text-sm font-semibold text-accent hover:underline"
-          >
-            Voir la proposition →
-          </Link>
+        <Carte className="flex flex-wrap items-center justify-between gap-4 border-accent bg-accent-doux">
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold">Une proposition vous attend</h2>
+            <p className="text-encre-doux">
+              {proposition.data.formations?.titre} ·{' '}
+              <span className="font-semibold text-encre tabular-nums">
+                {formaterMontant(proposition.data.montant_cents, proposition.data.devise)}
+              </span>
+              {proposition.data.expire_le
+                ? ` — valable jusqu’au ${dateCourte(proposition.data.expire_le)}`
+                : ''}
+            </p>
+          </div>
+          {/* Un vrai bouton, pas un lien discret : c'est l'action qui a
+              échappé à tout le monde pendant la présentation du 25 septembre. */}
+          <Bouton href={`/espace/propositions/${proposition.data.id}`}>Voir et régler</Bouton>
         </Carte>
       )}
 
@@ -113,7 +120,15 @@ export default async function Page({
         ) : (
           <Carte>
             <p className="text-encre-doux">
-              Aucun accès ouvert pour l’instant. Il s’ouvre au paiement.
+              Aucun accès ouvert pour l’instant. Il s’ouvre au paiement — d’une{' '}
+              <Link href="/espace/propositions" className="text-accent hover:underline">
+                proposition
+              </Link>{' '}
+              ou d’un{' '}
+              <Link href="/formations" className="text-accent hover:underline">
+                programme du catalogue
+              </Link>
+              .
             </p>
           </Carte>
         )}

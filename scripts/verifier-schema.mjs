@@ -1170,6 +1170,62 @@ async function main() {
     0,
   );
 
+  // ── Annonces d'événement : jamais échues, jamais écrites hors du staff ────
+  // Un événement passé en tête de l'accueil serait une affirmation fausse. La
+  // politique de lecture publique filtre l'échéance ; on le vérifie avec des
+  // lignes à nous, indépendantes de l'annonce réelle insérée par la migration,
+  // qui s'échoit elle-même le 16 octobre 2026.
+  console.log('\nAnnonces\n');
+  await enTantQuAdministrateur();
+  await db.exec(`insert into public.annonces (titre, publiee, fin_affichage) values
+                   ('verif-en-cours', true, now() + interval '1 day'),
+                   ('verif-echue', true, now() - interval '1 minute'),
+                   ('verif-brouillon', false, now() + interval '1 day');`);
+
+  await devenir('00000000-0000-0000-0000-000000000000', 'anon');
+  verifier(
+    'un visiteur ne voit que lannonce publiée et non échue',
+    await compter(`public.annonces where titre like 'verif-%'`),
+    1,
+  );
+
+  await devenir('22222222-2222-2222-2222-222222222222');
+  verifier(
+    'ladmin voit les trois, échue et brouillon compris',
+    await compter(`public.annonces where titre like 'verif-%'`),
+    3,
+  );
+
+  // Un formateur employé na pas la main sur laccueil.
+  await devenir('33333333-3333-3333-3333-333333333333');
+  let formateurPublie = true;
+  try {
+    await db.exec(`insert into public.annonces (titre, publiee, fin_affichage)
+                   values ('verif-formateur', true, now() + interval '1 day');`);
+  } catch {
+    formateurPublie = false;
+  }
+  verifier('un formateur ne peut pas publier dannonce', formateurPublie, false);
+
+  await enTantQuAdministrateur();
+  let sansEcheance = false;
+  try {
+    await db.exec(`insert into public.annonces (titre, publiee) values ('verif-sans-fin', true);`);
+  } catch {
+    sansEcheance = true;
+  }
+  verifier('une annonce sans fin daffichage est refusée', sansEcheance, true);
+
+  let lienDangereux = false;
+  try {
+    await db.exec(`insert into public.annonces (titre, fin_affichage, lien_url, lien_libelle)
+                   values ('verif-lien', now(), 'javascript:alert(1)', 'Clic');`);
+  } catch {
+    lienDangereux = true;
+  }
+  verifier('un lien qui nest ni un chemin ni du HTTPS est refusé', lienDangereux, true);
+  await db.exec(`delete from public.annonces where titre like 'verif-%';`);
+
   // ── Filet : plus aucune trace du vocabulaire de la révision 2 ────────────
   const vestiges = await db.query(`
     select tablename from pg_tables

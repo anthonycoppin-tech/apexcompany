@@ -8,6 +8,7 @@ import { requireRole } from '@/lib/auth/roles';
 
 const LIENS = [
   { href: '/espace', libelle: 'Mes accès' },
+  { href: '/espace/propositions', libelle: 'Propositions' },
   { href: '/espace/rendez-vous', libelle: 'Rendez-vous' },
   { href: '/espace/factures', libelle: 'Factures' },
   { href: '/espace/communaute', libelle: 'Discord' },

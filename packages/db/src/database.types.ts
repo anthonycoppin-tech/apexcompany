@@ -39,6 +39,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      annonces: {
+        Row: {
+          created_at: string
+          date_evenement: string | null
+          fin_affichage: string
+          id: string
+          lien_libelle: string | null
+          lien_url: string | null
+          publiee: boolean
+          surtitre: string | null
+          texte: string | null
+          titre: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_evenement?: string | null
+          fin_affichage: string
+          id?: string
+          lien_libelle?: string | null
+          lien_url?: string | null
+          publiee?: boolean
+          surtitre?: string | null
+          texte?: string | null
+          titre: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_evenement?: string | null
+          fin_affichage?: string
+          id?: string
+          lien_libelle?: string | null
+          lien_url?: string | null
+          publiee?: boolean
+          surtitre?: string | null
+          texte?: string | null
+          titre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           cal_booking_id: string

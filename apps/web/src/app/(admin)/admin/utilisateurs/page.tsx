@@ -1,4 +1,7 @@
 import { EnTete, Tableau, Tuile, Vide } from '@/components/admin';
+import { type AppRole } from '@apex/db';
+
+import { libelleProfilFormateur } from '@/lib/auth/profils';
 import { getUserRoles } from '@/lib/auth/roles';
 import { dateCourte } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
@@ -51,7 +54,15 @@ export default async function Page() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Tuile libelle="Clients" valeur={String(compteParRole('client'))} />
-        <Tuile libelle="Formateurs" valeur={String(compteParRole('formateur'))} />
+        <Tuile
+          libelle="Formateurs"
+          valeur={String(compteParRole('formateur'))}
+          detail={`dont ${
+            liste.filter(
+              (p) => libelleProfilFormateur(rolesDe(p.id) as AppRole[]) === 'Formateur admin',
+            ).length
+          } formateur(s) admin`}
+        />
         <Tuile libelle="Admins" valeur={String(compteParRole('admin'))} />
         <Tuile
           libelle="Owners"
@@ -71,6 +82,17 @@ export default async function Page() {
         </p>
       )}
 
+      {/* Les deux profils de formateur (25 septembre 2026) ne sont pas deux
+          rôles : c'est la présence d'Admin à côté de Formateur qui les
+          distingue, et ce que « tout » veut dire reste défini par la RLS du
+          staff. */}
+      <p className="rounded-carte border border-filet bg-fond p-4 text-sm leading-relaxed text-encre-doux">
+        <strong className="text-encre">Formateur admin</strong> = Formateur + Admin : accès à tout,
+        statistiques et back-office compris.{' '}
+        <strong className="text-encre">Formateur employé</strong> = Formateur seul : ses prospects
+        et ses accompagnements, sans argent ni statistiques.
+      </p>
+
       {liste.length ? (
         <div className="rounded-carte border border-filet bg-fond p-5">
           <Tableau colonnes={['Personne', 'Rôles', 'Compte créé le']} largeurMin="46rem">
@@ -81,6 +103,11 @@ export default async function Page() {
                     {[p.prenom, p.nom].filter(Boolean).join(' ') || 'Sans nom'}
                   </span>
                   <span className="block text-xs text-encre-faible">{p.email}</span>
+                  {libelleProfilFormateur(rolesDe(p.id) as AppRole[]) && (
+                    <span className="mt-1 block text-xs font-medium text-accent">
+                      {libelleProfilFormateur(rolesDe(p.id) as AppRole[])}
+                    </span>
+                  )}
                 </td>
                 <td className="py-3 pr-4">
                   <BoutonsRole userId={p.id} roles={rolesDe(p.id)} estOwner={estOwner} />
