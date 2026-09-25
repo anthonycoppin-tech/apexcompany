@@ -66,9 +66,7 @@ compte d'un membre de l'équipe** avec son profil, mot de passe provisoire facul
 formateurs » dit qu'une fiche ne donne aucun accès. **Le rôle `branding` est retiré** : la
 valeur reste dans l'énumération SQL (PostgreSQL ne sait pas la retirer sans recréer le type et
 toutes les politiques qui en dépendent), une contrainte interdit de l'attribuer, et
-`rolesConnus()` la filtre côté TypeScript. **`20260925110000_a_retrait_branding.sql` attend un
-`db:push`** ; d'ici là rien ne casse, le compte `branding@apex.test` n'a simplement plus nulle
-part où aller.
+`rolesConnus()` la filtre côté TypeScript. `20260925110000_a_retrait_branding.sql` est **appliquée** (par Christopher, dans l'heure) et **vérifiée par le comportement** : plus aucune attribution `branding`, une nouvelle est refusée en `23514`, `stats_conversion()` refuse un formateur employé (`42501`) et sert l'admin.
 
 **Vu à l'écran**, sur un build de production contre la base partagée : les neuf fiches (bouton
 d'achat partout), la page d'achat d'une formation, `/inscription`, les écrans de l'employé
