@@ -2,12 +2,12 @@ import { ConversionReseaux } from '@/components/conversion-reseaux';
 
 export const metadata = { title: 'Conversion par réseau' };
 
-/** `/statistiques` — la page du rôle `branding`. Le staff la retrouve dans le back-office, `/admin/reseaux`. */
+/** `/admin/reseaux` — la conversion par réseau, dans le back-office, avec son menu. */
 export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<{ periode?: string }>;
 }) {
   const { periode } = await searchParams;
-  return <ConversionReseaux periode={periode} chemin="/statistiques" />;
+  return <ConversionReseaux periode={periode} chemin="/admin/reseaux" />;
 }

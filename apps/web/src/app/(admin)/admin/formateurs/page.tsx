@@ -37,10 +37,22 @@ export default async function Page() {
         }
       />
 
+      {/* Posé à la présentation du 25 septembre : on cherchait ici à ajouter un
+          formateur. Une fiche n'est pas un compte. */}
+      <p className="rounded-carte border border-filet bg-fond p-4 text-sm leading-relaxed text-encre-doux">
+        Une fiche est la présentation publique d’un formateur sur la page « L’équipe ». Elle ne
+        donne aucun accès au site : pour créer le compte d’un formateur et choisir ses droits,
+        passez par{' '}
+        <Link href="/admin/utilisateurs" className="font-semibold text-accent hover:underline">
+          Comptes et rôles
+        </Link>
+        .
+      </p>
+
       {liste.length ? (
         <div className="rounded-carte border border-filet bg-fond p-5">
           <Tableau
-            colonnes={['Nom', 'Fonction', 'Spécialités', 'Photo', 'État']}
+            colonnes={['Nom', 'Fonction', 'Spécialités', 'Photo', 'État', '']}
             largeurMin="54rem"
           >
             {liste.map((f) => (
@@ -68,6 +80,15 @@ export default async function Page() {
                   <Pastille ton={f.publie ? 'bon' : 'neutre'}>
                     {f.publie ? 'Affichée' : 'Brouillon'}
                   </Pastille>
+                </td>
+                <td className="py-2.5 text-right whitespace-nowrap">
+                  {/* La suppression est au bas de la fiche. */}
+                  <Link
+                    href={`/admin/formateurs/${f.id}`}
+                    className="text-sm font-semibold text-accent hover:underline"
+                  >
+                    Modifier
+                  </Link>
                 </td>
               </tr>
             ))}

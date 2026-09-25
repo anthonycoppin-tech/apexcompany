@@ -6,6 +6,7 @@ import { getUserRoles } from '@/lib/auth/roles';
 import { dateCourte } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
+import { AjoutMembre } from './ajout-membre';
 import { BoutonsRole } from './boutons-role';
 
 /**
@@ -92,6 +93,8 @@ export default async function Page() {
         <strong className="text-encre">Formateur employé</strong> = Formateur seul : ses prospects
         et ses accompagnements, sans argent ni statistiques.
       </p>
+
+      {estOwner && <AjoutMembre />}
 
       {liste.length ? (
         <div className="rounded-carte border border-filet bg-fond p-5">

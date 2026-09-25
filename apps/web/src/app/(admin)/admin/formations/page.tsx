@@ -68,6 +68,7 @@ export default async function Page() {
               'Durée d’accès',
               'Rôle Discord',
               'État',
+              '',
             ]}
             largeurMin="66rem"
           >
@@ -110,6 +111,15 @@ export default async function Page() {
                   <Pastille ton={f.actif ? 'bon' : 'neutre'}>
                     {f.actif ? 'Publié' : 'Brouillon'}
                   </Pastille>
+                </td>
+                <td className="py-2.5 text-right whitespace-nowrap">
+                  {/* La suppression est au bas de la fiche. */}
+                  <Link
+                    href={`/admin/formations/${f.id}`}
+                    className="text-sm font-semibold text-accent hover:underline"
+                  >
+                    Modifier
+                  </Link>
                 </td>
               </tr>
             ))}

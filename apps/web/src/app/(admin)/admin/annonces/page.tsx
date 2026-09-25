@@ -50,7 +50,7 @@ export default async function Page() {
       {liste.length ? (
         <div className="rounded-carte border border-filet bg-fond p-5">
           <Tableau
-            colonnes={['Titre', 'Événement', 'Affichée jusqu’au', 'État']}
+            colonnes={['Titre', 'Événement', 'Affichée jusqu’au', 'État', '']}
             largeurMin="40rem"
           >
             {liste.map((a) => (
@@ -68,6 +68,15 @@ export default async function Page() {
                 </td>
                 <td className="py-2.5">
                   <Pastille ton={a.ton}>{a.etat}</Pastille>
+                </td>
+                <td className="py-2.5 text-right whitespace-nowrap">
+                  {/* La suppression est au bas de la fiche. */}
+                  <Link
+                    href={`/admin/annonces/${a.id}`}
+                    className="text-sm font-semibold text-accent hover:underline"
+                  >
+                    Modifier
+                  </Link>
                 </td>
               </tr>
             ))}

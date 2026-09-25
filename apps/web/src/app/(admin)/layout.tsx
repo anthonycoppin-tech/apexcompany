@@ -30,7 +30,7 @@ const SECTIONS: Array<{ titre: string; liens: Array<{ href: string; libelle: str
     liens: [
       { href: '/admin', libelle: 'Tableau de bord' },
       { href: '/admin/statistiques', libelle: 'Statistiques' },
-      { href: '/statistiques', libelle: 'Conversion par réseau' },
+      { href: '/admin/reseaux', libelle: 'Conversion par réseau' },
     ],
   },
   {

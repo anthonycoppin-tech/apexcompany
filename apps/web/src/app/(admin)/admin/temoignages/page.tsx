@@ -46,7 +46,7 @@ export default async function Page() {
       {liste.length ? (
         <div className="rounded-carte border border-filet bg-fond p-5">
           <Tableau
-            colonnes={['Auteur', 'Contexte', 'Programme', 'Note', 'Accord', 'État']}
+            colonnes={['Auteur', 'Contexte', 'Programme', 'Note', 'Accord', 'État', '']}
             largeurMin="60rem"
           >
             {liste.map((t) => (
@@ -71,6 +71,15 @@ export default async function Page() {
                   <Pastille ton={t.publie ? 'bon' : 'neutre'}>
                     {t.publie ? 'Publié' : 'Brouillon'}
                   </Pastille>
+                </td>
+                <td className="py-2.5 text-right whitespace-nowrap">
+                  {/* La suppression est au bas de la fiche. */}
+                  <Link
+                    href={`/admin/temoignages/${t.id}`}
+                    className="text-sm font-semibold text-accent hover:underline"
+                  >
+                    Modifier
+                  </Link>
                 </td>
               </tr>
             ))}
